@@ -1,8 +1,8 @@
 package widgets
 
 import (
-	"github.com/leo/visor/internal/config"
-	"github.com/leo/visor/internal/input"
+	"github.com/namyoungkim/visor/internal/config"
+	"github.com/namyoungkim/visor/internal/input"
 )
 
 // Widget is the interface all widgets must implement.

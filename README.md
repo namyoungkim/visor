@@ -18,13 +18,13 @@ Opus Ctx: 42% Cache: 80% API: 2.5s $0.15 +25/-10 main ↑1
 ### Go install (권장)
 
 ```bash
-go install github.com/leo/visor@latest
+go install github.com/namyoungkim/visor@latest
 ```
 
 ### 소스에서 빌드
 
 ```bash
-git clone https://github.com/leo/visor.git
+git clone https://github.com/namyoungkim/visor.git
 cd visor
 go build -o visor ./cmd/visor
 ```

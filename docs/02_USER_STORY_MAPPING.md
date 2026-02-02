@@ -45,7 +45,7 @@
 **설명**: `go install` 한 줄로 바이너리 설치. 외부 런타임(Node, Python, Ruby) 불필요.
 
 **Acceptance Criteria**:
-- [ ] `go install github.com/leo/visor@latest` 로 설치 가능
+- [ ] `go install github.com/namyoungkim/visor@latest` 로 설치 가능
 - [ ] 설치 후 `visor --version`으로 버전 확인
 - [ ] Linux amd64, macOS arm64 빌드 동작
 

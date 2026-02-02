@@ -336,9 +336,9 @@ package widgets
 
 import (
     "fmt"
-    "github.com/leo/visor/internal/config"
-    "github.com/leo/visor/internal/input"
-    "github.com/leo/visor/internal/render"
+    "github.com/namyoungkim/visor/internal/config"
+    "github.com/namyoungkim/visor/internal/input"
+    "github.com/namyoungkim/visor/internal/render"
 )
 
 type MyWidget struct{}
@@ -389,8 +389,8 @@ package widgets
 
 import (
     "testing"
-    "github.com/leo/visor/internal/config"
-    "github.com/leo/visor/internal/input"
+    "github.com/namyoungkim/visor/internal/config"
+    "github.com/namyoungkim/visor/internal/input"
 )
 
 func TestMyWidget_Render(t *testing.T) {

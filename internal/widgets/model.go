@@ -1,9 +1,9 @@
 package widgets
 
 import (
-	"github.com/leo/visor/internal/config"
-	"github.com/leo/visor/internal/input"
-	"github.com/leo/visor/internal/render"
+	"github.com/namyoungkim/visor/internal/config"
+	"github.com/namyoungkim/visor/internal/input"
+	"github.com/namyoungkim/visor/internal/render"
 )
 
 // ModelWidget displays the current model name.

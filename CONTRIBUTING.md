@@ -12,7 +12,7 @@ visor에 기여해 주셔서 감사합니다! 이 문서는 기여 방법을 안
 ### 저장소 클론
 
 ```bash
-git clone https://github.com/leo/visor.git
+git clone https://github.com/namyoungkim/visor.git
 cd visor
 ```
 
@@ -136,9 +136,9 @@ internal/widgets/
 package widgets
 
 import (
-    "github.com/leo/visor/internal/config"
-    "github.com/leo/visor/internal/input"
-    "github.com/leo/visor/internal/render"
+    "github.com/namyoungkim/visor/internal/config"
+    "github.com/namyoungkim/visor/internal/input"
+    "github.com/namyoungkim/visor/internal/render"
 )
 
 type MyWidget struct{}

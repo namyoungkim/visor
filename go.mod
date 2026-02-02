@@ -1,4 +1,4 @@
-module github.com/leo/visor
+module github.com/namyoungkim/visor
 
 go 1.22.12
 

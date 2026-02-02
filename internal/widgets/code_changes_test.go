@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/leo/visor/internal/config"
-	"github.com/leo/visor/internal/input"
+	"github.com/namyoungkim/visor/internal/config"
+	"github.com/namyoungkim/visor/internal/input"
 )
 
 func TestCodeChangesWidget_NoChanges(t *testing.T) {

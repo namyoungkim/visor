@@ -251,7 +251,7 @@ Accepted
 **go install (주) + GitHub Releases (보조)**
 
 ### Rationale
-1. `go install github.com/leo/visor@latest` 한 줄로 완결
+1. `go install github.com/namyoungkim/visor@latest` 한 줄로 완결
 2. GitHub Actions로 릴리즈 시 자동 바이너리 빌드 (linux/mac, amd64/arm64)
 3. Go 미설치자는 GitHub Releases에서 바이너리 다운로드
 4. npm 래핑은 불필요한 복잡성

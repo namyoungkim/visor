@@ -25,7 +25,7 @@ echo '{"model":{"display_name":"Opus"},...}' | ./visor
 ./visor --check     # Validate config file
 
 # Install globally
-go install github.com/leo/visor@latest
+go install github.com/namyoungkim/visor@latest
 ```
 
 ## Architecture
