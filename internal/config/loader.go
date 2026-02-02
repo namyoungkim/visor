@@ -36,6 +36,11 @@ func Load(path string) (*Config, error) {
 		return DefaultConfig(), nil
 	}
 
+	// Apply default separator if not set
+	if cfg.General.Separator == "" {
+		cfg.General.Separator = DefaultSeparator
+	}
+
 	return &cfg, nil
 }
 
