@@ -11,6 +11,9 @@ import (
 // CacheHitWidget displays the cache hit rate.
 // This is a unique metric that no other statusline exposes.
 // Formula: cache_read_input_tokens / (cache_read_input_tokens + input_tokens) * 100
+//
+// Supported Extra options:
+//   - show_label: "true"/"false" - whether to show "Cache:" prefix (default: true)
 type CacheHitWidget struct{}
 
 func (w *CacheHitWidget) Name() string {
@@ -20,7 +23,11 @@ func (w *CacheHitWidget) Name() string {
 func (w *CacheHitWidget) Render(session *input.Session, cfg *config.WidgetConfig) string {
 	// Check if current_usage is available
 	if session.CurrentUsage == nil {
-		return render.Colorize("Cache: —", "gray")
+		label := "Cache: —"
+		if !GetExtraBool(cfg, "show_label", true) {
+			label = "—"
+		}
+		return render.Colorize(label, "gray")
 	}
 
 	cacheRead := session.CurrentUsage.CacheReadTokens
@@ -28,12 +35,27 @@ func (w *CacheHitWidget) Render(session *input.Session, cfg *config.WidgetConfig
 
 	total := cacheRead + inputTokens
 	if total == 0 {
-		return render.Colorize("Cache: —", "gray")
+		label := "Cache: —"
+		if !GetExtraBool(cfg, "show_label", true) {
+			label = "—"
+		}
+		return render.Colorize(label, "gray")
 	}
 
 	rate := float64(cacheRead) / float64(total) * 100
 	color := ColorByThresholdInverse(rate, CacheHitGoodPct, CacheHitWarningPct)
-	text := fmt.Sprintf("Cache: %.0f%%", rate)
+
+	value := fmt.Sprintf("%.0f%%", rate)
+
+	var text string
+	if cfg.Format != "" {
+		text = FormatOutput(cfg, "", value)
+	} else if GetExtraBool(cfg, "show_label", true) {
+		text = "Cache: " + value
+	} else {
+		text = value
+	}
+
 	return render.Colorize(text, color)
 }
 

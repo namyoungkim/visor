@@ -30,6 +30,9 @@ func DefaultConfigTOML() string {
 
   [[line.widget]]
   name = "context"
+  # format = "Context: {value}"  # Custom format (optional)
+  # [line.widget.extra]
+  # show_label = "false"  # Hide "Ctx:" prefix
 
   [[line.widget]]
   name = "cache_hit"
@@ -39,6 +42,8 @@ func DefaultConfigTOML() string {
 
   [[line.widget]]
   name = "cost"
+  # [line.widget.extra]
+  # show_label = "true"  # Show "Cost:" prefix
 
   [[line.widget]]
   name = "code_changes"
