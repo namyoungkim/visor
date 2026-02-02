@@ -1,9 +1,15 @@
 package git
 
 import (
+	"context"
 	"os/exec"
+	"strconv"
 	"strings"
+	"time"
 )
+
+// commandTimeout is the maximum time allowed for git commands.
+const commandTimeout = 200 * time.Millisecond
 
 // Status represents git repository status.
 type Status struct {
@@ -40,19 +46,32 @@ func GetStatus() Status {
 	return status
 }
 
+// gitCommand executes a git command with timeout.
+func gitCommand(args ...string) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "git", args...)
+	return cmd.Output()
+}
+
+// gitCommandRun executes a git command with timeout, returning only error.
+func gitCommandRun(args ...string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "git", args...)
+	return cmd.Run()
+}
+
 func isGitRepo() bool {
-	cmd := exec.Command("git", "rev-parse", "--is-inside-work-tree")
-	err := cmd.Run()
+	err := gitCommandRun("rev-parse", "--is-inside-work-tree")
 	return err == nil
 }
 
 func getBranch() string {
-	cmd := exec.Command("git", "branch", "--show-current")
-	out, err := cmd.Output()
+	out, err := gitCommand("branch", "--show-current")
 	if err != nil {
 		// Might be detached HEAD
-		cmd = exec.Command("git", "rev-parse", "--short", "HEAD")
-		out, err = cmd.Output()
+		out, err = gitCommand("rev-parse", "--short", "HEAD")
 		if err != nil {
 			return ""
 		}
@@ -61,8 +80,7 @@ func getBranch() string {
 }
 
 func getStatusCounts() (staged, modified int) {
-	cmd := exec.Command("git", "status", "--porcelain")
-	out, err := cmd.Output()
+	out, err := gitCommand("status", "--porcelain")
 	if err != nil {
 		return 0, 0
 	}
@@ -88,8 +106,7 @@ func getStatusCounts() (staged, modified int) {
 }
 
 func getAheadBehind() (ahead, behind int) {
-	cmd := exec.Command("git", "rev-list", "--left-right", "--count", "@{upstream}...HEAD")
-	out, err := cmd.Output()
+	out, err := gitCommand("rev-list", "--left-right", "--count", "@{upstream}...HEAD")
 	if err != nil {
 		return 0, 0
 	}
@@ -97,23 +114,8 @@ func getAheadBehind() (ahead, behind int) {
 	parts := strings.Fields(string(out))
 	if len(parts) == 2 {
 		// Format: behind ahead
-		if n, err := parseInt(parts[0]); err == nil {
-			behind = n
-		}
-		if n, err := parseInt(parts[1]); err == nil {
-			ahead = n
-		}
+		behind, _ = strconv.Atoi(strings.TrimSpace(parts[0]))
+		ahead, _ = strconv.Atoi(strings.TrimSpace(parts[1]))
 	}
 	return ahead, behind
-}
-
-func parseInt(s string) (int, error) {
-	var n int
-	for _, c := range s {
-		if c < '0' || c > '9' {
-			return 0, nil
-		}
-		n = n*10 + int(c-'0')
-	}
-	return n, nil
 }
