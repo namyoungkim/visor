@@ -142,3 +142,37 @@ func TestHistory_LoadNonexistent(t *testing.T) {
 		t.Errorf("expected empty history, got %d entries", h.Count())
 	}
 }
+
+func TestSanitizeSessionID(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"", "default"},
+		{"normal_session-123", "normal_session-123"},
+		{"../../../etc/passwd", "_________etc_passwd"},
+		{"session/with/slashes", "session_with_slashes"},
+		{"session with spaces", "session_with_spaces"},
+		{"a@b#c$d%e", "a_b_c_d_e"},
+	}
+
+	for _, tt := range tests {
+		result := sanitizeSessionID(tt.input)
+		if result != tt.expected {
+			t.Errorf("sanitizeSessionID(%q) = %q, want %q", tt.input, result, tt.expected)
+		}
+	}
+}
+
+func TestSanitizeSessionID_LongInput(t *testing.T) {
+	// Create a long session ID
+	longID := ""
+	for i := 0; i < 100; i++ {
+		longID += "a"
+	}
+
+	result := sanitizeSessionID(longID)
+	if len(result) > 64 {
+		t.Errorf("expected max length 64, got %d", len(result))
+	}
+}

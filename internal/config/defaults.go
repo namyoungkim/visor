@@ -106,5 +106,3 @@ separator = " | "  # Widget separator (default: " | ")
 #   name = "cache_hit"
 `
 }
-
-

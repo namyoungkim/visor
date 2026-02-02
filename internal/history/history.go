@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 )
 
@@ -40,12 +41,27 @@ func defaultHistoryDir() string {
 	return filepath.Join(home, ".cache", "visor")
 }
 
+// sanitizeSessionID removes potentially dangerous characters from session ID.
+// Only allows alphanumeric, dash, and underscore characters.
+var sessionIDRegex = regexp.MustCompile(`[^a-zA-Z0-9_-]`)
+
+func sanitizeSessionID(sessionID string) string {
+	if sessionID == "" {
+		return "default"
+	}
+	// Replace invalid characters with underscore
+	safe := sessionIDRegex.ReplaceAllString(sessionID, "_")
+	// Limit length to prevent overly long filenames
+	if len(safe) > 64 {
+		safe = safe[:64]
+	}
+	return safe
+}
+
 // historyPath returns the path for a session's history file.
 func historyPath(sessionID string) string {
-	if sessionID == "" {
-		sessionID = "default"
-	}
-	return filepath.Join(HistoryDirFunc(), "history_"+sessionID+".json")
+	safe := sanitizeSessionID(sessionID)
+	return filepath.Join(HistoryDirFunc(), "history_"+safe+".json")
 }
 
 // Load loads history for a session from disk.
@@ -121,6 +137,7 @@ func (h *History) GetContextHistory(n int) []float64 {
 }
 
 // GetCostHistory returns the last n cost values.
+// TODO(v0.3): Use for cost_spark widget - cost trend sparkline
 func (h *History) GetCostHistory(n int) []float64 {
 	if n <= 0 || len(h.Entries) == 0 {
 		return nil
