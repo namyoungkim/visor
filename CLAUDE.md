@@ -100,3 +100,4 @@ Cache hit rate formula: `cache_read_input_tokens / (cache_read + input_tokens) �
 - `docs/03_C4_MODEL.md` — System architecture diagrams
 - `docs/04_ADR.md` — 7 architecture decisions with rationale
 - `docs/05_IMPLEMENTATION.md` — Code structure, APIs, extension guide
+- `docs/06_PROGRESS.md` — PRD progress tracking
