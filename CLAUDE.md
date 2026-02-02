@@ -23,6 +23,7 @@ echo '{"model":{"display_name":"Opus"},...}' | ./visor
 ./visor --init      # Generate ~/.config/visor/config.toml
 ./visor --setup     # Configure Claude Code statusline
 ./visor --check     # Validate config file
+./visor --debug     # Debug output to stderr
 
 # Install globally
 go install github.com/namyoungkim/visor@latest
@@ -68,7 +69,7 @@ type Widget interface {
 
 - **Language**: Go (1-2ms startup, fills empty niche in ecosystem)
 - **Config**: TOML at `~/.config/visor/config.toml` (uses `[[line]]` for multiline layout)
-- **Git info**: External `git` CLI calls (5-10ms acceptable, zero dependencies)
+- **Git info**: External `git` CLI calls with 200ms timeout (zero dependencies)
 - **Dependencies**: Only `BurntSushi/toml` for config parsing
 
 ## MVP Widgets (v0.1)

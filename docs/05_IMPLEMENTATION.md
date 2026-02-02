@@ -250,6 +250,8 @@ func MultiLine(lines [][]string) string     // 멀티라인 조합
 ### internal/git
 
 ```go
+const commandTimeout = 200 * time.Millisecond  // Git 명령어 타임아웃
+
 type Status struct {
     Branch   string
     IsRepo   bool
@@ -261,11 +263,13 @@ type Status struct {
 }
 
 func GetStatus() Status
+func gitCommand(args ...string) ([]byte, error)     // 타임아웃 적용된 git 실행
+func gitCommandRun(args ...string) error            // 출력 없는 git 실행
 ```
 
-- 외부 `git` 바이너리 호출
+- 외부 `git` 바이너리 호출 (200ms 타임아웃 적용)
 - 비 git 디렉토리에서 빈 Status 반환
-- 약 5-10ms 소요 (허용 범위)
+- 대형 저장소에서도 statusline 멈춤 방지
 
 ---
 
@@ -297,6 +301,47 @@ var Registry = make(map[string]Widget)
 
 func Register(w Widget)
 func Get(name string) (Widget, bool)
+func RenderAll(session *input.Session, widgets []config.WidgetConfig) []string
+```
+
+### 헬퍼 함수
+
+**임계값 상수**:
+
+```go
+const (
+    ContextWarningPct = 60.0   // Context 경고 임계값
+    ContextDangerPct  = 80.0   // Context 위험 임계값
+    CostWarningUSD    = 0.5    // 비용 경고 임계값
+    CostDangerUSD     = 1.0    // 비용 위험 임계값
+    CacheHitGoodPct   = 80.0   // 캐시 양호 임계값
+    CacheHitWarningPct = 50.0  // 캐시 경고 임계값
+    LatencyWarningMs  = 2000   // 지연시간 경고 임계값
+    LatencyDangerMs   = 5000   // 지연시간 위험 임계값
+)
+```
+
+**색상 결정 함수**:
+
+```go
+// 값이 클수록 나쁜 경우 (cost, latency, context)
+func ColorByThreshold(value, warning, danger float64) string
+
+// 값이 클수록 좋은 경우 (cache hit rate)
+func ColorByThresholdInverse(value, good, warning float64) string
+```
+
+**포맷/옵션 함수**:
+
+```go
+// 커스텀 포맷 적용. {value} 플레이스홀더 지원.
+func FormatOutput(cfg *config.WidgetConfig, defaultFormat, value string) string
+
+// Extra 맵에서 값 조회
+func GetExtra(cfg *config.WidgetConfig, key, defaultValue string) string
+
+// Extra 맵에서 bool 값 조회
+func GetExtraBool(cfg *config.WidgetConfig, key string, defaultValue bool) bool
 func RenderAll(session *input.Session, widgets []config.WidgetConfig) []string
 ```
 

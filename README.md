@@ -148,6 +148,38 @@ visor --init
   name = "api_latency"
 ```
 
+### 위젯 커스터마이징
+
+`format` 필드로 출력 포맷을 변경할 수 있습니다:
+
+```toml
+[[line.widget]]
+name = "context"
+format = "Context: {value}"  # "Ctx: 42%" 대신 "Context: 42%"
+```
+
+`extra` 필드로 위젯별 옵션을 설정할 수 있습니다:
+
+```toml
+[[line.widget]]
+name = "context"
+[line.widget.extra]
+show_label = "false"  # "Ctx:" 접두사 숨기기 → "42%"만 표시
+
+[[line.widget]]
+name = "cost"
+[line.widget.extra]
+show_label = "true"   # "Cost:" 접두사 표시 → "Cost: $0.15"
+```
+
+**지원되는 extra 옵션**:
+
+| 위젯 | 옵션 | 기본값 | 설명 |
+|------|------|--------|------|
+| `context` | `show_label` | `true` | "Ctx:" 접두사 표시 |
+| `cache_hit` | `show_label` | `true` | "Cache:" 접두사 표시 |
+| `cost` | `show_label` | `false` | "Cost:" 접두사 표시 |
+
 ## CLI 옵션
 
 ```bash
@@ -155,6 +187,7 @@ visor --version   # 버전 출력
 visor --init      # 기본 설정 파일 생성
 visor --setup     # Claude Code 연동 가이드
 visor --check     # 설정 파일 유효성 검사
+visor --debug     # 디버그 정보 출력 (stderr)
 ```
 
 ## 수동 테스트
