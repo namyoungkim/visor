@@ -4,11 +4,8 @@ import (
 	"strings"
 )
 
-// Separator is the default separator between widgets.
-const Separator = " "
-
 // Layout combines rendered widget strings into final output.
-func Layout(widgets []string) string {
+func Layout(widgets []string, separator string) string {
 	// Filter out empty widgets
 	var nonEmpty []string
 	for _, w := range widgets {
@@ -21,7 +18,7 @@ func Layout(widgets []string) string {
 		return ""
 	}
 
-	line := strings.Join(nonEmpty, Separator)
+	line := strings.Join(nonEmpty, separator)
 
 	// Truncate to terminal width
 	width := TerminalWidth()
@@ -29,11 +26,11 @@ func Layout(widgets []string) string {
 }
 
 // MultiLine renders multiple lines of widgets.
-func MultiLine(lines [][]string) string {
+func MultiLine(lines [][]string, separator string) string {
 	var result []string
 
 	for _, lineWidgets := range lines {
-		line := Layout(lineWidgets)
+		line := Layout(lineWidgets, separator)
 		if line != "" {
 			result = append(result, line)
 		}
