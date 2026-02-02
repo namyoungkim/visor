@@ -46,6 +46,52 @@ func ColorByThresholdInverse(value, good, warning float64) string {
 	return "red"
 }
 
+// FormatOutput applies custom format if specified, otherwise uses default.
+// Format string can use {value} placeholder.
+// Example: format="Context: {value}" with value="42%" → "Context: 42%"
+func FormatOutput(cfg *config.WidgetConfig, defaultFormat, value string) string {
+	format := cfg.Format
+	if format == "" {
+		format = defaultFormat
+	}
+
+	// If no format specified, return value as-is
+	if format == "" {
+		return value
+	}
+
+	// Simple placeholder replacement
+	result := format
+	for i := 0; i <= len(result)-7; i++ {
+		if result[i:i+7] == "{value}" {
+			result = result[:i] + value + result[i+7:]
+			break
+		}
+	}
+
+	return result
+}
+
+// GetExtra returns a value from the Extra map, or defaultValue if not found.
+func GetExtra(cfg *config.WidgetConfig, key, defaultValue string) string {
+	if cfg.Extra == nil {
+		return defaultValue
+	}
+	if v, ok := cfg.Extra[key]; ok {
+		return v
+	}
+	return defaultValue
+}
+
+// GetExtraBool returns a boolean value from the Extra map.
+func GetExtraBool(cfg *config.WidgetConfig, key string, defaultValue bool) bool {
+	v := GetExtra(cfg, key, "")
+	if v == "" {
+		return defaultValue
+	}
+	return v == "true" || v == "1" || v == "yes"
+}
+
 // Widget is the interface all widgets must implement.
 type Widget interface {
 	Name() string
