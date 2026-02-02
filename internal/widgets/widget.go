@@ -117,7 +117,8 @@ const (
 const DefaultBarWidth = 10
 
 // ProgressBar returns a progress bar string for the given percentage.
-// Example: ProgressBar(42.0, 10) returns "████░░░░░░"
+// The filled portion is calculated using truncation (floor), not rounding.
+// Example: ProgressBar(42.0, 10) returns "████░░░░░░" (4.2 → 4 filled)
 func ProgressBar(pct float64, width int) string {
 	if width <= 0 {
 		width = DefaultBarWidth
@@ -130,6 +131,7 @@ func ProgressBar(pct float64, width int) string {
 		pct = 100
 	}
 
+	// Truncate to int (floor behavior): 42% of 10 = 4.2 → 4
 	filled := int(pct / 100 * float64(width))
 	if filled > width {
 		filled = width

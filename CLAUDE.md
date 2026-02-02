@@ -8,13 +8,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Environment Setup
 
-Go is installed via mise. Use the full path when `go` command is not in PATH:
+Go 1.22+ is required. If using mise (recommended):
 ```bash
-# Go binary path (mise)
-/Users/leo/.local/share/mise/installs/go/1.22.12/bin/go
+# Activate mise to add go to PATH
+eval "$(mise activate bash)"  # or zsh
 
-# Or activate mise in shell
-eval "$(~/.local/bin/mise activate bash)"
+# Or run go directly via mise
+mise exec go -- build ./cmd/visor
+
+# Check go version
+go version  # should be 1.22+
 ```
 
 ## Build & Development Commands

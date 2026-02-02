@@ -1,5 +1,8 @@
 package git
 
+// NOTE: These tests use os.Chdir which modifies global state.
+// Do NOT use t.Parallel() in these tests to avoid race conditions.
+
 import (
 	"os"
 	"os/exec"
