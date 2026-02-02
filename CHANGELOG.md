@@ -7,6 +7,33 @@
 
 ## [Unreleased]
 
+## [0.1.1] - 2025-02-02
+
+### Fixed
+
+- Git 명령어에 200ms 타임아웃 추가 - 대형 저장소에서 statusline 멈춤 방지 (#1)
+- `parseInt()` 함수 버그 수정 - `strconv.Atoi()` 사용 (#2)
+- cost 위젯 중복 코드 제거 (#3)
+
+### Added
+
+- `--debug` 플래그 - config 에러 등 디버깅 정보 출력 (#4)
+- `format` 필드 - 위젯 출력 포맷 커스터마이징 (예: `format = "Context: {value}"`) (#7)
+- `extra` 필드 - 위젯별 추가 옵션 (예: `show_label = "false"`) (#7)
+- 테스트 커버리지 대폭 개선 (#6)
+  - `internal/config`: 0% → 82.8%
+  - `internal/render`: ~50% → 74.7%
+  - `internal/widgets`: ~30% → 47.5%
+
+### Changed
+
+- 임계값을 상수로 추출하여 코드 가독성 향상 (#5)
+  - `ContextWarningPct`, `ContextDangerPct`
+  - `CostWarningUSD`, `CostDangerUSD`
+  - `CacheHitGoodPct`, `CacheHitWarningPct`
+  - `LatencyWarningMs`, `LatencyDangerMs`
+- `ColorByThreshold()`, `ColorByThresholdInverse()` 헬퍼 함수 추가
+
 ## [0.1.0] - 2025-02-02
 
 ### Added
@@ -58,5 +85,6 @@
 
 ## 링크
 
-[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/namyoungkim/visor/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/namyoungkim/visor/releases/tag/v0.1.0
