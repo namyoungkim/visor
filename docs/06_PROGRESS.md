@@ -2,7 +2,7 @@
 
 visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
-**최종 업데이트**: 2025-02-02 (v0.2.0 완료)
+**최종 업데이트**: 2025-02-03 (v0.2.0 완료)
 
 ---
 
@@ -121,7 +121,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
 ## 릴리즈 히스토리
 
-### v0.2.0 (2025-02-02)
+### v0.2.0 (2025-02-03)
 
 **Added**:
 - `burn_rate` 위젯 - 비용 번 레이트 (¢/min 또는 $/min)
@@ -131,6 +131,9 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 - 세션 히스토리 버퍼 - `~/.cache/visor/` 에 세션별 히스토리 저장
 - 조건부 위젯 렌더링 (`show_when_above` 옵션)
 - Session struct에 `total_duration_ms`, `session_id` 필드 추가
+
+**Security**:
+- Session ID sanitization 추가 - path traversal 방지
 
 ### v0.1.2 (2025-02-02)
 

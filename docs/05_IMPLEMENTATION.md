@@ -318,6 +318,7 @@ func (h *History) Count() int                   // 엔트리 수
 - 히스토리 저장 경로: `~/.cache/visor/history_<session_id>.json`
 - 세션별로 독립적인 히스토리 관리
 - 최대 20개 엔트리 유지 (FIFO)
+- Session ID sanitization: 영문, 숫자, `-`, `_`만 허용 (path traversal 방지)
 
 ---
 
