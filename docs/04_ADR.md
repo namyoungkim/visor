@@ -11,6 +11,8 @@
 | 005 | 차별화 전략: 효율성 메트릭스 | Accepted |
 | 006 | 배포: go install + 단일 바이너리 | Accepted |
 | 007 | 프로젝트 구조: internal 패키지 | Accepted |
+| 008 | 세션 히스토리: 파일 기반 JSON | Accepted (v0.2) |
+| 009 | 레이아웃: Split 좌/우 정렬 | Accepted (v0.2) |
 
 ---
 
@@ -301,3 +303,91 @@ Go 프로젝트의 패키지 구조를 어떻게 잡을지.
 
 **부정적**:
 - MVP 7개 파일에 디렉토리 구조가 과할 수 있으나, 성장 여지를 고려하면 합리적
+
+---
+
+## ADR-008: 세션 히스토리 — 파일 기반 JSON (v0.2)
+
+### Status
+Accepted
+
+### Context
+`context_spark` 위젯(스파크라인)과 미래의 추세 분석을 위해 호출 간 데이터를 유지해야 함.
+statusline은 호출마다 새 프로세스로 spawn되므로 메모리 기반 상태는 불가능.
+
+### Options Considered
+
+| Option | 장점 | 단점 |
+|--------|------|------|
+| **JSON 파일** | 단순, 디버깅 용이, 의존성 없음 | 파일 I/O 오버헤드 |
+| **SQLite** | 구조화된 쿼리 가능 | 의존성 증가, 이 규모에 과잉 |
+| **환경변수/임시파일** | 표준 메커니즘 | 크기 제한, 복잡한 구조 표현 어려움 |
+
+### Decision
+**JSON 파일 (`~/.cache/visor/history_<session_id>.json`)**
+
+### Rationale
+1. 세션별로 독립된 히스토리 관리 (session_id로 구분)
+2. JSON은 Go stdlib으로 파싱, 외부 의존성 없음
+3. `~/.cache/`는 XDG 표준 캐시 디렉토리
+4. 최대 20개 엔트리로 제한하여 파일 크기 관리
+5. 디버깅 시 파일을 직접 열어 확인 가능
+
+### Consequences
+
+**긍정적**:
+- 프로세스 재시작 간 데이터 유지
+- 세션별 독립 관리로 충돌 없음
+- 단순한 구현
+
+**부정적**:
+- 파일 I/O로 인한 ~1ms 추가 지연
+- 디스크 공간 사용 (세션당 ~2KB)
+
+---
+
+## ADR-009: 레이아웃 — Split 좌/우 정렬 (v0.2)
+
+### Status
+Accepted
+
+### Context
+터미널 너비를 효율적으로 활용하기 위해 위젯을 좌측과 우측에 분리 배치하는 기능 필요.
+예: `Opus | main ~3                     $0.48 | Cache: 73%`
+
+### Options Considered
+
+| Option | 장점 | 단점 |
+|--------|------|------|
+| **Line에 left/right 배열** | 직관적, TOML 표현 자연스러움 | Config 구조 변경 |
+| **위젯별 align 속성** | 기존 구조 유지 | 위젯마다 설정 반복 |
+| **별도 split_line 타입** | 명시적 구분 | 복잡성 증가 |
+
+### Decision
+**Line 구조체에 `Left`/`Right` 배열 추가**
+
+```toml
+[[line]]
+  [[line.left]]
+  name = "model"
+
+  [[line.right]]
+  name = "cost"
+```
+
+### Rationale
+1. TOML의 `[[line.left]]` 문법이 자연스러움
+2. 기존 `[[line.widget]]` 방식과 공존 가능
+3. 렌더링 시 좌측 → 패딩 → 우측 순으로 간단히 구현
+4. 터미널 너비에 따른 자동 폴백 (너비 부족 시 일반 레이아웃으로)
+
+### Consequences
+
+**긍정적**:
+- 터미널 공간 효율적 활용
+- 시각적으로 깔끔한 분리
+- 기존 설정과 호환
+
+**부정적**:
+- Config 로딩 로직 약간 복잡해짐
+- 좁은 터미널에서 폴백 필요

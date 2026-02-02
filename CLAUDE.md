@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**visor** (Claude Code Efficiency Dashboard) is a Go-based statusline for Claude Code focused on real-time efficiency metrics rather than just status display. The key differentiator is exposing cache hit rate, API latency, and code changes—data already in stdin JSON that no other project uses.
+**visor** (Claude Code Efficiency Dashboard) is a Go-based statusline for Claude Code focused on real-time efficiency metrics rather than just status display. The key differentiator is exposing cache hit rate, API latency, burn rate, and context prediction—data already in stdin JSON that no other project uses.
 
 ## Environment Setup
 
@@ -30,7 +30,7 @@ go build -o visor ./cmd/visor
 go test ./...
 
 # Manual testing
-echo '{"model":{"display_name":"Opus"},...}' | ./visor
+echo '{"session_id":"test","model":{"display_name":"Opus"},"context_window":{"used_percentage":42.5},"cost":{"total_cost_usd":0.48,"total_duration_ms":45000}}' | ./visor
 
 # CLI flags
 ./visor --version   # Version info
@@ -47,14 +47,14 @@ go install github.com/namyoungkim/visor@latest
 
 ```bash
 # Create annotated tag
-git tag -a v0.1.x -m "v0.1.x: Brief description
+git tag -a v0.2.x -m "v0.2.x: Brief description
 
 Features:
 - Feature 1
 - Feature 2"
 
 # Push tag to remote
-git push origin v0.1.x
+git push origin v0.2.x
 
 # List all tags
 git tag -l
@@ -68,11 +68,16 @@ stdin JSON → input.Parse() → Session struct
                                    │
 config.Load() → Config             │
                   │                │
+history.Load() → History           │
+                  │                │
                   ▼                ▼
-            widgets.Registry.RenderAll(session, config)
-                                   │
-                                   ▼
-                          render.Layout() → stdout ANSI
+            widgets.RenderAll(session, config)
+                      │
+                      ▼
+            render.Layout() or render.SplitLayout()
+                      │
+                      ▼
+                  stdout ANSI
 ```
 
 ### Project Structure (cmd/ + internal/)
@@ -83,6 +88,7 @@ internal/config/            # TOML config loading
 internal/widgets/           # Widget interface + implementations
 internal/render/            # Layout, ANSI colors, truncation
 internal/git/               # git CLI wrapper
+internal/history/           # Session history buffer
 ```
 
 ### Widget Interface Pattern
@@ -100,11 +106,13 @@ type Widget interface {
 
 - **Language**: Go (1-2ms startup, fills empty niche in ecosystem)
 - **Config**: TOML at `~/.config/visor/config.toml` (uses `[[line]]` for multiline layout)
+- **History**: JSON at `~/.cache/visor/history_<session_id>.json`
 - **Git info**: External `git` CLI calls with 200ms timeout (zero dependencies)
 - **Dependencies**: Only `BurntSushi/toml` for config parsing
 
-## MVP Widgets (v0.1)
+## Widgets (v0.2.0)
 
+### Core Widgets (v0.1)
 | Widget | Identifier | Unique? |
 |--------|------------|---------|
 | Model name | `model` | No |
@@ -115,12 +123,43 @@ type Widget interface {
 | API latency | `api_latency` | **Yes** |
 | Code changes | `code_changes` | **Yes** |
 
-Cache hit rate formula: `cache_read_input_tokens / (cache_read + input_tokens) × 100`
+### Efficiency Widgets (v0.2)
+| Widget | Identifier | Output Example | Unique? |
+|--------|------------|----------------|---------|
+| Burn rate | `burn_rate` | `64.0¢/min` | **Yes** |
+| Compact ETA | `compact_eta` | `~18m` | **Yes** |
+| Context sparkline | `context_spark` | `▂▃▄▅▆` | **Yes** |
 
-## Config Options (v0.1.2)
+### Widget Formulas
+- Cache hit rate: `cache_read_tokens / (cache_read + input_tokens) × 100`
+- Burn rate: `total_cost_usd / (total_duration_ms / 60000)`
+- Compact ETA: `(80 - current%) / context_burn_rate_per_min`
 
+## Config Options (v0.2.0)
+
+### General
 - `[general].separator` - Widget separator (default: `" | "`)
-- `context` widget extras: `show_bar`, `bar_width` for progress bar customization
+
+### Layout Types
+```toml
+# Single-line layout
+[[line]]
+  [[line.widget]]
+  name = "model"
+
+# Split layout (left/right aligned)
+[[line]]
+  [[line.left]]
+  name = "model"
+  [[line.right]]
+  name = "cost"
+```
+
+### Widget Extras
+- `context`: `show_bar`, `bar_width`
+- `compact_eta`: `show_when_above` (default: 40)
+- `context_spark`: `width` (default: 8)
+- `burn_rate`, `cost`: `show_label`
 
 ## Performance Requirements
 
@@ -134,6 +173,6 @@ Cache hit rate formula: `cache_read_input_tokens / (cache_read + input_tokens) �
 - `docs/01_IMPACT_MAPPING.md` — Goals and deliverables
 - `docs/02_USER_STORY_MAPPING.md` — User journey and validation scenarios
 - `docs/03_C4_MODEL.md` — System architecture diagrams
-- `docs/04_ADR.md` — 7 architecture decisions with rationale
+- `docs/04_ADR.md` — Architecture decisions with rationale
 - `docs/05_IMPLEMENTATION.md` — Code structure, APIs, extension guide
 - `docs/06_PROGRESS.md` — PRD progress tracking

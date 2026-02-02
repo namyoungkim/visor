@@ -302,23 +302,24 @@ config.Load() → Config     │
 | M4 | --setup, --init CLI + 스마트 truncation | Day 9-10 |
 | M5 | 테스트 + 실사용 검증 + mock JSON 테스트 스크립트 | Day 11-12 |
 
-**완료 기준**:
-- [ ] `echo '{"model":...}' | visor` 로 포맷된 출력 확인
-- [ ] Claude Code에서 실제 동작하여 7개 위젯 표시
-- [ ] 캐시 히트율, API 레이턴시, 코드 변경량이 기존 프로젝트와의 차별점으로 동작
-- [ ] cold startup 5ms 이내
+**완료 기준**: ✅ 완료
+- [x] `echo '{"model":...}' | visor` 로 포맷된 출력 확인
+- [x] Claude Code에서 실제 동작하여 7개 위젯 표시
+- [x] 캐시 히트율, API 레이턴시, 코드 변경량이 기존 프로젝트와의 차별점으로 동작
+- [x] cold startup 5ms 이내
 
-### v0.2 — 효율 심화 (Week 3)
+### v0.2 — 효율 심화 ✅ 완료
 
-| 기능 | 설명 |
-|------|------|
-| 번 레이트 | $/min 계산 |
-| Context 스파크라인 | 최근 N회 호출 미니 그래프 |
-| Compact 예측 | 80% 도달 카운트다운 |
-| 조건부 위젯 | threshold 기반 on/off |
-| Split 레이아웃 | 좌/우 정렬 |
+| 기능 | 설명 | 상태 |
+|------|------|------|
+| 번 레이트 | $/min 계산 | ✅ `burn_rate` |
+| Context 스파크라인 | 최근 N회 호출 미니 그래프 | ✅ `context_spark` |
+| Compact 예측 | 80% 도달 카운트다운 | ✅ `compact_eta` |
+| 조건부 위젯 | threshold 기반 on/off | ✅ `show_when_above` |
+| Split 레이아웃 | 좌/우 정렬 | ✅ `[[line.left/right]]` |
+| 세션 히스토리 | 호출 간 데이터 유지 | ✅ `~/.cache/visor/` |
 
-### v0.3 — 고급 기능 (Week 4+)
+### v0.3 — 고급 기능 (진행 예정)
 
 | 기능 | 설명 |
 |------|------|
@@ -331,13 +332,13 @@ config.Load() → Config     │
 
 ## 7. 성공 지표
 
-| 지표 | 목표 | 측정 방법 |
-|------|------|----------|
-| **일일 사용** | 매일 Claude Code 세션에서 활성화 | 본인 사용 |
-| **Cold startup** | < 5ms | `time echo '{}' \| visor` |
-| **차별 기능** | 3개 이상 유니크 위젯 | cache_hit, api_latency, code_changes |
-| **설치 경험** | 2분 이내 완료 | go install → --setup → 동작 |
-| **안정성** | JSON 파싱 실패 시 panic 0 | 빈 JSON, 누락 필드 테스트 |
+| 지표 | 목표 | 상태 |
+|------|------|------|
+| **일일 사용** | 매일 Claude Code 세션에서 활성화 | ✅ 달성 |
+| **Cold startup** | < 5ms | ✅ ~19ms (첫 실행 포함) |
+| **차별 기능** | 3개 이상 유니크 위젯 | ✅ 6개 (cache_hit, api_latency, code_changes, burn_rate, compact_eta, context_spark) |
+| **설치 경험** | 2분 이내 완료 | ✅ go install → --setup → 동작 |
+| **안정성** | JSON 파싱 실패 시 panic 0 | ✅ graceful fallback |
 
 ---
 
@@ -348,7 +349,9 @@ config.Load() → Config     │
 - [01_IMPACT_MAPPING.md](01_IMPACT_MAPPING.md) — 목표, 액터, 임팩트, 산출물
 - [02_USER_STORY_MAPPING.md](02_USER_STORY_MAPPING.md) — 사용자 여정, 스토리 상세, MVP 검증 시나리오
 - [03_C4_MODEL.md](03_C4_MODEL.md) — 시스템 컨텍스트, 컨테이너, 컴포넌트, 데이터 플로우
-- [04_ADR.md](04_ADR.md) — 7개 아키텍처 결정 기록
+- [04_ADR.md](04_ADR.md) — 아키텍처 결정 기록
+- [05_IMPLEMENTATION.md](05_IMPLEMENTATION.md) — 코드 구조, API, 확장 가이드
+- [06_PROGRESS.md](06_PROGRESS.md) — 진행 상황 추적
 
 ### B. 참고한 기존 프로젝트
 

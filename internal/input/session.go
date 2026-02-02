@@ -2,6 +2,7 @@ package input
 
 // Session represents the parsed stdin JSON from Claude Code.
 type Session struct {
+	SessionID     string        `json:"session_id"`
 	Model         Model         `json:"model"`
 	Cost          Cost          `json:"cost"`
 	ContextWindow ContextWindow `json:"context_window"`
@@ -18,6 +19,7 @@ type Model struct {
 // Cost contains billing and API performance data.
 type Cost struct {
 	TotalCostUSD          float64 `json:"total_cost_usd"`
+	TotalDurationMs       int64   `json:"total_duration_ms"`
 	TotalAPIDurationMs    int64   `json:"total_api_duration_ms"`
 	TotalAPICalls         int     `json:"total_api_calls"`
 	TotalInputTokens      int     `json:"total_input_tokens"`

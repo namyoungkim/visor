@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/namyoungkim/visor/internal/config"
+	"github.com/namyoungkim/visor/internal/history"
 	"github.com/namyoungkim/visor/internal/input"
 )
 
@@ -184,6 +185,14 @@ func RenderAll(session *input.Session, widgets []config.WidgetConfig) []string {
 	return result
 }
 
+// contextSparkWidget holds the singleton instance for history injection.
+var contextSparkWidget = &ContextSparkWidget{}
+
+// SetHistory sets the history on widgets that need it.
+func SetHistory(h *history.History) {
+	contextSparkWidget.SetHistory(h)
+}
+
 func init() {
 	// Register all built-in widgets
 	Register(&ModelWidget{})
@@ -193,4 +202,7 @@ func init() {
 	Register(&CacheHitWidget{})
 	Register(&APILatencyWidget{})
 	Register(&CodeChangesWidget{})
+	Register(&BurnRateWidget{})
+	Register(&CompactETAWidget{})
+	Register(contextSparkWidget)
 }

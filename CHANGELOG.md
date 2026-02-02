@@ -7,19 +7,34 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-02-03
+
 ### Added
 
+- **새 위젯 3종**
+  - `burn_rate` - 비용 번 레이트 (¢/min 또는 $/min)
+  - `compact_eta` - 80% context 도달 예측 시간
+  - `context_spark` - 히스토리 기반 스파크라인 (`▂▃▄▅▆`)
+- **Split 레이아웃** - 좌/우 정렬 지원 (`[[line.left]]`, `[[line.right]]`)
+- **세션 히스토리 버퍼** - `~/.cache/visor/history_<session>.json`에 세션별 히스토리 저장
+- **조건부 위젯 렌더링** - `show_when_above` 옵션으로 threshold 기반 표시/숨김
 - `[general]` 섹션의 `separator` 설정 - 위젯 간 구분자 커스터마이징 (기본값: `" | "`)
-- Context 위젯 프로그레스 바 - `Ctx: 42% ████░░░░░░` 형식 (기본 활성화)
-  - `show_bar`: "true"/"false" - 프로그레스 바 표시 여부 (기본: true)
-  - `bar_width`: "10" - 프로그레스 바 너비 (기본: 10)
+- Context 위젯 프로그레스 바 - `Ctx: 42% ████░░░░░░` 형식
+- Session struct에 `total_duration_ms`, `session_id` 필드 추가
 
 ### Changed
 
+- 기본 위젯 7개 → 10개 (burn_rate, compact_eta, context_spark 추가)
 - 테스트 커버리지 대폭 개선
   - `internal/git`: 0% → 80.9%
   - `internal/render`: 74.7% → 90.8%
   - `internal/widgets`: 58.9% → 83.6%
+
+### Security
+
+- Session ID sanitization 추가 - path traversal 방지 (#14)
+  - 영문, 숫자, `-`, `_`만 허용
+  - 최대 64자 제한
 
 ## [0.1.1] - 2025-02-02
 
@@ -99,6 +114,7 @@
 
 ## 링크
 
-[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/namyoungkim/visor/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/namyoungkim/visor/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/namyoungkim/visor/releases/tag/v0.1.0

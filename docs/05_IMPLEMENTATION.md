@@ -34,6 +34,9 @@ visor/
 │   │   ├── widget.go        # Widget 인터페이스 + Registry
 │   │   ├── model.go         # 모델명 위젯
 │   │   ├── context.go       # 컨텍스트 위젯
+│   │   ├── context_spark.go # 컨텍스트 스파크라인 위젯 (v0.2)
+│   │   ├── compact_eta.go   # Compact 예측 위젯 (v0.2)
+│   │   ├── burn_rate.go     # 번 레이트 위젯 (v0.2)
 │   │   ├── git.go           # Git 상태 위젯
 │   │   ├── cost.go          # 비용 위젯
 │   │   ├── cache_hit.go     # 캐시 히트율 위젯 (고유)
@@ -43,13 +46,15 @@ visor/
 │   ├── render/              # 출력 렌더링
 │   │   ├── ansi.go          # ANSI 컬러 코드
 │   │   ├── truncate.go      # 문자열 자르기
-│   │   ├── truncate_test.go
-│   │   └── layout.go        # 위젯 조합
+│   │   └── layout.go        # 위젯 조합 + Split 레이아웃
+│   ├── history/             # 세션 히스토리 (v0.2)
+│   │   ├── history.go       # 히스토리 관리
+│   │   └── history_test.go
 │   └── git/                 # git CLI 래퍼
 │       └── status.go        # git status 파싱
 ├── go.mod
 ├── go.sum
-└── docs/                    # 설계 문서 (00_PRD ~ 04_ADR)
+└── docs/                    # 설계 문서 (00_PRD ~ 06_PROGRESS)
 ```
 
 ### 디렉토리 역할
@@ -59,9 +64,10 @@ visor/
 | `cmd/visor` | CLI 진입점, 플래그 처리 | 모든 internal 패키지 |
 | `internal/input` | JSON 파싱 | 없음 |
 | `internal/config` | 설정 로딩 | BurntSushi/toml |
-| `internal/widgets` | 위젯 로직 | input, config, render, git |
+| `internal/widgets` | 위젯 로직 | input, config, render, git, history |
 | `internal/render` | ANSI 출력 | 없음 |
 | `internal/git` | git 명령 실행 | 없음 (외부 git 바이너리) |
+| `internal/history` | 세션 히스토리 버퍼 | 없음 |
 
 ---
 
@@ -129,11 +135,12 @@ visor/
 
 ```go
 type Session struct {
+    SessionID     string        `json:"session_id"`      // v0.2: 세션 식별자
     Model         Model         `json:"model"`
     Cost          Cost          `json:"cost"`
     ContextWindow ContextWindow `json:"context_window"`
     Workspace     Workspace     `json:"workspace"`
-    CurrentUsage  *CurrentUsage `json:"current_usage"`  // nullable
+    CurrentUsage  *CurrentUsage `json:"current_usage"`   // nullable
 }
 
 type Model struct {
@@ -143,6 +150,7 @@ type Model struct {
 
 type Cost struct {
     TotalCostUSD          float64 `json:"total_cost_usd"`
+    TotalDurationMs       int64   `json:"total_duration_ms"`     // v0.2: 전체 세션 시간
     TotalAPIDurationMs    int64   `json:"total_api_duration_ms"`
     TotalAPICalls         int     `json:"total_api_calls"`
     TotalInputTokens      int     `json:"total_input_tokens"`
@@ -194,7 +202,9 @@ type GeneralConfig struct {
 }
 
 type Line struct {
-    Widgets []WidgetConfig `toml:"widget"`
+    Widgets []WidgetConfig `toml:"widget"`  // 단일 레이아웃
+    Left    []WidgetConfig `toml:"left"`    // v0.2: Split 레이아웃 (좌측)
+    Right   []WidgetConfig `toml:"right"`   // v0.2: Split 레이아웃 (우측)
 }
 
 type WidgetConfig struct {
@@ -248,8 +258,10 @@ func VisibleLength(s string) int            // ANSI 제외 길이
 **레이아웃**:
 
 ```go
-func Layout(widgets []string, separator string) string        // 단일 라인 조합
-func MultiLine(lines [][]string, separator string) string     // 멀티라인 조합
+func Layout(widgets []string, separator string) string                    // 단일 라인 조합
+func SplitLayout(left, right []string, separator string) string           // v0.2: 좌/우 정렬
+func MultiLine(lines [][]string, separator string) string                 // 멀티라인 조합
+func JoinLines(lines []string) string                                     // v0.2: 라인 결합
 ```
 
 ### internal/git
@@ -275,6 +287,38 @@ func gitCommandRun(args ...string) error            // 출력 없는 git 실행
 - 외부 `git` 바이너리 호출 (200ms 타임아웃 적용)
 - 비 git 디렉토리에서 빈 Status 반환
 - 대형 저장소에서도 statusline 멈춤 방지
+
+### internal/history (v0.2)
+
+```go
+const MaxEntries = 20  // 세션당 최대 히스토리 수
+
+type Entry struct {
+    Timestamp      int64   `json:"ts"`
+    ContextPct     float64 `json:"ctx_pct"`
+    CostUSD        float64 `json:"cost"`
+    DurationMs     int64   `json:"dur_ms"`
+    CacheHitPct    float64 `json:"cache_pct"`
+    APILatencyMs   int64   `json:"api_ms"`
+}
+
+type History struct {
+    SessionID string  `json:"session_id"`
+    Entries   []Entry `json:"entries"`
+}
+
+func Load(sessionID string) (*History, error)   // 히스토리 로딩
+func (h *History) Save() error                  // 히스토리 저장
+func (h *History) Add(entry Entry)              // 엔트리 추가
+func (h *History) GetContextHistory(n int) []float64  // 최근 n개 컨텍스트 값
+func (h *History) Latest() *Entry               // 최신 엔트리
+func (h *History) Count() int                   // 엔트리 수
+```
+
+- 히스토리 저장 경로: `~/.cache/visor/history_<session_id>.json`
+- 세션별로 독립적인 히스토리 관리
+- 최대 20개 엔트리 유지 (FIFO)
+- Session ID sanitization: 영문, 숫자, `-`, `_`만 허용 (path traversal 방지)
 
 ---
 
@@ -315,14 +359,30 @@ func RenderAll(session *input.Session, widgets []config.WidgetConfig) []string
 
 ```go
 const (
+    // Context window thresholds
     ContextWarningPct = 60.0   // Context 경고 임계값
     ContextDangerPct  = 80.0   // Context 위험 임계값
+
+    // Cost thresholds (USD)
     CostWarningUSD    = 0.5    // 비용 경고 임계값
     CostDangerUSD     = 1.0    // 비용 위험 임계값
-    CacheHitGoodPct   = 80.0   // 캐시 양호 임계값
+
+    // Cache hit rate thresholds (inverse: higher is better)
+    CacheHitGoodPct    = 80.0  // 캐시 양호 임계값
     CacheHitWarningPct = 50.0  // 캐시 경고 임계값
+
+    // API latency thresholds (ms)
     LatencyWarningMs  = 2000   // 지연시간 경고 임계값
     LatencyDangerMs   = 5000   // 지연시간 위험 임계값
+
+    // v0.2: Burn rate thresholds (cents per minute)
+    BurnRateWarningCents = 10.0  // 번 레이트 경고 (10¢/min)
+    BurnRateDangerCents  = 25.0  // 번 레이트 위험 (25¢/min)
+
+    // v0.2: Compact ETA thresholds (minutes)
+    CompactETAWarningMin = 10.0  // Compact 예측 경고 (<10분)
+    CompactETADangerMin  = 5.0   // Compact 예측 위험 (<5분)
+    CompactThresholdPct  = 80.0  // Compact 트리거 임계값
 )
 ```
 
@@ -493,7 +553,10 @@ func TestMyWidget_Render(t *testing.T) {
 ```toml
 # ~/.config/visor/config.toml
 
-# 첫 번째 라인
+[general]
+separator = " | "
+
+# 단일 레이아웃 (기본)
 [[line]]
   [[line.widget]]
   name = "model"
@@ -504,10 +567,38 @@ func TestMyWidget_Render(t *testing.T) {
   fg = "yellow"
   bold = true
 
-# 두 번째 라인 (선택사항)
+# v0.2: Split 레이아웃 (좌/우 정렬)
 [[line]]
-  [[line.widget]]
+  [[line.left]]
+  name = "model"
+
+  [[line.left]]
   name = "git"
+
+  [[line.right]]
+  name = "cost"
+
+  [[line.right]]
+  name = "cache_hit"
+```
+
+### v0.2 위젯 Extra 옵션
+
+```toml
+[[line.widget]]
+name = "compact_eta"
+[line.widget.extra]
+show_when_above = "40"   # context 40% 이상일 때만 표시
+
+[[line.widget]]
+name = "context_spark"
+[line.widget.extra]
+width = "8"              # 스파크라인 너비
+
+[[line.widget]]
+name = "burn_rate"
+[line.widget.extra]
+show_label = "true"      # "Burn:" 접두사 표시
 ```
 
 ### 스타일 옵션
@@ -616,17 +707,22 @@ for i in {1..100}; do echo '{}' | ./visor > /dev/null; done
 
 ---
 
-## 향후 개선 방향
+## 향후 개선 방향 (v0.3+)
 
-1. **위젯 확장**
-   - 토큰 카운터 위젯
-   - 세션 시간 위젯
-   - 커스텀 포맷 문자열 지원
+1. **Transcript 파싱**
+   - transcript JSONL 파싱
+   - Tool/Agent 활동 추적
+   - `tools`, `agents` 위젯
 
 2. **설정 확장**
-   - 위젯별 조건부 표시 규칙
+   - 위젯별 threshold 커스터마이징
    - 색상 테마 프리셋
+   - Powerline 스타일 지원
 
-3. **성능 개선**
+3. **배포 자동화**
+   - GitHub Actions 자동 릴리즈
+   - goreleaser 통합
+
+4. **성능 개선**
    - Git 정보 캐싱
    - 설정 파일 변경 감지
