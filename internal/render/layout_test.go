@@ -116,3 +116,95 @@ func TestMultiLine_AllEmpty(t *testing.T) {
 		t.Errorf("Expected empty string, got '%s'", result)
 	}
 }
+
+func TestSplitLayout_BothSides(t *testing.T) {
+	left := []string{"model", "git"}
+	right := []string{"cost", "cache"}
+	result := SplitLayout(left, right, testSeparator)
+
+	// Should contain both sides
+	if !strings.Contains(result, "model | git") {
+		t.Errorf("Expected left side 'model | git', got '%s'", result)
+	}
+	if !strings.Contains(result, "cost | cache") {
+		t.Errorf("Expected right side 'cost | cache', got '%s'", result)
+	}
+
+	// Right side should be after left side
+	leftIdx := strings.Index(result, "model")
+	rightIdx := strings.Index(result, "cost")
+	if leftIdx >= rightIdx {
+		t.Error("Expected left side to come before right side")
+	}
+}
+
+func TestSplitLayout_LeftOnly(t *testing.T) {
+	left := []string{"model", "git"}
+	right := []string{}
+	result := SplitLayout(left, right, testSeparator)
+
+	if !strings.Contains(result, "model | git") {
+		t.Errorf("Expected 'model | git', got '%s'", result)
+	}
+}
+
+func TestSplitLayout_RightOnly(t *testing.T) {
+	left := []string{}
+	right := []string{"cost", "cache"}
+	result := SplitLayout(left, right, testSeparator)
+
+	if !strings.Contains(result, "cost | cache") {
+		t.Errorf("Expected 'cost | cache', got '%s'", result)
+	}
+}
+
+func TestSplitLayout_Empty(t *testing.T) {
+	left := []string{}
+	right := []string{}
+	result := SplitLayout(left, right, testSeparator)
+
+	if result != "" {
+		t.Errorf("Expected empty string, got '%s'", result)
+	}
+}
+
+func TestSplitLayout_FiltersEmptyStrings(t *testing.T) {
+	left := []string{"model", "", "git"}
+	right := []string{"", "cost"}
+	result := SplitLayout(left, right, testSeparator)
+
+	if !strings.Contains(result, "model | git") {
+		t.Errorf("Expected 'model | git' without empty, got '%s'", result)
+	}
+	if !strings.Contains(result, "cost") {
+		t.Errorf("Expected 'cost', got '%s'", result)
+	}
+}
+
+func TestJoinLines(t *testing.T) {
+	lines := []string{"line1", "line2", "line3"}
+	result := JoinLines(lines)
+
+	expected := "line1\nline2\nline3"
+	if result != expected {
+		t.Errorf("Expected '%s', got '%s'", expected, result)
+	}
+}
+
+func TestJoinLines_Single(t *testing.T) {
+	lines := []string{"single"}
+	result := JoinLines(lines)
+
+	if result != "single" {
+		t.Errorf("Expected 'single', got '%s'", result)
+	}
+}
+
+func TestJoinLines_Empty(t *testing.T) {
+	lines := []string{}
+	result := JoinLines(lines)
+
+	if result != "" {
+		t.Errorf("Expected empty string, got '%s'", result)
+	}
+}

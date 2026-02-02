@@ -12,8 +12,13 @@ type GeneralConfig struct {
 }
 
 // Line represents a single line in the statusline.
+// Supports both single-side and split layout:
+// - Single: widgets = ["model", "cost"]
+// - Split: left = ["model", "git"], right = ["cost"]
 type Line struct {
 	Widgets []WidgetConfig `toml:"widget"`
+	Left    []WidgetConfig `toml:"left"`
+	Right   []WidgetConfig `toml:"right"`
 }
 
 // WidgetConfig represents configuration for a single widget.
