@@ -185,7 +185,12 @@ func Parse(r io.Reader) *Session
 
 ```go
 type Config struct {
-    Lines []Line `toml:"line"`
+    General GeneralConfig `toml:"general"`
+    Lines   []Line        `toml:"line"`
+}
+
+type GeneralConfig struct {
+    Separator string `toml:"separator"`  // 위젯 간 구분자 (기본: " | ")
 }
 
 type Line struct {
@@ -243,8 +248,8 @@ func VisibleLength(s string) int            // ANSI 제외 길이
 **레이아웃**:
 
 ```go
-func Layout(widgets []string) string        // 단일 라인 조합
-func MultiLine(lines [][]string) string     // 멀티라인 조합
+func Layout(widgets []string, separator string) string        // 단일 라인 조합
+func MultiLine(lines [][]string, separator string) string     // 멀티라인 조합
 ```
 
 ### internal/git
@@ -342,7 +347,26 @@ func GetExtra(cfg *config.WidgetConfig, key, defaultValue string) string
 
 // Extra 맵에서 bool 값 조회
 func GetExtraBool(cfg *config.WidgetConfig, key string, defaultValue bool) bool
+
+// Extra 맵에서 int 값 조회
+func GetExtraInt(cfg *config.WidgetConfig, key string, defaultValue int) int
+
+// 렌더링
 func RenderAll(session *input.Session, widgets []config.WidgetConfig) []string
+```
+
+**프로그레스 바**:
+
+```go
+const (
+    BarFilled       = "█"
+    BarEmpty        = "░"
+    DefaultBarWidth = 10
+)
+
+// 프로그레스 바 문자열 생성
+// 예: ProgressBar(42.0, 10) → "████░░░░░░"
+func ProgressBar(pct float64, width int) string
 ```
 
 ### 기존 위젯 구현 패턴

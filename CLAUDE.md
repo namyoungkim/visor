@@ -6,6 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **visor** (Claude Code Efficiency Dashboard) is a Go-based statusline for Claude Code focused on real-time efficiency metrics rather than just status display. The key differentiator is exposing cache hit rate, API latency, and code changes—data already in stdin JSON that no other project uses.
 
+## Environment Setup
+
+Go is installed via mise. Use the full path when `go` command is not in PATH:
+```bash
+# Go binary path (mise)
+/Users/leo/.local/share/mise/installs/go/1.22.12/bin/go
+
+# Or activate mise in shell
+eval "$(~/.local/bin/mise activate bash)"
+```
+
 ## Build & Development Commands
 
 ```bash
@@ -77,7 +88,7 @@ type Widget interface {
 | Widget | Identifier | Unique? |
 |--------|------------|---------|
 | Model name | `model` | No |
-| Context % | `context` | No |
+| Context % + progress bar | `context` | No |
 | Git status | `git` | No |
 | Cost | `cost` | No |
 | Cache hit rate | `cache_hit` | **Yes** |
@@ -85,6 +96,11 @@ type Widget interface {
 | Code changes | `code_changes` | **Yes** |
 
 Cache hit rate formula: `cache_read_input_tokens / (cache_read + input_tokens) × 100`
+
+## Config Options (v0.1.2)
+
+- `[general].separator` - Widget separator (default: `" | "`)
+- `context` widget extras: `show_bar`, `bar_width` for progress bar customization
 
 ## Performance Requirements
 

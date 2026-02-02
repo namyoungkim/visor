@@ -2,7 +2,7 @@
 
 visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
-**최종 업데이트**: 2025-02-02 (v0.1.1)
+**최종 업데이트**: 2025-02-02 (v0.1.2)
 
 ---
 
@@ -33,7 +33,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 | 위젯 | 식별자 | PRD 스펙 | 상태 | 비고 |
 |------|--------|----------|------|------|
 | 모델명 | `model` | `model.display_name` 표시 | ✅ 완료 | |
-| Context | `context` | `used_percentage` + 색상 코딩 | ✅ 완료 | 바 미구현 (Phase 2) |
+| Context | `context` | `used_percentage` + 색상 코딩 + 프로그레스 바 | ✅ 완료 | |
 | Git | `git` | 브랜치 + staged/modified + ahead/behind | ✅ 완료 | 200ms 타임아웃 적용 |
 | 비용 | `cost` | `total_cost_usd` 표시 | ✅ 완료 | |
 | 캐시 히트율 ★ | `cache_hit` | cache_read / (cache_read + input) | ✅ 완료 | 고유 메트릭 |
@@ -63,7 +63,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 | 위젯별 스타일 | fg, bg, bold | ✅ 완료 |
 | 위젯별 format | `{value}` 플레이스홀더 | ✅ 완료 (v0.1.1) |
 | 위젯별 extra 옵션 | show_label 등 | ✅ 완료 (v0.1.1) |
-| separator 설정 | `" \| "` 구분자 | 🔲 미구현 |
+| separator 설정 | `" \| "` 구분자 | ✅ 완료 (v0.1.2) |
 | truncate 설정 | 터미널 너비 초과 처리 | ✅ 완료 |
 
 ### 성능 요구사항
@@ -98,7 +98,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
 | 기능 | 설명 | 상태 |
 |------|------|------|
-| Context 프로그레스 바 | `████░░░░░░` 형식 | 🔲 미구현 |
+| Context 프로그레스 바 | `████░░░░░░` 형식 | ✅ 완료 (v0.1.2) |
 | Split 레이아웃 | 좌/우 정렬 | 🔲 미구현 |
 | 위젯별 threshold 설정 | warn_threshold, critical_threshold | 🔲 미구현 |
 | 세션 히스토리 버퍼 | 호출 간 데이터 유지 | 🔲 미구현 |
@@ -120,6 +120,20 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 ---
 
 ## 릴리즈 히스토리
+
+### v0.1.2 (2025-02-02)
+
+**Added**:
+- `[general]` 섹션의 `separator` 설정 - 위젯 간 구분자 커스터마이징 (기본값: `" | "`)
+- Context 위젯 프로그레스 바 - `Ctx: 42% ████░░░░░░` 형식
+  - `show_bar` extra 옵션 (기본: true)
+  - `bar_width` extra 옵션 (기본: 10)
+
+**Changed**:
+- 테스트 커버리지 대폭 개선
+  - `internal/git`: 0% → 80.9%
+  - `internal/render`: 74.7% → 90.8%
+  - `internal/widgets`: 58.9% → 83.6%
 
 ### v0.1.1 (2025-02-02)
 
@@ -151,9 +165,9 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 ## 다음 단계 제안
 
 ### 단기 (v0.1.2)
-1. separator 설정 구현
-2. Context 프로그레스 바 추가
-3. 추가 테스트 커버리지 개선
+1. ~~separator 설정 구현~~ ✅
+2. ~~Context 프로그레스 바 추가~~ ✅
+3. ~~추가 테스트 커버리지 개선~~ ✅
 
 ### 중기 (v0.2.0)
 1. 번 레이트 위젯

@@ -7,6 +7,20 @@
 
 ## [Unreleased]
 
+### Added
+
+- `[general]` 섹션의 `separator` 설정 - 위젯 간 구분자 커스터마이징 (기본값: `" | "`)
+- Context 위젯 프로그레스 바 - `Ctx: 42% ████░░░░░░` 형식 (기본 활성화)
+  - `show_bar`: "true"/"false" - 프로그레스 바 표시 여부 (기본: true)
+  - `bar_width`: "10" - 프로그레스 바 너비 (기본: 10)
+
+### Changed
+
+- 테스트 커버리지 대폭 개선
+  - `internal/git`: 0% → 80.9%
+  - `internal/render`: 74.7% → 90.8%
+  - `internal/widgets`: 58.9% → 83.6%
+
 ## [0.1.1] - 2025-02-02
 
 ### Fixed
