@@ -19,24 +19,16 @@ func (w *CostWidget) Render(session *input.Session, cfg *config.WidgetConfig) st
 	cost := session.Cost.TotalCostUSD
 
 	var text string
-	if cost >= 1.0 {
+	switch {
+	case cost >= 0.01:
 		text = fmt.Sprintf("$%.2f", cost)
-	} else if cost >= 0.01 {
-		text = fmt.Sprintf("$%.2f", cost)
-	} else if cost > 0 {
+	case cost > 0:
 		text = fmt.Sprintf("$%.3f", cost)
-	} else {
+	default:
 		text = "$0.00"
 	}
 
-	// Color based on cost level
-	color := "green"
-	if cost >= 1.0 {
-		color = "red"
-	} else if cost >= 0.5 {
-		color = "yellow"
-	}
-
+	color := ColorByThreshold(cost, CostWarningUSD, CostDangerUSD)
 	return render.Colorize(text, color)
 }
 

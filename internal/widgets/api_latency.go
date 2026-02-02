@@ -32,14 +32,7 @@ func (w *APILatencyWidget) Render(session *input.Session, cfg *config.WidgetConf
 		text = fmt.Sprintf("API: %dms", ms)
 	}
 
-	// Color based on latency
-	color := "green"
-	if ms >= 5000 {
-		color = "red"
-	} else if ms >= 2000 {
-		color = "yellow"
-	}
-
+	color := ColorByThreshold(float64(ms), LatencyWarningMs, LatencyDangerMs)
 	return render.Colorize(text, color)
 }
 

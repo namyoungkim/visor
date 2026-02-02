@@ -32,15 +32,7 @@ func (w *CacheHitWidget) Render(session *input.Session, cfg *config.WidgetConfig
 	}
 
 	rate := float64(cacheRead) / float64(total) * 100
-
-	// Color based on cache hit rate
-	color := "red"
-	if rate >= 80 {
-		color = "green"
-	} else if rate >= 50 {
-		color = "yellow"
-	}
-
+	color := ColorByThresholdInverse(rate, CacheHitGoodPct, CacheHitWarningPct)
 	text := fmt.Sprintf("Cache: %.0f%%", rate)
 	return render.Colorize(text, color)
 }
