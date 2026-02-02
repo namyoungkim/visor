@@ -43,6 +43,23 @@ echo '{"model":{"display_name":"Opus"},...}' | ./visor
 go install github.com/namyoungkim/visor@latest
 ```
 
+## Release
+
+```bash
+# Create annotated tag
+git tag -a v0.1.x -m "v0.1.x: Brief description
+
+Features:
+- Feature 1
+- Feature 2"
+
+# Push tag to remote
+git push origin v0.1.x
+
+# List all tags
+git tag -l
+```
+
 ## Architecture
 
 ### Data Flow
