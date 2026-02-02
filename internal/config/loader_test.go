@@ -17,9 +17,9 @@ func TestLoad_DefaultConfig(t *testing.T) {
 		t.Error("Expected default config to have lines")
 	}
 
-	// Check default widgets are present
-	if len(cfg.Lines[0].Widgets) != 7 {
-		t.Errorf("Expected 7 default widgets, got %d", len(cfg.Lines[0].Widgets))
+	// Check default widgets are present (10 widgets including burn_rate, compact_eta, context_spark)
+	if len(cfg.Lines[0].Widgets) != 10 {
+		t.Errorf("Expected 10 default widgets, got %d", len(cfg.Lines[0].Widgets))
 	}
 }
 
