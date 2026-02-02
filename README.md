@@ -1,0 +1,173 @@
+# visor
+
+Claude Code용 효율성 대시보드 statusline. 캐시 히트율, API 지연시간, 코드 변경량 등 다른 statusline에서 제공하지 않는 고유 메트릭을 실시간으로 표시합니다.
+
+```
+Opus Ctx: 42% Cache: 80% API: 2.5s $0.15 +25/-10 main ↑1
+```
+
+## 특징
+
+- **고유 메트릭**: 캐시 히트율, API 지연시간, 코드 변경량 - stdin JSON에 있지만 아무도 활용하지 않던 데이터
+- **빠른 시작**: Go로 작성되어 < 5ms cold startup
+- **설정 가능**: TOML 설정으로 위젯 순서, 색상 커스터마이징
+- **안정성**: 잘못된 JSON에서도 panic 없이 graceful fallback
+
+## 설치
+
+### Go install (권장)
+
+```bash
+go install github.com/leo/visor@latest
+```
+
+### 소스에서 빌드
+
+```bash
+git clone https://github.com/leo/visor.git
+cd visor
+go build -o visor ./cmd/visor
+```
+
+## Claude Code 연동
+
+### 방법 1: settings.json
+
+`~/.claude/settings.json`에 추가:
+
+```json
+{
+  "statusline": {
+    "command": "visor"
+  }
+}
+```
+
+### 방법 2: 환경 변수
+
+```bash
+export CLAUDE_STATUSLINE_COMMAND="visor"
+```
+
+## 위젯
+
+| 위젯 | 식별자 | 설명 | 예시 |
+|------|--------|------|------|
+| 모델명 | `model` | 현재 사용 중인 모델 | `Opus` |
+| 컨텍스트 | `context` | 컨텍스트 윈도우 사용률 | `Ctx: 42%` |
+| 캐시 히트율 | `cache_hit` | 캐시에서 읽은 토큰 비율 | `Cache: 80%` |
+| API 지연시간 | `api_latency` | 총 API 호출 시간 | `API: 2.5s` |
+| 비용 | `cost` | 세션 총 비용 | `$0.15` |
+| 코드 변경 | `code_changes` | 추가/삭제된 라인 수 | `+25/-10` |
+| Git | `git` | 브랜치, 상태 | `main ↑1` |
+
+### 고유 메트릭 상세
+
+**Cache Hit Rate** - 캐시 효율성 지표
+```
+rate = cache_read_tokens / (cache_read_tokens + input_tokens) × 100
+```
+- 80% 이상: 초록색 (효율적)
+- 50-80%: 노란색 (보통)
+- 50% 미만: 빨간색 (비효율적)
+
+**API Latency** - 응답 시간 모니터링
+- < 2초: 초록색
+- 2-5초: 노란색
+- > 5초: 빨간색
+
+**Code Changes** - 세션 중 코드 변경량
+- 초록색: 추가된 라인 (+)
+- 빨간색: 삭제된 라인 (-)
+
+## 설정
+
+### 기본 설정 생성
+
+```bash
+visor --init
+```
+
+`~/.config/visor/config.toml` 생성:
+
+```toml
+[[line]]
+  [[line.widget]]
+  name = "model"
+
+  [[line.widget]]
+  name = "context"
+
+  [[line.widget]]
+  name = "cache_hit"
+
+  [[line.widget]]
+  name = "api_latency"
+
+  [[line.widget]]
+  name = "cost"
+
+  [[line.widget]]
+  name = "code_changes"
+
+  [[line.widget]]
+  name = "git"
+```
+
+### 위젯 순서 변경
+
+원하는 순서로 위젯 재배열:
+
+```toml
+[[line]]
+  [[line.widget]]
+  name = "model"
+
+  [[line.widget]]
+  name = "cost"
+
+  [[line.widget]]
+  name = "cache_hit"
+```
+
+### 멀티라인 설정
+
+```toml
+[[line]]
+  [[line.widget]]
+  name = "model"
+
+  [[line.widget]]
+  name = "context"
+
+[[line]]
+  [[line.widget]]
+  name = "cache_hit"
+
+  [[line.widget]]
+  name = "api_latency"
+```
+
+## CLI 옵션
+
+```bash
+visor --version   # 버전 출력
+visor --init      # 기본 설정 파일 생성
+visor --setup     # Claude Code 연동 가이드
+visor --check     # 설정 파일 유효성 검사
+```
+
+## 수동 테스트
+
+```bash
+echo '{"model":{"display_name":"Opus"},"context_window":{"used_percentage":42.5}}' | visor
+```
+
+## 요구사항
+
+- Go 1.22 이상 (빌드 시)
+- git (git 위젯 사용 시)
+
+## 라이선스
+
+MIT License

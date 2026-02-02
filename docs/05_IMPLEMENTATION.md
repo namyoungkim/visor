@@ -1,0 +1,563 @@
+# 05. Implementation Guide
+
+visor 코드베이스의 구조, 핵심 API, 확장 방법을 설명합니다.
+
+## 목차
+
+1. [프로젝트 구조](#프로젝트-구조)
+2. [데이터 흐름](#데이터-흐름)
+3. [핵심 패키지](#핵심-패키지)
+4. [Widget 시스템](#widget-시스템)
+5. [새 위젯 추가하기](#새-위젯-추가하기)
+6. [설정 시스템](#설정-시스템)
+7. [테스트](#테스트)
+8. [성능 고려사항](#성능-고려사항)
+
+---
+
+## 프로젝트 구조
+
+```
+visor/
+├── cmd/visor/
+│   └── main.go              # CLI 엔트리포인트
+├── internal/
+│   ├── input/               # stdin JSON 파싱
+│   │   ├── session.go       # Session 구조체 정의
+│   │   ├── reader.go        # JSON 파서
+│   │   └── reader_test.go
+│   ├── config/              # TOML 설정 관리
+│   │   ├── types.go         # Config 구조체
+│   │   ├── defaults.go      # 기본 설정값
+│   │   └── loader.go        # 파일 로딩/저장
+│   ├── widgets/             # 위젯 구현
+│   │   ├── widget.go        # Widget 인터페이스 + Registry
+│   │   ├── model.go         # 모델명 위젯
+│   │   ├── context.go       # 컨텍스트 위젯
+│   │   ├── git.go           # Git 상태 위젯
+│   │   ├── cost.go          # 비용 위젯
+│   │   ├── cache_hit.go     # 캐시 히트율 위젯 (고유)
+│   │   ├── api_latency.go   # API 지연시간 위젯 (고유)
+│   │   ├── code_changes.go  # 코드 변경량 위젯 (고유)
+│   │   └── *_test.go        # 위젯별 테스트
+│   ├── render/              # 출력 렌더링
+│   │   ├── ansi.go          # ANSI 컬러 코드
+│   │   ├── truncate.go      # 문자열 자르기
+│   │   ├── truncate_test.go
+│   │   └── layout.go        # 위젯 조합
+│   └── git/                 # git CLI 래퍼
+│       └── status.go        # git status 파싱
+├── go.mod
+├── go.sum
+└── docs/                    # 설계 문서 (00_PRD ~ 04_ADR)
+```
+
+### 디렉토리 역할
+
+| 디렉토리 | 역할 | 의존성 |
+|----------|------|--------|
+| `cmd/visor` | CLI 진입점, 플래그 처리 | 모든 internal 패키지 |
+| `internal/input` | JSON 파싱 | 없음 |
+| `internal/config` | 설정 로딩 | BurntSushi/toml |
+| `internal/widgets` | 위젯 로직 | input, config, render, git |
+| `internal/render` | ANSI 출력 | 없음 |
+| `internal/git` | git 명령 실행 | 없음 (외부 git 바이너리) |
+
+---
+
+## 데이터 흐름
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        main.go                                   │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+         ┌────────────────────┼────────────────────┐
+         ▼                    ▼                    ▼
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│  input.Parse()  │  │  config.Load()  │  │  git.GetStatus()│
+│  stdin → Session│  │  TOML → Config  │  │  CLI → Status   │
+└─────────────────┘  └─────────────────┘  └─────────────────┘
+         │                    │                    │
+         └────────────────────┼────────────────────┘
+                              ▼
+                 ┌─────────────────────────┐
+                 │  widgets.RenderAll()    │
+                 │  Session + Config →     │
+                 │  []string               │
+                 └─────────────────────────┘
+                              │
+                              ▼
+                 ┌─────────────────────────┐
+                 │  render.MultiLine()     │
+                 │  [][]string → ANSI      │
+                 └─────────────────────────┘
+                              │
+                              ▼
+                          stdout
+```
+
+### 단계별 설명
+
+1. **입력 파싱** (`internal/input`)
+   - `os.Stdin`에서 JSON 읽기
+   - `Session` 구조체로 역직렬화
+   - 파싱 실패 시 빈 `Session` 반환 (panic 방지)
+
+2. **설정 로딩** (`internal/config`)
+   - `~/.config/visor/config.toml` 읽기
+   - 파일 없으면 기본 설정 사용
+   - 위젯 순서, 스타일 정보 포함
+
+3. **위젯 렌더링** (`internal/widgets`)
+   - 설정된 순서대로 각 위젯 호출
+   - `ShouldRender()` → `Render()` 순서
+   - 빈 문자열 반환 시 스킵
+
+4. **레이아웃 조합** (`internal/render`)
+   - 위젯 출력을 공백으로 연결
+   - 터미널 너비에 맞게 자르기
+   - 멀티라인 지원
+
+---
+
+## 핵심 패키지
+
+### internal/input
+
+**Session 구조체** - Claude Code가 stdin으로 전달하는 JSON의 Go 표현:
+
+```go
+type Session struct {
+    Model         Model         `json:"model"`
+    Cost          Cost          `json:"cost"`
+    ContextWindow ContextWindow `json:"context_window"`
+    Workspace     Workspace     `json:"workspace"`
+    CurrentUsage  *CurrentUsage `json:"current_usage"`  // nullable
+}
+
+type Model struct {
+    DisplayName string `json:"display_name"`
+    ID          string `json:"id"`
+}
+
+type Cost struct {
+    TotalCostUSD          float64 `json:"total_cost_usd"`
+    TotalAPIDurationMs    int64   `json:"total_api_duration_ms"`
+    TotalAPICalls         int     `json:"total_api_calls"`
+    TotalInputTokens      int     `json:"total_input_tokens"`
+    TotalOutputTokens     int     `json:"total_output_tokens"`
+    TotalCacheReadTokens  int     `json:"total_cache_read_tokens"`
+    TotalCacheWriteTokens int     `json:"total_cache_write_tokens"`
+}
+
+type ContextWindow struct {
+    UsedPercentage float64 `json:"used_percentage"`
+    UsedTokens     int     `json:"used_tokens"`
+    MaxTokens      int     `json:"max_tokens"`
+}
+
+type Workspace struct {
+    LinesAdded   int `json:"lines_added"`
+    LinesRemoved int `json:"lines_removed"`
+    FilesChanged int `json:"files_changed"`
+}
+
+type CurrentUsage struct {
+    InputTokens     int `json:"input_tokens"`
+    CacheReadTokens int `json:"cache_read_tokens"`
+}
+```
+
+**Parse 함수**:
+
+```go
+func Parse(r io.Reader) *Session
+```
+
+- `io.Reader` 인터페이스 사용으로 테스트 용이
+- JSON 파싱 실패 시 빈 `Session` 반환
+- 절대 panic하지 않음
+
+### internal/config
+
+**Config 구조체**:
+
+```go
+type Config struct {
+    Lines []Line `toml:"line"`
+}
+
+type Line struct {
+    Widgets []WidgetConfig `toml:"widget"`
+}
+
+type WidgetConfig struct {
+    Name   string            `toml:"name"`
+    Format string            `toml:"format"`
+    Style  StyleConfig       `toml:"style"`
+    Extra  map[string]string `toml:"extra"`
+}
+
+type StyleConfig struct {
+    Fg   string `toml:"fg"`
+    Bg   string `toml:"bg"`
+    Bold bool   `toml:"bold"`
+}
+```
+
+**주요 함수**:
+
+```go
+func Load(path string) (*Config, error)     // 설정 로딩
+func Init(path string) error                 // 기본 설정 생성
+func Validate(path string) error             // 설정 검증
+func DefaultConfigPath() string              // ~/.config/visor/config.toml
+```
+
+### internal/render
+
+**ANSI 색상**:
+
+```go
+// 사용 가능한 색상명
+var ColorMap = map[string]string{
+    "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white",
+    "bright_black", "bright_red", "bright_green", "bright_yellow",
+    "bright_blue", "bright_magenta", "bright_cyan", "bright_white",
+    "gray", "grey",
+}
+
+func Colorize(text, fg string) string           // 단일 색상
+func Style(text, fg, bg string, bold bool) string  // 복합 스타일
+```
+
+**문자열 처리**:
+
+```go
+func TerminalWidth() int                    // 터미널 너비 (기본 80)
+func Truncate(s string, maxWidth int) string  // ANSI 인식 자르기
+func VisibleLength(s string) int            // ANSI 제외 길이
+```
+
+**레이아웃**:
+
+```go
+func Layout(widgets []string) string        // 단일 라인 조합
+func MultiLine(lines [][]string) string     // 멀티라인 조합
+```
+
+### internal/git
+
+```go
+type Status struct {
+    Branch   string
+    IsRepo   bool
+    IsDirty  bool
+    Ahead    int
+    Behind   int
+    Staged   int
+    Modified int
+}
+
+func GetStatus() Status
+```
+
+- 외부 `git` 바이너리 호출
+- 비 git 디렉토리에서 빈 Status 반환
+- 약 5-10ms 소요 (허용 범위)
+
+---
+
+## Widget 시스템
+
+### Widget 인터페이스
+
+모든 위젯이 구현해야 하는 인터페이스:
+
+```go
+type Widget interface {
+    // Name returns the widget identifier used in config
+    Name() string
+
+    // Render returns the formatted output string
+    Render(session *input.Session, cfg *config.WidgetConfig) string
+
+    // ShouldRender returns whether the widget should be displayed
+    ShouldRender(session *input.Session, cfg *config.WidgetConfig) bool
+}
+```
+
+### Registry
+
+위젯은 init()에서 자동 등록:
+
+```go
+var Registry = make(map[string]Widget)
+
+func Register(w Widget)
+func Get(name string) (Widget, bool)
+func RenderAll(session *input.Session, widgets []config.WidgetConfig) []string
+```
+
+### 기존 위젯 구현 패턴
+
+```go
+// internal/widgets/model.go
+type ModelWidget struct{}
+
+func (w *ModelWidget) Name() string {
+    return "model"  // config.toml에서 사용하는 식별자
+}
+
+func (w *ModelWidget) Render(session *input.Session, cfg *config.WidgetConfig) string {
+    name := session.Model.DisplayName
+    if name == "" {
+        return ""
+    }
+    return render.Colorize(name, "cyan")
+}
+
+func (w *ModelWidget) ShouldRender(session *input.Session, cfg *config.WidgetConfig) bool {
+    return session.Model.DisplayName != "" || session.Model.ID != ""
+}
+```
+
+---
+
+## 새 위젯 추가하기
+
+### Step 1: 위젯 파일 생성
+
+`internal/widgets/mywidget.go`:
+
+```go
+package widgets
+
+import (
+    "fmt"
+    "github.com/leo/visor/internal/config"
+    "github.com/leo/visor/internal/input"
+    "github.com/leo/visor/internal/render"
+)
+
+type MyWidget struct{}
+
+func (w *MyWidget) Name() string {
+    return "my_widget"
+}
+
+func (w *MyWidget) Render(session *input.Session, cfg *config.WidgetConfig) string {
+    // 데이터 추출
+    value := session.SomeField
+
+    // 조건부 색상
+    color := "green"
+    if value > threshold {
+        color = "red"
+    }
+
+    // 포맷팅
+    text := fmt.Sprintf("Label: %v", value)
+    return render.Colorize(text, color)
+}
+
+func (w *MyWidget) ShouldRender(session *input.Session, cfg *config.WidgetConfig) bool {
+    return session.SomeField != nil  // 데이터가 있을 때만 표시
+}
+```
+
+### Step 2: Registry에 등록
+
+`internal/widgets/widget.go`의 init() 함수에 추가:
+
+```go
+func init() {
+    Register(&ModelWidget{})
+    Register(&ContextWidget{})
+    // ... 기존 위젯들
+    Register(&MyWidget{})  // 추가
+}
+```
+
+### Step 3: 테스트 작성
+
+`internal/widgets/mywidget_test.go`:
+
+```go
+package widgets
+
+import (
+    "testing"
+    "github.com/leo/visor/internal/config"
+    "github.com/leo/visor/internal/input"
+)
+
+func TestMyWidget_Render(t *testing.T) {
+    w := &MyWidget{}
+    session := &input.Session{
+        // 테스트 데이터
+    }
+
+    result := w.Render(session, &config.WidgetConfig{})
+
+    if !strings.Contains(result, "expected") {
+        t.Errorf("Expected 'expected', got '%s'", result)
+    }
+}
+```
+
+### Step 4: 설정에서 사용
+
+```toml
+[[line]]
+  [[line.widget]]
+  name = "my_widget"
+```
+
+---
+
+## 설정 시스템
+
+### TOML 구조
+
+```toml
+# ~/.config/visor/config.toml
+
+# 첫 번째 라인
+[[line]]
+  [[line.widget]]
+  name = "model"
+
+  [[line.widget]]
+  name = "context"
+  [line.widget.style]
+  fg = "yellow"
+  bold = true
+
+# 두 번째 라인 (선택사항)
+[[line]]
+  [[line.widget]]
+  name = "git"
+```
+
+### 스타일 옵션
+
+```toml
+[[line.widget]]
+name = "cost"
+[line.widget.style]
+fg = "green"      # 전경색
+bg = "black"      # 배경색
+bold = true       # 굵게
+```
+
+**사용 가능한 색상**:
+- 기본: `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`
+- 밝은: `bright_black`, `bright_red`, `bright_green`, `bright_yellow`, `bright_blue`, `bright_magenta`, `bright_cyan`, `bright_white`
+- 별칭: `gray`, `grey` (= `bright_black`)
+
+---
+
+## 테스트
+
+### 테스트 실행
+
+```bash
+# 모든 테스트
+go test ./...
+
+# 특정 패키지
+go test ./internal/widgets/...
+
+# 상세 출력
+go test -v ./...
+
+# 커버리지
+go test -cover ./...
+```
+
+### 테스트 작성 가이드
+
+```go
+func TestWidgetName_Scenario(t *testing.T) {
+    w := &SomeWidget{}
+    session := &input.Session{
+        // 최소한의 필요한 데이터만
+    }
+
+    result := w.Render(session, &config.WidgetConfig{})
+
+    // ANSI 코드가 포함되므로 strings.Contains 사용
+    if !strings.Contains(result, "expected") {
+        t.Errorf("Expected to contain 'expected', got '%s'", result)
+    }
+}
+```
+
+### 수동 테스트
+
+```bash
+# 전체 JSON
+echo '{"model":{"display_name":"Opus"},"context_window":{"used_percentage":42.5},"cost":{"total_cost_usd":0.15,"total_api_duration_ms":2500},"current_usage":{"input_tokens":100,"cache_read_tokens":400},"workspace":{"lines_added":25,"lines_removed":10}}' | ./visor
+
+# 최소 JSON
+echo '{}' | ./visor
+
+# 잘못된 JSON (graceful fallback 확인)
+echo 'invalid' | ./visor
+```
+
+---
+
+## 성능 고려사항
+
+### 목표
+
+- Cold startup: < 5ms
+- 메모리: 최소화 (statusline은 자주 호출됨)
+
+### 최적화 포인트
+
+1. **의존성 최소화**
+   - 유일한 외부 의존성: `BurntSushi/toml`
+   - 표준 라이브러리 우선 사용
+
+2. **Lazy 로딩**
+   - Git 상태는 git 위젯이 설정에 있을 때만 조회
+   - 불필요한 계산 회피
+
+3. **문자열 처리**
+   - `strings.Builder` 대신 단순 연결 (짧은 문자열)
+   - ANSI 코드 상수 사용
+
+4. **에러 처리**
+   - panic 대신 빈 값 반환
+   - 로깅 없음 (stdout만 사용)
+
+### 벤치마크
+
+```bash
+# 성능 측정
+time (echo '{}' | ./visor)
+
+# 반복 테스트
+for i in {1..100}; do echo '{}' | ./visor > /dev/null; done
+```
+
+---
+
+## 향후 개선 방향
+
+1. **위젯 확장**
+   - 토큰 카운터 위젯
+   - 세션 시간 위젯
+   - 커스텀 포맷 문자열 지원
+
+2. **설정 확장**
+   - 위젯별 조건부 표시 규칙
+   - 색상 테마 프리셋
+
+3. **성능 개선**
+   - Git 정보 캐싱
+   - 설정 파일 변경 감지
