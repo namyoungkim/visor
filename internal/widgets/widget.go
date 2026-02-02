@@ -1,6 +1,9 @@
 package widgets
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/namyoungkim/visor/internal/config"
 	"github.com/namyoungkim/visor/internal/input"
 )
@@ -90,6 +93,49 @@ func GetExtraBool(cfg *config.WidgetConfig, key string, defaultValue bool) bool 
 		return defaultValue
 	}
 	return v == "true" || v == "1" || v == "yes"
+}
+
+// GetExtraInt returns an integer value from the Extra map.
+func GetExtraInt(cfg *config.WidgetConfig, key string, defaultValue int) int {
+	v := GetExtra(cfg, key, "")
+	if v == "" {
+		return defaultValue
+	}
+	if n, err := strconv.Atoi(v); err == nil {
+		return n
+	}
+	return defaultValue
+}
+
+// Progress bar characters.
+const (
+	BarFilled = "█"
+	BarEmpty  = "░"
+)
+
+// DefaultBarWidth is the default width for progress bars.
+const DefaultBarWidth = 10
+
+// ProgressBar returns a progress bar string for the given percentage.
+// Example: ProgressBar(42.0, 10) returns "████░░░░░░"
+func ProgressBar(pct float64, width int) string {
+	if width <= 0 {
+		width = DefaultBarWidth
+	}
+
+	// Clamp percentage to 0-100
+	if pct < 0 {
+		pct = 0
+	} else if pct > 100 {
+		pct = 100
+	}
+
+	filled := int(pct / 100 * float64(width))
+	if filled > width {
+		filled = width
+	}
+
+	return strings.Repeat(BarFilled, filled) + strings.Repeat(BarEmpty, width-filled)
 }
 
 // Widget is the interface all widgets must implement.

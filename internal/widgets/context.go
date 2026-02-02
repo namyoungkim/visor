@@ -12,6 +12,8 @@ import (
 //
 // Supported Extra options:
 //   - show_label: "true"/"false" - whether to show "Ctx:" prefix (default: true)
+//   - show_bar: "true"/"false" - whether to show progress bar (default: true)
+//   - bar_width: "10" - progress bar width in characters (default: 10)
 type ContextWidget struct{}
 
 func (w *ContextWidget) Name() string {
@@ -22,7 +24,17 @@ func (w *ContextWidget) Render(session *input.Session, cfg *config.WidgetConfig)
 	pct := session.ContextWindow.UsedPercentage
 	color := ColorByThreshold(pct, ContextWarningPct, ContextDangerPct)
 
-	value := fmt.Sprintf("%.0f%%", pct)
+	pctStr := fmt.Sprintf("%.0f%%", pct)
+
+	// Build value with optional progress bar
+	var value string
+	if GetExtraBool(cfg, "show_bar", true) {
+		barWidth := GetExtraInt(cfg, "bar_width", DefaultBarWidth)
+		bar := ProgressBar(pct, barWidth)
+		value = pctStr + " " + bar
+	} else {
+		value = pctStr
+	}
 
 	var text string
 	if cfg.Format != "" {
