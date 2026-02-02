@@ -1,8 +1,14 @@
 package config
 
+// DefaultSeparator is the default separator between widgets.
+const DefaultSeparator = " | "
+
 // DefaultConfig returns the default configuration.
 func DefaultConfig() *Config {
 	return &Config{
+		General: GeneralConfig{
+			Separator: DefaultSeparator,
+		},
 		Lines: []Line{
 			{
 				Widgets: []WidgetConfig{
@@ -24,6 +30,9 @@ func DefaultConfigTOML() string {
 	return `# visor configuration
 # Place at ~/.config/visor/config.toml
 
+[general]
+separator = " | "  # Widget separator (default: " | ")
+
 [[line]]
   [[line.widget]]
   name = "model"
@@ -33,6 +42,8 @@ func DefaultConfigTOML() string {
   # format = "Context: {value}"  # Custom format (optional)
   # [line.widget.extra]
   # show_label = "false"  # Hide "Ctx:" prefix
+  # show_bar = "false"    # Hide progress bar
+  # bar_width = "10"      # Progress bar width (default: 10)
 
   [[line.widget]]
   name = "cache_hit"

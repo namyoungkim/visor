@@ -3,7 +3,7 @@
 Claude Code용 효율성 대시보드 statusline. 캐시 히트율, API 지연시간, 코드 변경량 등 다른 statusline에서 제공하지 않는 고유 메트릭을 실시간으로 표시합니다.
 
 ```
-Opus Ctx: 42% Cache: 80% API: 2.5s $0.15 +25/-10 main ↑1
+Opus | Ctx: 42% ████░░░░░░ | Cache: 80% | API: 2.5s | $0.15 | +25/-10 | main ↑1
 ```
 
 ## 특징
@@ -54,7 +54,7 @@ export CLAUDE_STATUSLINE_COMMAND="visor"
 | 위젯 | 식별자 | 설명 | 예시 |
 |------|--------|------|------|
 | 모델명 | `model` | 현재 사용 중인 모델 | `Opus` |
-| 컨텍스트 | `context` | 컨텍스트 윈도우 사용률 | `Ctx: 42%` |
+| 컨텍스트 | `context` | 컨텍스트 윈도우 사용률 + 프로그레스 바 | `Ctx: 42% ████░░░░░░` |
 | 캐시 히트율 | `cache_hit` | 캐시에서 읽은 토큰 비율 | `Cache: 80%` |
 | API 지연시간 | `api_latency` | 총 API 호출 시간 | `API: 2.5s` |
 | 비용 | `cost` | 세션 총 비용 | `$0.15` |
@@ -91,6 +91,9 @@ visor --init
 `~/.config/visor/config.toml` 생성:
 
 ```toml
+[general]
+separator = " | "  # 위젯 간 구분자 (기본값)
+
 [[line]]
   [[line.widget]]
   name = "model"
@@ -177,8 +180,24 @@ show_label = "true"   # "Cost:" 접두사 표시 → "Cost: $0.15"
 | 위젯 | 옵션 | 기본값 | 설명 |
 |------|------|--------|------|
 | `context` | `show_label` | `true` | "Ctx:" 접두사 표시 |
+| `context` | `show_bar` | `true` | 프로그레스 바 표시 |
+| `context` | `bar_width` | `10` | 프로그레스 바 너비 |
 | `cache_hit` | `show_label` | `true` | "Cache:" 접두사 표시 |
 | `cost` | `show_label` | `false` | "Cost:" 접두사 표시 |
+
+### 구분자 설정
+
+위젯 간 구분자를 변경할 수 있습니다:
+
+```toml
+[general]
+separator = " :: "  # 기본값: " | "
+```
+
+출력 예시:
+- `" | "` → `Opus | Ctx: 42% | $0.15`
+- `" :: "` → `Opus :: Ctx: 42% :: $0.15`
+- `" "` → `Opus Ctx: 42% $0.15`
 
 ## CLI 옵션
 

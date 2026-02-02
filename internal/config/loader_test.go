@@ -164,3 +164,63 @@ func TestDefaultConfigPath(t *testing.T) {
 		t.Error("Expected absolute path")
 	}
 }
+
+func TestLoad_DefaultSeparator(t *testing.T) {
+	// Default config should have separator set
+	cfg, err := Load("/nonexistent/path/config.toml")
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if cfg.General.Separator != DefaultSeparator {
+		t.Errorf("Expected default separator '%s', got '%s'", DefaultSeparator, cfg.General.Separator)
+	}
+}
+
+func TestLoad_MissingSeparator(t *testing.T) {
+	// Config without [general] section should get default separator
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.toml")
+
+	content := `[[line]]
+  [[line.widget]]
+  name = "model"
+`
+	if err := os.WriteFile(configPath, []byte(content), 0644); err != nil {
+		t.Fatalf("Failed to write temp config: %v", err)
+	}
+
+	cfg, err := Load(configPath)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if cfg.General.Separator != DefaultSeparator {
+		t.Errorf("Expected default separator '%s', got '%s'", DefaultSeparator, cfg.General.Separator)
+	}
+}
+
+func TestLoad_CustomSeparator(t *testing.T) {
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.toml")
+
+	content := `[general]
+separator = " :: "
+
+[[line]]
+  [[line.widget]]
+  name = "model"
+`
+	if err := os.WriteFile(configPath, []byte(content), 0644); err != nil {
+		t.Fatalf("Failed to write temp config: %v", err)
+	}
+
+	cfg, err := Load(configPath)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if cfg.General.Separator != " :: " {
+		t.Errorf("Expected separator ' :: ', got '%s'", cfg.General.Separator)
+	}
+}

@@ -102,3 +102,56 @@ func TestContextWidget_Thresholds(t *testing.T) {
 		}
 	}
 }
+
+func TestContextWidget_ProgressBar(t *testing.T) {
+	w := &ContextWidget{}
+	session := &input.Session{
+		ContextWindow: input.ContextWindow{UsedPercentage: 42.0},
+	}
+
+	// Default: show_bar = true
+	result := w.Render(session, &config.WidgetConfig{})
+	if !strings.Contains(result, "████░░░░░░") {
+		t.Errorf("Expected progress bar in output, got '%s'", result)
+	}
+	if !strings.Contains(result, "42%") {
+		t.Errorf("Expected '42%%' in output, got '%s'", result)
+	}
+}
+
+func TestContextWidget_ProgressBar_Disabled(t *testing.T) {
+	w := &ContextWidget{}
+	session := &input.Session{
+		ContextWindow: input.ContextWindow{UsedPercentage: 42.0},
+	}
+
+	cfg := &config.WidgetConfig{
+		Extra: map[string]string{"show_bar": "false"},
+	}
+	result := w.Render(session, cfg)
+
+	// Should not contain progress bar characters
+	if strings.Contains(result, "█") || strings.Contains(result, "░") {
+		t.Errorf("Expected no progress bar when show_bar=false, got '%s'", result)
+	}
+	if !strings.Contains(result, "42%") {
+		t.Errorf("Expected '42%%' in output, got '%s'", result)
+	}
+}
+
+func TestContextWidget_ProgressBar_CustomWidth(t *testing.T) {
+	w := &ContextWidget{}
+	session := &input.Session{
+		ContextWindow: input.ContextWindow{UsedPercentage: 50.0},
+	}
+
+	cfg := &config.WidgetConfig{
+		Extra: map[string]string{"bar_width": "5"},
+	}
+	result := w.Render(session, cfg)
+
+	// 50% of 5 chars = 2.5, rounds to 2
+	if !strings.Contains(result, "██░░░") {
+		t.Errorf("Expected 5-char progress bar, got '%s'", result)
+	}
+}

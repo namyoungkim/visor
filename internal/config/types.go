@@ -2,7 +2,13 @@ package config
 
 // Config represents the visor configuration.
 type Config struct {
-	Lines []Line `toml:"line"`
+	General GeneralConfig `toml:"general"`
+	Lines   []Line        `toml:"line"`
+}
+
+// GeneralConfig contains global settings.
+type GeneralConfig struct {
+	Separator string `toml:"separator"`
 }
 
 // Line represents a single line in the statusline.
