@@ -13,46 +13,37 @@ func TestAgentsWidget_Render(t *testing.T) {
 	tests := []struct {
 		name     string
 		agents   []transcript.Agent
-		contains string
+		contains []string
 	}{
 		{
-			name: "single running agent",
+			name: "single running agent shows type",
 			agents: []transcript.Agent{
 				{ID: "1", Type: "Explore", Status: "running"},
 			},
-			contains: "◐ 1 agent",
+			contains: []string{"◐Explore"},
 		},
 		{
-			name: "multiple running agents (plural)",
+			name: "multiple running agents show types",
 			agents: []transcript.Agent{
 				{ID: "1", Type: "Explore", Status: "running"},
 				{ID: "2", Type: "Plan", Status: "running"},
 			},
-			contains: "◐ 2 agents",
+			contains: []string{"◐Explore", "◐Plan"},
 		},
 		{
-			name: "single completed agent",
+			name: "completed agent shows checkmark",
 			agents: []transcript.Agent{
 				{ID: "1", Type: "Explore", Status: "completed"},
 			},
-			contains: "✓ 1 done",
+			contains: []string{"✓Explore"},
 		},
 		{
-			name: "multiple completed agents",
+			name: "mixed status shows both icons",
 			agents: []transcript.Agent{
-				{ID: "1", Type: "Explore", Status: "completed"},
-				{ID: "2", Type: "Plan", Status: "completed"},
+				{ID: "1", Type: "Plan", Status: "completed"},
+				{ID: "2", Type: "Explore", Status: "running"},
 			},
-			contains: "✓ 2 done",
-		},
-		{
-			name: "mixed running and completed",
-			agents: []transcript.Agent{
-				{ID: "1", Type: "Explore", Status: "running"},
-				{ID: "2", Type: "Plan", Status: "completed"},
-				{ID: "3", Type: "Bash", Status: "completed"},
-			},
-			contains: "◐ 1 | ✓ 2",
+			contains: []string{"✓Plan", "◐Explore"},
 		},
 	}
 
@@ -63,10 +54,38 @@ func TestAgentsWidget_Render(t *testing.T) {
 
 			result := w.Render(&input.Session{}, &config.WidgetConfig{})
 
-			if !strings.Contains(result, tt.contains) {
-				t.Errorf("Expected result to contain '%s', got '%s'", tt.contains, result)
+			for _, expected := range tt.contains {
+				if !strings.Contains(result, expected) {
+					t.Errorf("Expected result to contain '%s', got '%s'", expected, result)
+				}
 			}
 		})
+	}
+}
+
+func TestAgentsWidget_MaxDisplay(t *testing.T) {
+	w := &AgentsWidget{}
+	w.SetTranscript(&transcript.Data{
+		Agents: []transcript.Agent{
+			{ID: "1", Type: "Plan", Status: "completed"},
+			{ID: "2", Type: "Explore", Status: "completed"},
+			{ID: "3", Type: "Bash", Status: "completed"},
+			{ID: "4", Type: "general-purpose", Status: "running"},
+		},
+	})
+
+	cfg := &config.WidgetConfig{
+		Extra: map[string]string{"max_display": "2"},
+	}
+
+	result := w.Render(&input.Session{}, cfg)
+
+	// Should only show last 2 agents
+	if strings.Contains(result, "Plan") {
+		t.Error("Expected Plan to be hidden (max_display=2)")
+	}
+	if !strings.Contains(result, "Bash") || !strings.Contains(result, "general-purpose") {
+		t.Errorf("Expected last 2 agents (Bash, general-purpose), got '%s'", result)
 	}
 }
 

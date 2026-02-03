@@ -1,7 +1,7 @@
 package widgets
 
 import (
-	"fmt"
+	"strings"
 
 	"github.com/namyoungkim/visor/internal/config"
 	"github.com/namyoungkim/visor/internal/input"
@@ -12,12 +12,11 @@ import (
 // AgentsWidget displays the status of spawned sub-agents.
 //
 // Supported Extra options:
+//   - max_display: maximum number of agents to show (default: "3")
 //   - show_label: "true"/"false" - show prefix (default: false)
 //
-// Output format:
-//   - "◐ 1 agent" (1 running)
-//   - "✓ 2 done" (all completed)
-//   - "◐ 1 | ✓ 2" (1 running, 2 done)
+// Output format: "✓Plan ✓Bash ◐Explore" (completed Plan/Bash, running Explore)
+// Status icons: ✓ (completed), ◐ (running)
 type AgentsWidget struct {
 	transcript *transcript.Data
 }
@@ -36,39 +35,36 @@ func (w *AgentsWidget) Render(session *input.Session, cfg *config.WidgetConfig) 
 		return ""
 	}
 
-	running := 0
-	completed := 0
-	for _, agent := range w.transcript.Agents {
-		if agent.Status == "running" {
-			running++
-		} else {
-			completed++
-		}
+	maxDisplay := GetExtraInt(cfg, "max_display", 3)
+	agents := w.transcript.Agents
+
+	// Show only the last N agents
+	start := 0
+	if len(agents) > maxDisplay {
+		start = len(agents) - maxDisplay
 	}
 
-	var text string
-	if running > 0 && completed > 0 {
-		text = fmt.Sprintf("◐ %d | ✓ %d", running, completed)
-	} else if running > 0 {
-		text = fmt.Sprintf("◐ %d agent", running)
-		if running > 1 {
-			text += "s"
-		}
-	} else {
-		text = fmt.Sprintf("✓ %d done", completed)
+	var parts []string
+	for _, agent := range agents[start:] {
+		icon, color := agentStatusIcon(agent.Status)
+		parts = append(parts, render.Colorize(icon+agent.Type, color))
 	}
+
+	text := strings.Join(parts, " ")
 
 	if GetExtraBool(cfg, "show_label", false) {
 		text = "Agents: " + text
 	}
 
-	// Color based on status
-	color := "green"
-	if running > 0 {
-		color = "yellow"
-	}
+	return text
+}
 
-	return render.Colorize(text, color)
+// agentStatusIcon returns the icon and color for an agent status.
+func agentStatusIcon(status string) (string, string) {
+	if status == "running" {
+		return "◐", "yellow"
+	}
+	return "✓", "green"
 }
 
 func (w *AgentsWidget) ShouldRender(session *input.Session, cfg *config.WidgetConfig) bool {
