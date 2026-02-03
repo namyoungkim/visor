@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/namyoungkim/visor/internal/config"
+	"github.com/namyoungkim/visor/internal/theme"
 )
 
 // View renders the current state
@@ -17,6 +18,8 @@ func (m Model) View() string {
 		return m.viewEditOptions()
 	case ViewLayoutPicker:
 		return m.viewLayoutPicker()
+	case ViewThemePicker:
+		return m.viewThemePicker()
 	case ViewHelp:
 		return m.viewHelp()
 	case ViewConfirmQuit:
@@ -78,7 +81,7 @@ func (m Model) viewMain() string {
 	}
 
 	// Help
-	helpText := "[j/k] Move  [e] Edit  [a] Add  [d] Delete  [J/K] Reorder  [L] Layout  [n] New line  [s] Save  [?] Help  [q] Quit"
+	helpText := "[j/k] Move  [e] Edit  [a] Add  [d] Delete  [J/K] Reorder  [L] Layout  [T] Theme  [n] New line  [s] Save  [?] Help  [q] Quit"
 	b.WriteString(helpStyle.Render(helpText))
 
 	return b.String()
@@ -273,6 +276,48 @@ func (m Model) viewLayoutPicker() string {
 	return b.String()
 }
 
+func (m Model) viewThemePicker() string {
+	var b strings.Builder
+
+	b.WriteString(titleStyle.Render("Select Theme") + "\n\n")
+
+	// Current theme info
+	currentTheme := m.config.Theme.Name
+	if currentTheme == "" {
+		currentTheme = "default"
+	}
+	b.WriteString(disabledStyle.Render("Current: "+currentTheme) + "\n\n")
+
+	themes := theme.List()
+	for i, name := range themes {
+		prefix := "  "
+		if i == m.themeChoice {
+			prefix = cursorStyle.Render() + " "
+		}
+
+		t := theme.Get(name)
+		desc := ""
+		if t.Powerline {
+			desc = " (powerline)"
+		}
+		desc = disabledStyle.Render(desc)
+
+		displayName := name
+		if i == m.themeChoice {
+			displayName = selectedStyle.Render(name)
+		} else {
+			displayName = normalStyle.Render(name)
+		}
+
+		b.WriteString(prefix + displayName + desc + "\n")
+	}
+
+	b.WriteString("\n")
+	b.WriteString(helpStyle.Render("[j/k] Move  [enter] Select  [esc] Cancel"))
+
+	return b.String()
+}
+
 func (m Model) viewHelp() string {
 	var b strings.Builder
 
@@ -304,6 +349,7 @@ func (m Model) viewHelp() string {
 			[]string{
 				"n           Add new line",
 				"L           Change layout (single/split)",
+				"T           Change theme",
 			},
 		},
 		{

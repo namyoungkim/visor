@@ -15,6 +15,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 | **v0.3 고급 기능** | ✅ 완료 | 100% |
 | **v0.4 커스터마이징 & 자동화** | ✅ 완료 | 100% |
 | **v0.5 TUI 설정 편집기** | ✅ 완료 | 100% |
+| **v0.6 도구/에이전트 상세** | 🔲 예정 | 0% |
 
 ---
 
@@ -141,7 +142,39 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
 ---
 
-## 향후 계획 (v0.6+)
+## v0.6 도구/에이전트 상세 (예정)
+
+### 위젯 확장
+
+| 기능 | 식별자 | 현재 | 변경 후 | 상태 |
+|------|--------|------|---------|------|
+| 도구 사용 횟수 | `tools` | `✓Read ✓Write ◐Bash` | `✓Bash ×7 \| ✓Edit ×4` | 🔲 미구현 |
+| 에이전트 상세 | `agents` | `✓Explore ◐Plan` | `Explore: Analyze widgets (42s)` | 🔲 미구현 |
+
+### 구현 요소
+
+#### 도구 사용 횟수
+
+| 요소 | 현재 | 변경 | 난이도 |
+|------|------|------|--------|
+| Tool 구조체 | ID, Name, Status | + Count 필드 | 낮음 |
+| 파서 로직 | ID별 dedupe | Name별 그룹화 + 카운트 | 낮음 |
+| 위젯 렌더링 | `✓Read` | `✓Read ×6` | 낮음 |
+| Extra 옵션 | max_display | + show_count (default: true) | 낮음 |
+
+#### 에이전트 상세
+
+| 요소 | 현재 | 변경 | 난이도 |
+|------|------|------|--------|
+| Agent 구조체 | ID, Type, Status | + Description, StartTime, EndTime | 중간 |
+| 파서 로직 | Type만 추출 | + input.description 추출 | 중간 |
+| 타임스탬프 | 미추출 | transcript entry timestamp 파싱 | 중간 |
+| 위젯 렌더링 | `✓Explore` | `Explore: desc (42s)` | 낮음 |
+| Extra 옵션 | max_display | + show_duration, show_description | 낮음 |
+
+---
+
+## 향후 계획 (v0.7+)
 
 | 기능 | 설명 | 상태 |
 |------|------|------|
@@ -318,6 +351,10 @@ JSONL 로그 파싱으로 누적 비용 계산:
 4. ~~실시간 미리보기~~ ✅
 
 ### 다음 (v0.6.0)
+1. **도구 사용 횟수** - tools 위젯 확장 (`✓Bash ×7 | ✓Edit ×4`)
+2. **에이전트 상세** - agents 위젯 확장 (`Explore: Analyze widgets (42s)`)
+
+### 다음 (v0.7.0)
 1. **누적 비용 추적** (Track A: 구독 사용자 OAuth API, Track B: 종량제 JSONL 파싱)
 2. Powerline 테마
 3. 색상 테마 프리셋
