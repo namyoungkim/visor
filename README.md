@@ -65,6 +65,11 @@ export CLAUDE_STATUSLINE_COMMAND="visor"
 | Context 스파크라인 | `context_spark` | 히스토리 기반 미니 그래프 | `▂▃▄▅▆` |
 | 도구 상태 | `tools` | 최근 도구 호출 상태 | `✓Read ✓Write ◐Bash` |
 | 에이전트 상태 | `agents` | 서브 에이전트 상태 | `✓Plan ◐Explore` |
+| 일별 비용 | `daily_cost` | 오늘 누적 비용 | `$2.34 today` |
+| 주별 비용 | `weekly_cost` | 이번 주 누적 비용 | `$15.67 week` |
+| 블록 비용 | `block_cost` | 5시간 블록 비용 | `$0.45 block` |
+| 5시간 제한 | `block_limit` | 5시간 블록 사용률 | `5h: 42%` |
+| 7일 제한 | `week_limit` | 주간 사용률 | `7d: 69%` |
 
 ### 고유 메트릭 상세
 
@@ -204,6 +209,21 @@ separator = " :: "  # 기본값: " | "
 - `" :: "` → `Opus :: Ctx: 42% :: $0.15`
 - `" "` → `Opus Ctx: 42% $0.15`
 
+## 테마
+
+visor는 여러 테마 프리셋을 지원합니다:
+
+| 테마 | 설명 |
+|------|------|
+| `default` | 기본 ASCII 구분자 |
+| `powerline` | Powerline 글리프 (, ) |
+| `gruvbox` | Gruvbox 색상 팔레트 |
+| `nord` | Nord 색상 팔레트 |
+| `gruvbox-powerline` | Gruvbox + Powerline |
+| `nord-powerline` | Nord + Powerline |
+
+TUI에서 `t` 키로 테마를 변경할 수 있습니다.
+
 ## TUI 설정 편집기
 
 인터랙티브 TUI로 설정을 편집할 수 있습니다:
@@ -222,6 +242,7 @@ visor --tui
 | `e` | 옵션 편집 |
 | `J/K` | 위젯 순서 변경 |
 | `L` | 레이아웃 변경 (single/split) |
+| `t` | 테마 변경 |
 | `s` | 저장 |
 | `q` | 종료 |
 

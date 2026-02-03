@@ -2,7 +2,7 @@
 
 visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
-**최종 업데이트**: 2026-02-03 (v0.5.0 완료)
+**최종 업데이트**: 2026-02-03 (v0.6.0 완료)
 
 ---
 
@@ -15,7 +15,8 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 | **v0.3 고급 기능** | ✅ 완료 | 100% |
 | **v0.4 커스터마이징 & 자동화** | ✅ 완료 | 100% |
 | **v0.5 TUI 설정 편집기** | ✅ 완료 | 100% |
-| **v0.6 도구/에이전트 상세** | 🔲 예정 | 0% |
+| **v0.6 테마 & 비용 추적** | ✅ 완료 | 100% |
+| **v0.7 도구/에이전트 상세** | 🔲 예정 | 0% |
 
 ---
 
@@ -142,7 +143,44 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
 ---
 
-## v0.6 도구/에이전트 상세 (예정)
+## v0.6 테마 & 비용 추적 (완료)
+
+### 테마 시스템
+
+| 기능 | 설명 | 상태 |
+|------|------|------|
+| 테마 프리셋 | default, powerline, gruvbox, nord 등 | ✅ 완료 |
+| Powerline 구분자 | 특수 문자 (, ) 지원 | ✅ 완료 |
+| Hex 색상 | `#RRGGBB` 형식 지원 | ✅ 완료 |
+| TUI 테마 피커 | `t` 키로 테마 선택 | ✅ 완료 |
+
+### 누적 비용 추적 (Track B: 종량제)
+
+| 위젯 | 식별자 | 표시 예시 | 상태 |
+|------|--------|----------|------|
+| 일별 비용 | `daily_cost` | `$2.34 today` | ✅ 완료 |
+| 주별 비용 | `weekly_cost` | `$15.67 week` | ✅ 완료 |
+| 블록 비용 | `block_cost` | `$0.45 block` | ✅ 완료 |
+
+### 사용량 제한 (Track A: 구독자)
+
+| 위젯 | 식별자 | 표시 예시 | 상태 |
+|------|--------|----------|------|
+| 5시간 블록 한도 | `block_limit` | `5h: 42%` | ✅ 완료 |
+| 7일 한도 | `week_limit` | `7d: 69%` | ✅ 완료 |
+
+### 새 패키지
+
+| 패키지 | 설명 | 상태 |
+|--------|------|------|
+| `internal/theme/` | 테마 프리셋 및 관리 | ✅ 완료 |
+| `internal/cost/` | JSONL 파싱 및 비용 집계 | ✅ 완료 |
+| `internal/auth/` | OAuth credential provider | ✅ 완료 |
+| `internal/usage/` | 사용량 API 클라이언트 | ✅ 완료 |
+
+---
+
+## v0.7 도구/에이전트 상세 (예정)
 
 ### 위젯 확장
 
@@ -151,76 +189,43 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 | 도구 사용 횟수 | `tools` | `✓Read ✓Write ◐Bash` | `✓Bash ×7 \| ✓Edit ×4` | 🔲 미구현 |
 | 에이전트 상세 | `agents` | `✓Explore ◐Plan` | `Explore: Analyze widgets (42s)` | 🔲 미구현 |
 
-### 구현 요소
-
-#### 도구 사용 횟수
-
-| 요소 | 현재 | 변경 | 난이도 |
-|------|------|------|--------|
-| Tool 구조체 | ID, Name, Status | + Count 필드 | 낮음 |
-| 파서 로직 | ID별 dedupe | Name별 그룹화 + 카운트 | 낮음 |
-| 위젯 렌더링 | `✓Read` | `✓Read ×6` | 낮음 |
-| Extra 옵션 | max_display | + show_count (default: true) | 낮음 |
-
-#### 에이전트 상세
-
-| 요소 | 현재 | 변경 | 난이도 |
-|------|------|------|--------|
-| Agent 구조체 | ID, Type, Status | + Description, StartTime, EndTime | 중간 |
-| 파서 로직 | Type만 추출 | + input.description 추출 | 중간 |
-| 타임스탬프 | 미추출 | transcript entry timestamp 파싱 | 중간 |
-| 위젯 렌더링 | `✓Explore` | `Explore: desc (42s)` | 낮음 |
-| Extra 옵션 | max_display | + show_duration, show_description | 낮음 |
-
 ---
 
-## 향후 계획 (v0.7+)
+## 향후 계획 (v0.8+)
 
 | 기능 | 설명 | 상태 |
 |------|------|------|
-| Powerline 테마 | 특수 문자 스타일 | 🔲 미구현 |
-| 색상 테마 프리셋 | 사전 정의된 테마 | 🔲 미구현 |
-| **누적 비용 추적** | 세션 간 총 비용/사용률 | 🔲 미구현 |
-
-### 누적 비용 추적 상세 (Cumulative Usage & Cost Tracking)
-
-두 가지 사용 형태에 따른 별도 구현:
-
-#### Track A: 구독 사용자용 (Pro/Max)
-
-OAuth API로 5시간/7일 사용률 한도 조회:
-
-| 위젯 | 식별자 | 표시 예시 | 설명 |
-|------|--------|----------|------|
-| 5시간 블록 한도 | `block_limit` | `5h: 42% (2h30m left)` | 5시간 블록 사용률 |
-| 7일 한도 | `week_limit` | `7d: 69% (3d left)` | 주간 사용률 |
-
-**구현 요소:**
-- macOS Keychain에서 OAuth 토큰 추출
-- `https://api.anthropic.com/api/oauth/usage` API 호출
-- Linux/Windows credential 지원
-
-#### Track B: 종량제 사용자용 (API/Vertex/Bedrock)
-
-JSONL 로그 파싱으로 누적 비용 계산:
-
-| 위젯 | 식별자 | 표시 예시 | 설명 |
-|------|--------|----------|------|
-| 일별 비용 | `daily_cost` | `$2.34 today` | 오늘 누적 비용 |
-| 주별 비용 | `weekly_cost` | `$15.67 week` | 이번 주 누적 비용 |
-| 블록 비용 | `block_cost` | `$0.45 block` | 5시간 블록 비용 |
-
-**구현 요소:**
-- `~/.claude/projects/` 하위 JSONL 파일 파싱
-- Provider별 가격 적용 (Anthropic/Vertex/Bedrock)
-- 증분 파싱 및 캐싱 (100개 세션 기준 < 50ms)
-- Provider 자동 감지 (환경변수 기반)
-
-**참고:** [07_CUMULATIVE_COST.md](07_CUMULATIVE_COST.md) — 상세 설계 문서
+| 커스텀 테마 | 사용자 정의 색상/구분자 | 🔲 미구현 |
+| 테마 설정 저장 | config.toml에 테마 설정 | 🔲 미구현 |
 
 ---
 
 ## 릴리즈 히스토리
+
+### v0.6.0 (2026-02-03)
+
+**Added**:
+- 테마 시스템 - Powerline 및 색상 테마 지원
+  - 프리셋 테마: default, powerline, gruvbox, nord, gruvbox-powerline, nord-powerline
+  - Powerline 글리프 구분자 지원
+  - Hex 색상 코드 지원
+  - TUI 테마 피커 (t 키)
+- 누적 비용 추적 - JSONL 트랜스크립트 파싱
+  - daily_cost, weekly_cost, block_cost 위젯
+  - Provider별 가격 적용 (Anthropic/Vertex/Bedrock)
+  - 증분 파싱 캐시 시스템
+- 사용량 제한 위젯 - Claude Pro OAuth API 연동
+  - block_limit, week_limit 위젯
+  - macOS Keychain credential provider
+
+**새 패키지**:
+- `internal/theme/` - 테마 관리
+- `internal/cost/` - JSONL 파싱 및 비용 집계
+- `internal/auth/` - OAuth credential provider
+- `internal/usage/` - 사용량 API 클라이언트
+
+**Changed**:
+- 기본 위젯 11개 → 17개
 
 ### v0.5.0 (2026-02-03)
 
@@ -350,14 +355,15 @@ JSONL 로그 파싱으로 누적 비용 계산:
 3. ~~옵션 편집 (threshold 등)~~ ✅
 4. ~~실시간 미리보기~~ ✅
 
-### 다음 (v0.6.0)
-1. **도구 사용 횟수** - tools 위젯 확장 (`✓Bash ×7 | ✓Edit ×4`)
-2. **에이전트 상세** - agents 위젯 확장 (`Explore: Analyze widgets (42s)`)
+### 완료 (v0.6.0)
+1. ~~테마 시스템~~ ✅ (Powerline, gruvbox, nord)
+2. ~~누적 비용 추적~~ ✅ (JSONL 파싱)
+3. ~~사용량 제한 위젯~~ ✅ (OAuth API)
+4. ~~TUI 테마 피커~~ ✅
 
 ### 다음 (v0.7.0)
-1. **누적 비용 추적** (Track A: 구독 사용자 OAuth API, Track B: 종량제 JSONL 파싱)
-2. Powerline 테마
-3. 색상 테마 프리셋
+1. **도구 사용 횟수** - tools 위젯 확장 (`✓Bash ×7 | ✓Edit ×4`)
+2. **에이전트 상세** - agents 위젯 확장 (`Explore: Analyze widgets (42s)`)
 
 ---
 

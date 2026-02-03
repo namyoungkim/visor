@@ -99,6 +99,10 @@ internal/git/               # git CLI wrapper
 internal/history/           # Session history buffer
 internal/transcript/        # JSONL transcript parsing (v0.3)
 internal/tui/               # Interactive TUI config editor (v0.5)
+internal/theme/             # Theme presets and management (v0.6)
+internal/cost/              # JSONL parsing and cost aggregation (v0.6)
+internal/auth/              # OAuth credential providers (v0.6)
+internal/usage/             # Usage limit API client (v0.6)
 ```
 
 ### Widget Interface Pattern
@@ -121,7 +125,7 @@ type Widget interface {
 - **TUI**: Charm ecosystem (bubbletea, bubbles, lipgloss) for interactive config editor
 - **Dependencies**: `BurntSushi/toml`, `charmbracelet/bubbletea`, `charmbracelet/bubbles`, `charmbracelet/lipgloss`
 
-## Widgets (v0.5.0)
+## Widgets (v0.6.0)
 
 ### Core Widgets (v0.1)
 | Widget | Identifier | Unique? |
@@ -152,6 +156,15 @@ type Widget interface {
 |--------|------------|----------------|---------|
 | Block timer | `block_timer` | `Block: 4h23m` | **Yes** |
 
+### Cost Tracking Widgets (v0.6)
+| Widget | Identifier | Output Example | Unique? |
+|--------|------------|----------------|---------|
+| Daily cost | `daily_cost` | `$2.34 today` | **Yes** |
+| Weekly cost | `weekly_cost` | `$15.67 week` | **Yes** |
+| Block cost | `block_cost` | `$0.45 block` | **Yes** |
+| 5-hour limit | `block_limit` | `5h: 42%` | **Yes** |
+| 7-day limit | `week_limit` | `7d: 69%` | **Yes** |
+
 ### Widget Formulas
 - Cache hit rate: `cache_read_tokens / (cache_read + input_tokens) × 100`
 - Burn rate: `total_cost_usd / (total_duration_ms / 60000)`
@@ -177,6 +190,7 @@ Interactive terminal UI for configuration editing:
 | `L` | Change layout (single/split) |
 | `n` | Add new line |
 | `s` | Save |
+| `t` | Change theme |
 | `q` | Quit |
 
 ### TUI Package Structure
@@ -192,7 +206,22 @@ internal/tui/
 └── preview.go          # Sample session & preview
 ```
 
-## Config Options (v0.5.0)
+## Themes (v0.6)
+
+visor supports multiple theme presets:
+
+| Theme | Description |
+|-------|-------------|
+| `default` | Standard ASCII separators |
+| `powerline` | Powerline glyphs (, ) |
+| `gruvbox` | Gruvbox color palette |
+| `nord` | Nord color palette |
+| `gruvbox-powerline` | Gruvbox + Powerline |
+| `nord-powerline` | Nord + Powerline |
+
+Theme picker in TUI: press `t` key.
+
+## Config Options (v0.6.0)
 
 ### General
 - `[general].separator` - Widget separator (default: `" | "`)
