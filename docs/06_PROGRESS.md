@@ -147,7 +147,43 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 |------|------|------|
 | Powerline 테마 | 특수 문자 스타일 | 🔲 미구현 |
 | 색상 테마 프리셋 | 사전 정의된 테마 | 🔲 미구현 |
-| 누적 비용 추적 | 세션 간 총 비용 | 🔲 미구현 |
+| **누적 비용 추적** | 세션 간 총 비용/사용률 | 🔲 미구현 |
+
+### 누적 비용 추적 상세 (Cumulative Usage & Cost Tracking)
+
+두 가지 사용 형태에 따른 별도 구현:
+
+#### Track A: 구독 사용자용 (Pro/Max)
+
+OAuth API로 5시간/7일 사용률 한도 조회:
+
+| 위젯 | 식별자 | 표시 예시 | 설명 |
+|------|--------|----------|------|
+| 5시간 블록 한도 | `block_limit` | `5h: 42% (2h30m left)` | 5시간 블록 사용률 |
+| 7일 한도 | `week_limit` | `7d: 69% (3d left)` | 주간 사용률 |
+
+**구현 요소:**
+- macOS Keychain에서 OAuth 토큰 추출
+- `https://api.anthropic.com/api/oauth/usage` API 호출
+- Linux/Windows credential 지원
+
+#### Track B: 종량제 사용자용 (API/Vertex/Bedrock)
+
+JSONL 로그 파싱으로 누적 비용 계산:
+
+| 위젯 | 식별자 | 표시 예시 | 설명 |
+|------|--------|----------|------|
+| 일별 비용 | `daily_cost` | `$2.34 today` | 오늘 누적 비용 |
+| 주별 비용 | `weekly_cost` | `$15.67 week` | 이번 주 누적 비용 |
+| 블록 비용 | `block_cost` | `$0.45 block` | 5시간 블록 비용 |
+
+**구현 요소:**
+- `~/.claude/projects/` 하위 JSONL 파일 파싱
+- Provider별 가격 적용 (Anthropic/Vertex/Bedrock)
+- 증분 파싱 및 캐싱 (100개 세션 기준 < 50ms)
+- Provider 자동 감지 (환경변수 기반)
+
+**참고:** [07_CUMULATIVE_COST.md](07_CUMULATIVE_COST.md) — 상세 설계 문서
 
 ---
 
@@ -282,9 +318,9 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 4. ~~실시간 미리보기~~ ✅
 
 ### 다음 (v0.6.0)
-1. Powerline 테마
-2. 색상 테마 프리셋
-3. 누적 비용 추적
+1. **누적 비용 추적** (Track A: 구독 사용자 OAuth API, Track B: 종량제 JSONL 파싱)
+2. Powerline 테마
+3. 색상 테마 프리셋
 
 ---
 
@@ -293,3 +329,4 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 - [00_PRD.md](00_PRD.md) — 전체 제품 요구사항
 - [CHANGELOG.md](../CHANGELOG.md) — 버전별 변경 내역
 - [05_IMPLEMENTATION.md](05_IMPLEMENTATION.md) — 구현 가이드
+- [07_CUMULATIVE_COST.md](07_CUMULATIVE_COST.md) — 누적 비용 추적 설계
