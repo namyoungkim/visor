@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/namyoungkim/visor/internal/config"
+	"github.com/namyoungkim/visor/internal/theme"
 )
 
 // Init initializes the model
@@ -36,6 +37,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.updateEditOptions(msg)
 		case ViewLayoutPicker:
 			return m.updateLayoutPicker(msg)
+		case ViewThemePicker:
+			return m.updateThemePicker(msg)
 		case ViewHelp:
 			return m.updateHelp(msg)
 		case ViewConfirmQuit:
@@ -183,6 +186,20 @@ func (m Model) updateMain(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case key.Matches(msg, m.keys.Theme):
+		m.prevView = m.view
+		m.view = ViewThemePicker
+		// Find current theme index
+		themes := theme.List()
+		m.themeChoice = 0
+		for i, t := range themes {
+			if t == m.config.Theme.Name {
+				m.themeChoice = i
+				break
+			}
+		}
+		return m, nil
+
 	case key.Matches(msg, m.keys.Save):
 		if err := config.Save(m.config, m.configPath); err != nil {
 			m.setStatus("Error: "+err.Error(), true)
@@ -290,6 +307,42 @@ func (m Model) updateLayoutPicker(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	case key.Matches(msg, m.keys.Confirm):
 		m.applyLayout(m.layoutChoice == 1)
+		m.view = m.prevView
+		return m, nil
+	}
+
+	return m, nil
+}
+
+// updateThemePicker handles input in theme picker view
+func (m Model) updateThemePicker(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	themes := theme.List()
+
+	switch {
+	case key.Matches(msg, m.keys.Back):
+		m.view = m.prevView
+		return m, nil
+
+	case key.Matches(msg, m.keys.Up):
+		if m.themeChoice > 0 {
+			m.themeChoice--
+		}
+		return m, nil
+
+	case key.Matches(msg, m.keys.Down):
+		if m.themeChoice < len(themes)-1 {
+			m.themeChoice++
+		}
+		return m, nil
+
+	case key.Matches(msg, m.keys.Confirm):
+		if m.themeChoice >= 0 && m.themeChoice < len(themes) {
+			themeName := themes[m.themeChoice]
+			t := theme.Get(themeName)
+			m.config.Theme.Name = themeName
+			m.config.Theme.Powerline = t.Powerline
+			m.markDirty()
+		}
 		m.view = m.prevView
 		return m, nil
 	}

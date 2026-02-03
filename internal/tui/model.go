@@ -14,6 +14,7 @@ const (
 	ViewAddWidget
 	ViewEditOptions
 	ViewLayoutPicker
+	ViewThemePicker
 	ViewHelp
 	ViewConfirmQuit
 )
@@ -55,6 +56,9 @@ type Model struct {
 
 	// Layout picker state
 	layoutChoice int // 0 = single, 1 = split
+
+	// Theme picker state
+	themeChoice int
 
 	// Help
 	keys KeyMap

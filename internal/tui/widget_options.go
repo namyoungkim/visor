@@ -131,6 +131,55 @@ func AllWidgets() []WidgetMeta {
 				{Key: "show_label", Type: OptionTypeBool, DefaultValue: "false", Description: "Show 'Agents:' prefix"},
 			},
 		},
+		// v0.6 Cost tracking widgets
+		{
+			Name:        "daily_cost",
+			Description: "Today's aggregated cost",
+			Options: []OptionDef{
+				{Key: "show_label", Type: OptionTypeBool, DefaultValue: "false", Description: "Show 'Today:' prefix"},
+				{Key: "warn_threshold", Type: OptionTypeFloat, DefaultValue: "5.0", Description: "Warning threshold USD"},
+				{Key: "critical_threshold", Type: OptionTypeFloat, DefaultValue: "10.0", Description: "Critical threshold USD"},
+			},
+		},
+		{
+			Name:        "weekly_cost",
+			Description: "This week's aggregated cost",
+			Options: []OptionDef{
+				{Key: "show_label", Type: OptionTypeBool, DefaultValue: "false", Description: "Show 'Week:' prefix"},
+				{Key: "warn_threshold", Type: OptionTypeFloat, DefaultValue: "25.0", Description: "Warning threshold USD"},
+				{Key: "critical_threshold", Type: OptionTypeFloat, DefaultValue: "50.0", Description: "Critical threshold USD"},
+			},
+		},
+		{
+			Name:        "block_cost",
+			Description: "Cost in current 5-hour block",
+			Options: []OptionDef{
+				{Key: "show_label", Type: OptionTypeBool, DefaultValue: "false", Description: "Show 'Block$:' prefix"},
+				{Key: "warn_threshold", Type: OptionTypeFloat, DefaultValue: "2.0", Description: "Warning threshold USD"},
+				{Key: "critical_threshold", Type: OptionTypeFloat, DefaultValue: "5.0", Description: "Critical threshold USD"},
+			},
+		},
+		// v0.6 Usage limit widgets
+		{
+			Name:        "block_limit",
+			Description: "5-hour rate limit utilization",
+			Options: []OptionDef{
+				{Key: "show_label", Type: OptionTypeBool, DefaultValue: "true", Description: "Show '5h:' prefix"},
+				{Key: "show_remaining", Type: OptionTypeBool, DefaultValue: "true", Description: "Show remaining time"},
+				{Key: "warn_threshold", Type: OptionTypeInt, DefaultValue: "70", Description: "Warning threshold %"},
+				{Key: "critical_threshold", Type: OptionTypeInt, DefaultValue: "90", Description: "Critical threshold %"},
+			},
+		},
+		{
+			Name:        "week_limit",
+			Description: "7-day rate limit utilization",
+			Options: []OptionDef{
+				{Key: "show_label", Type: OptionTypeBool, DefaultValue: "true", Description: "Show '7d:' prefix"},
+				{Key: "show_remaining", Type: OptionTypeBool, DefaultValue: "false", Description: "Show remaining time"},
+				{Key: "warn_threshold", Type: OptionTypeInt, DefaultValue: "70", Description: "Warning threshold %"},
+				{Key: "critical_threshold", Type: OptionTypeInt, DefaultValue: "90", Description: "Critical threshold %"},
+			},
+		},
 	}
 }
 

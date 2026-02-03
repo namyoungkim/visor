@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/namyoungkim/visor/internal/auth"
 	"github.com/namyoungkim/visor/internal/config"
+	"github.com/namyoungkim/visor/internal/cost"
 	"github.com/namyoungkim/visor/internal/history"
 	"github.com/namyoungkim/visor/internal/input"
 	"github.com/namyoungkim/visor/internal/render"
 	"github.com/namyoungkim/visor/internal/transcript"
 	"github.com/namyoungkim/visor/internal/tui"
+	"github.com/namyoungkim/visor/internal/usage"
 	"github.com/namyoungkim/visor/internal/widgets"
 )
 
@@ -119,6 +122,16 @@ func main() {
 		fmt.Fprintf(os.Stderr, "[visor] transcript tools: %d, agents: %d\n", len(transcriptData.Tools), len(transcriptData.Agents))
 	}
 
+	// Load cost data for daily/weekly/block cost widgets (v0.6)
+	if cfg.Usage.Enabled {
+		costData := loadCostData(session, hist, cfg, *debugFlag)
+		widgets.SetCostData(costData)
+
+		// Try to load usage limits from OAuth API
+		limits := loadUsageLimits(*debugFlag)
+		widgets.SetUsageLimits(limits)
+	}
+
 	output := renderSession(session, cfg)
 	if output != "" {
 		fmt.Print(output)
@@ -175,4 +188,52 @@ func printSetupInstructions() {
 export CLAUDE_STATUSLINE_COMMAND="visor"
 
 3. Optionally customize with: visor --init`)
+}
+
+// loadCostData loads aggregated cost data from JSONL transcripts.
+func loadCostData(session *input.Session, hist *history.History, cfg *config.Config, debug bool) *cost.CostData {
+	// Parse cost entries from the current session's transcript
+	entries, err := cost.ParseSession(session.TranscriptPath)
+	if err != nil && debug {
+		fmt.Fprintf(os.Stderr, "[visor] cost parsing error: %v\n", err)
+	}
+
+	// Get block start time from history
+	blockStart := hist.GetBlockStartTime()
+
+	// Aggregate the data
+	data := cost.Aggregate(entries, blockStart)
+
+	// Set provider from config or auto-detect
+	if cfg.Usage.Provider != "" {
+		data.Provider = cost.Provider(cfg.Usage.Provider)
+	}
+
+	if debug {
+		fmt.Fprintf(os.Stderr, "[visor] cost data: today=$%.2f, week=$%.2f, provider=%s\n",
+			data.Today, data.Week, data.Provider)
+	}
+
+	return data
+}
+
+// loadUsageLimits loads usage limits from the OAuth API.
+func loadUsageLimits(debug bool) *usage.Limits {
+	provider := auth.DefaultProvider()
+	client := usage.NewClient(provider)
+
+	limits, err := client.GetLimits()
+	if err != nil {
+		if debug {
+			fmt.Fprintf(os.Stderr, "[visor] usage API error: %v\n", err)
+		}
+		return nil
+	}
+
+	if debug {
+		fmt.Fprintf(os.Stderr, "[visor] usage limits: 5h=%.0f%%, 7d=%.0f%%\n",
+			limits.FiveHour.Utilization, limits.SevenDay.Utilization)
+	}
+
+	return limits
 }

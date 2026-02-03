@@ -15,6 +15,7 @@ type KeyMap struct {
 	MoveUp    key.Binding
 	MoveDown  key.Binding
 	Layout    key.Binding
+	Theme     key.Binding
 	NewLine   key.Binding
 	TabSwitch key.Binding
 	Save      key.Binding
@@ -71,6 +72,10 @@ func DefaultKeyMap() KeyMap {
 			key.WithKeys("L"),
 			key.WithHelp("L", "layout"),
 		),
+		Theme: key.NewBinding(
+			key.WithKeys("T"),
+			key.WithHelp("T", "theme"),
+		),
 		NewLine: key.NewBinding(
 			key.WithKeys("n"),
 			key.WithHelp("n", "new line"),
@@ -112,7 +117,7 @@ func (k KeyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down, k.Left, k.Right},
 		{k.Toggle, k.Edit, k.Add, k.Delete},
-		{k.MoveUp, k.MoveDown, k.Layout, k.NewLine},
+		{k.MoveUp, k.MoveDown, k.Layout, k.Theme, k.NewLine},
 		{k.Save, k.Help, k.Quit},
 	}
 }

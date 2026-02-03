@@ -114,3 +114,94 @@ func Style(text string, fg, bg string, bold bool) string {
 func RGB(r, g, b int) string {
 	return fmt.Sprintf("\033[38;2;%d;%d;%dm", r, g, b)
 }
+
+// RGBBg returns an ANSI true color background code.
+func RGBBg(r, g, b int) string {
+	return fmt.Sprintf("\033[48;2;%d;%d;%dm", r, g, b)
+}
+
+// HexToRGB converts a hex color string (#RRGGBB) to RGB values.
+func HexToRGB(hex string) (r, g, b int) {
+	if len(hex) == 0 {
+		return 0, 0, 0
+	}
+	if hex[0] == '#' {
+		hex = hex[1:]
+	}
+	if len(hex) != 6 {
+		return 0, 0, 0
+	}
+	fmt.Sscanf(hex, "%02x%02x%02x", &r, &g, &b)
+	return r, g, b
+}
+
+// ColorizeHex applies a hex color to text.
+func ColorizeHex(text, hex string) string {
+	if hex == "" {
+		return text
+	}
+	r, g, b := HexToRGB(hex)
+	return RGB(r, g, b) + text + Reset
+}
+
+// StyleHex applies hex colors and styling to text.
+func StyleHex(text, fgHex, bgHex string, bold bool) string {
+	var codes string
+
+	if bold {
+		codes += Bold
+	}
+	if bgHex != "" {
+		r, g, b := HexToRGB(bgHex)
+		codes += RGBBg(r, g, b)
+	}
+	if fgHex != "" {
+		r, g, b := HexToRGB(fgHex)
+		codes += RGB(r, g, b)
+	}
+
+	if codes == "" {
+		return text
+	}
+	return codes + text + Reset
+}
+
+// ResolveColor returns the ANSI code for a color (name or hex).
+func ResolveColor(color string) string {
+	if color == "" {
+		return ""
+	}
+
+	// Check if it's a hex color
+	if color[0] == '#' {
+		r, g, b := HexToRGB(color)
+		return RGB(r, g, b)
+	}
+
+	// Check named colors
+	if code, ok := ColorMap[color]; ok {
+		return code
+	}
+
+	return ""
+}
+
+// ResolveBgColor returns the ANSI background code for a color (name or hex).
+func ResolveBgColor(color string) string {
+	if color == "" {
+		return ""
+	}
+
+	// Check if it's a hex color
+	if color[0] == '#' {
+		r, g, b := HexToRGB(color)
+		return RGBBg(r, g, b)
+	}
+
+	// Check named colors
+	if code, ok := BgColorMap[color]; ok {
+		return code
+	}
+
+	return ""
+}

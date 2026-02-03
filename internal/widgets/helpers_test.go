@@ -1,11 +1,19 @@
 package widgets
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/namyoungkim/visor/internal/config"
 	"github.com/namyoungkim/visor/internal/input"
 )
+
+// stripANSI removes ANSI escape codes from a string for testing.
+var ansiRegex = regexp.MustCompile(`\x1b\[[0-9;]*m`)
+
+func stripANSI(s string) string {
+	return ansiRegex.ReplaceAllString(s, "")
+}
 
 func TestColorByThreshold(t *testing.T) {
 	tests := []struct {
