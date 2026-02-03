@@ -2,7 +2,6 @@ package widgets
 
 import (
 	"strings"
-	"time"
 
 	"github.com/namyoungkim/visor/internal/config"
 	"github.com/namyoungkim/visor/internal/input"
@@ -100,15 +99,17 @@ func (w *AgentsWidget) renderAgent(agent transcript.Agent, showDesc, showDur boo
 	return result
 }
 
-// truncateString truncates a string to maxLen, adding "..." if truncated.
+// truncateString truncates a string to maxLen runes, adding "..." if truncated.
+// Uses rune count instead of byte count to handle multibyte characters correctly.
 func truncateString(s string, maxLen int) string {
-	if len(s) <= maxLen {
+	runes := []rune(s)
+	if len(runes) <= maxLen {
 		return s
 	}
 	if maxLen <= 3 {
 		return "..."
 	}
-	return s[:maxLen-3] + "..."
+	return string(runes[:maxLen-3]) + "..."
 }
 
 // formatDurationSec formats seconds into a human-readable duration string.
@@ -126,12 +127,6 @@ func formatDurationSec(seconds int64) string {
 		return itoa(int(hours)) + "h"
 	}
 	return itoa(int(hours)) + "h" + itoa(int(mins)) + "m"
-}
-
-// nowUnixMilli returns the current time in Unix milliseconds.
-// This is used for calculating running duration.
-var nowUnixMilli = func() int64 {
-	return time.Now().UnixMilli()
 }
 
 // agentStatusIcon returns the icon and color for an agent status.

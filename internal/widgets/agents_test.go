@@ -348,6 +348,11 @@ func TestTruncateString(t *testing.T) {
 		{"abc", 3, "abc"},      // Fits exactly, no truncation
 		{"abcd", 3, "..."},     // maxLen <= 3 returns "..."
 		{"abcdef", 5, "ab..."}, // Truncates normally
+		// Multibyte character tests (rune-based truncation)
+		{"한글테스트", 5, "한글테스트"},      // 5 runes, fits exactly
+		{"한글테스트입니다", 7, "한글테스..."},  // 8 runes, truncate to 7
+		{"분석하기", 10, "분석하기"},        // 4 runes, fits in 10
+		{"코드리뷰중", 5, "코드리뷰중"},       // 5 runes, fits exactly
 	}
 
 	for _, tt := range tests {
