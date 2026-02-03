@@ -7,6 +7,23 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-02-03
+
+### Added
+
+- **Transcript 파싱** - Claude Code JSONL 트랜스크립트 파일에서 tool/agent 데이터 추출
+  - `internal/transcript/` 패키지 추가
+  - 마지막 100줄 파싱 (메모리 효율적)
+  - 잘못된 JSON 라인 graceful skip
+- **새 위젯 2종**
+  - `tools` - 최근 도구 호출 상태 표시 (`✓Read ✓Write ◐Bash`)
+  - `agents` - 서브 에이전트 상태 표시 (`◐ 1 agent`, `✓ 2 done`)
+- Session struct에 `transcript_path` 필드 추가
+
+### Changed
+
+- tools 위젯이 약어 대신 풀 네임 표시 (R → Read, W → Write)
+
 ## [0.2.0] - 2025-02-03
 
 ### Added
@@ -114,7 +131,8 @@
 
 ## 링크
 
-[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/namyoungkim/visor/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/namyoungkim/visor/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/namyoungkim/visor/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/namyoungkim/visor/releases/tag/v0.1.0

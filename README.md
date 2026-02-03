@@ -60,6 +60,11 @@ export CLAUDE_STATUSLINE_COMMAND="visor"
 | 비용 | `cost` | 세션 총 비용 | `$0.15` |
 | 코드 변경 | `code_changes` | 추가/삭제된 라인 수 | `+25/-10` |
 | Git | `git` | 브랜치, 상태 | `main ↑1` |
+| 번 레이트 | `burn_rate` | 분당 비용 소모율 | `64.0¢/min` |
+| Compact 예측 | `compact_eta` | 80% context 도달 예측 | `~18m` |
+| Context 스파크라인 | `context_spark` | 히스토리 기반 미니 그래프 | `▂▃▄▅▆` |
+| 도구 상태 | `tools` | 최근 도구 호출 상태 | `✓Read ✓Write ◐Bash` |
+| 에이전트 상태 | `agents` | 서브 에이전트 상태 | `◐ 1 agent` |
 
 ### 고유 메트릭 상세
 

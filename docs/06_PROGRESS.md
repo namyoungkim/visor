@@ -2,7 +2,7 @@
 
 visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
-**최종 업데이트**: 2025-02-03 (v0.2.0 완료)
+**최종 업데이트**: 2025-02-03 (v0.3.0 완료)
 
 ---
 
@@ -12,7 +12,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 |-------|------|--------|
 | **v0.1 MVP** | ✅ 완료 | 100% |
 | **v0.2 효율 심화** | ✅ 완료 | 100% |
-| **v0.3 고급 기능** | 🔲 미착수 | 0% |
+| **v0.3 고급 기능** | ✅ 완료 | 60% (core features) |
 
 ---
 
@@ -105,13 +105,13 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
 ---
 
-## v0.3 고급 기능 (미착수)
+## v0.3 고급 기능 (진행중)
 
 | 기능 | 설명 | 상태 |
 |------|------|------|
-| Transcript 파싱 | tool/agent 활동 추적 | 🔲 미구현 |
-| Tool 위젯 | `tools` - 도구 사용 표시 | 🔲 미구현 |
-| Agent 위젯 | `agents` - 에이전트 상태 | 🔲 미구현 |
+| Transcript 파싱 | tool/agent 활동 추적 | ✅ 완료 |
+| Tool 위젯 | `tools` - 도구 사용 표시 | ✅ 완료 |
+| Agent 위젯 | `agents` - 에이전트 상태 | ✅ 완료 |
 | 5시간 블록 타이머 | `block_timer` | 🔲 미구현 |
 | TUI 설정 도구 | 인터랙티브 설정 | 🔲 미구현 |
 | Powerline 테마 | 특수 문자 스타일 | 🔲 미구현 |
@@ -120,6 +120,17 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 ---
 
 ## 릴리즈 히스토리
+
+### v0.3.0 (2025-02-03)
+
+**Added**:
+- Transcript 파싱 - Claude Code JSONL 트랜스크립트에서 tool/agent 데이터 추출
+- `tools` 위젯 - 최근 도구 호출 상태 (`✓Read ✓Write ◐Bash`)
+- `agents` 위젯 - 서브 에이전트 상태 (`◐ 1 agent`, `✓ 2 done`)
+- Session struct에 `transcript_path` 필드 추가
+
+**Changed**:
+- tools 위젯이 약어 대신 풀 네임 표시 (R → Read)
 
 ### v0.2.0 (2025-02-03)
 
@@ -186,11 +197,15 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 5. ~~세션 히스토리 버퍼~~ ✅
 6. ~~Context 스파크라인 위젯~~ ✅
 
-### 다음 (v0.3.0)
-1. Transcript JSONL 파싱
-2. Tool/Agent 위젯
-3. 위젯별 threshold 설정
-4. GitHub Actions 자동 릴리즈
+### 완료 (v0.3.0)
+1. ~~Transcript JSONL 파싱~~ ✅
+2. ~~Tool/Agent 위젯~~ ✅
+
+### 다음 (v0.4.0)
+1. 위젯별 threshold 설정
+2. 5시간 블록 타이머
+3. GitHub Actions 자동 릴리즈
+4. tailLines 성능 최적화 (#16)
 
 ---
 

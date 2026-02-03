@@ -70,6 +70,8 @@ config.Load() → Config             │
                   │                │
 history.Load() → History           │
                   │                │
+transcript.Parse() → Data          │  (v0.3)
+                  │                │
                   ▼                ▼
             widgets.RenderAll(session, config)
                       │
@@ -89,6 +91,7 @@ internal/widgets/           # Widget interface + implementations
 internal/render/            # Layout, ANSI colors, truncation
 internal/git/               # git CLI wrapper
 internal/history/           # Session history buffer
+internal/transcript/        # JSONL transcript parsing (v0.3)
 ```
 
 ### Widget Interface Pattern
@@ -110,7 +113,7 @@ type Widget interface {
 - **Git info**: External `git` CLI calls with 200ms timeout (zero dependencies)
 - **Dependencies**: Only `BurntSushi/toml` for config parsing
 
-## Widgets (v0.2.0)
+## Widgets (v0.3.0)
 
 ### Core Widgets (v0.1)
 | Widget | Identifier | Unique? |
@@ -130,12 +133,18 @@ type Widget interface {
 | Compact ETA | `compact_eta` | `~18m` | **Yes** |
 | Context sparkline | `context_spark` | `▂▃▄▅▆` | **Yes** |
 
+### Transcript Widgets (v0.3)
+| Widget | Identifier | Output Example | Unique? |
+|--------|------------|----------------|---------|
+| Tool status | `tools` | `✓Read ✓Write ◐Bash` | **Yes** |
+| Agent status | `agents` | `◐ 1 agent`, `✓ 2 done` | **Yes** |
+
 ### Widget Formulas
 - Cache hit rate: `cache_read_tokens / (cache_read + input_tokens) × 100`
 - Burn rate: `total_cost_usd / (total_duration_ms / 60000)`
 - Compact ETA: `(80 - current%) / context_burn_rate_per_min`
 
-## Config Options (v0.2.0)
+## Config Options (v0.3.0)
 
 ### General
 - `[general].separator` - Widget separator (default: `" | "`)
@@ -160,6 +169,8 @@ type Widget interface {
 - `compact_eta`: `show_when_above` (default: 40)
 - `context_spark`: `width` (default: 8)
 - `burn_rate`, `cost`: `show_label`
+- `tools`: `max_display` (default: 3), `show_label`
+- `agents`: `show_label`
 
 ## Performance Requirements
 

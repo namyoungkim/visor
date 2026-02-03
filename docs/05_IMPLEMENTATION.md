@@ -42,6 +42,8 @@ visor/
 │   │   ├── cache_hit.go     # 캐시 히트율 위젯 (고유)
 │   │   ├── api_latency.go   # API 지연시간 위젯 (고유)
 │   │   ├── code_changes.go  # 코드 변경량 위젯 (고유)
+│   │   ├── tools.go         # 도구 상태 위젯 (v0.3)
+│   │   ├── agents.go        # 에이전트 상태 위젯 (v0.3)
 │   │   └── *_test.go        # 위젯별 테스트
 │   ├── render/              # 출력 렌더링
 │   │   ├── ansi.go          # ANSI 컬러 코드
@@ -50,6 +52,10 @@ visor/
 │   ├── history/             # 세션 히스토리 (v0.2)
 │   │   ├── history.go       # 히스토리 관리
 │   │   └── history_test.go
+│   ├── transcript/          # Transcript 파싱 (v0.3)
+│   │   ├── types.go         # Tool, Agent, Data 구조체
+│   │   ├── parser.go        # JSONL 파서
+│   │   └── parser_test.go
 │   └── git/                 # git CLI 래퍼
 │       └── status.go        # git status 파싱
 ├── go.mod
@@ -68,6 +74,7 @@ visor/
 | `internal/render` | ANSI 출력 | 없음 |
 | `internal/git` | git 명령 실행 | 없음 (외부 git 바이너리) |
 | `internal/history` | 세션 히스토리 버퍼 | 없음 |
+| `internal/transcript` | JSONL 트랜스크립트 파싱 (v0.3) | 없음 |
 
 ---
 
@@ -707,22 +714,64 @@ for i in {1..100}; do echo '{}' | ./visor > /dev/null; done
 
 ---
 
-## 향후 개선 방향 (v0.3+)
+### internal/transcript (v0.3)
 
-1. **Transcript 파싱**
-   - transcript JSONL 파싱
-   - Tool/Agent 활동 추적
-   - `tools`, `agents` 위젯
+```go
+// 도구 상태
+type ToolStatus string
 
-2. **설정 확장**
+const (
+    ToolRunning   ToolStatus = "running"
+    ToolCompleted ToolStatus = "completed"
+    ToolError     ToolStatus = "error"
+)
+
+// 도구 호출 정보
+type Tool struct {
+    ID     string
+    Name   string
+    Status ToolStatus
+}
+
+// 에이전트 정보
+type Agent struct {
+    ID     string
+    Type   string  // "Explore", "Plan", etc.
+    Status string  // "running", "completed"
+}
+
+// 파싱된 트랜스크립트 데이터
+type Data struct {
+    Tools  []Tool
+    Agents []Agent
+}
+
+func Parse(path string) *Data   // JSONL 파싱 (마지막 100줄)
+```
+
+- 트랜스크립트 경로: `session.TranscriptPath` (Claude Code 제공)
+- 마지막 100줄만 파싱하여 메모리 효율 유지
+- 잘못된 JSON 라인은 graceful skip
+- 파일 없음/에러 시 빈 Data 반환
+
+---
+
+## 향후 개선 방향 (v0.4+)
+
+1. **설정 확장**
    - 위젯별 threshold 커스터마이징
    - 색상 테마 프리셋
    - Powerline 스타일 지원
 
-3. **배포 자동화**
+2. **배포 자동화**
    - GitHub Actions 자동 릴리즈
    - goreleaser 통합
 
-4. **성능 개선**
+3. **성능 개선**
    - Git 정보 캐싱
    - 설정 파일 변경 감지
+   - tailLines EOF 최적화 (#16)
+
+4. **추가 위젯**
+   - 5시간 블록 타이머
+   - 누적 비용 추적
