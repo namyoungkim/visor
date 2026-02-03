@@ -7,6 +7,26 @@
 
 ## [Unreleased]
 
+## [0.5.0] - 2025-02-03
+
+### Added
+
+- **TUI 설정 편집기** - `visor --tui`로 인터랙티브 설정 편집
+  - Charm 생태계 사용 (bubbletea, bubbles, lipgloss)
+  - 위젯 추가/삭제/순서변경
+  - 위젯별 옵션 편집 (threshold 등)
+  - 레이아웃 변경 (single/split)
+  - 실시간 미리보기
+  - Vim 스타일 키바인딩 (`j/k`, `J/K`, `a`, `d`, `e`)
+- **Config 저장 기능** - `config.Save()`, `config.DeepCopy()` 함수 추가
+- **위젯 메타데이터** - 모든 위젯의 옵션 정의 (`internal/tui/widget_options.go`)
+
+### Dependencies
+
+- `github.com/charmbracelet/bubbletea v1.2.4` - TUI 프레임워크
+- `github.com/charmbracelet/bubbles v0.20.0` - TUI 컴포넌트
+- `github.com/charmbracelet/lipgloss v1.0.0` - 스타일링
+
 ## [0.4.0] - 2025-02-03
 
 ### Added
@@ -166,7 +186,8 @@
 
 ## 링크
 
-[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/namyoungkim/visor/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/namyoungkim/visor/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/namyoungkim/visor/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/namyoungkim/visor/compare/v0.2.0...v0.3.0
