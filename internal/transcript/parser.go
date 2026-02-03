@@ -1,7 +1,6 @@
 package transcript
 
 import (
-	"bufio"
 	"encoding/json"
 	"os"
 )
@@ -11,7 +10,6 @@ import (
 // - Average tool call produces ~2 lines (tool_use + tool_result)
 // - 100 lines ≈ 50 tool invocations worth of history
 // - Keeps memory usage bounded for long-running sessions
-// See: https://github.com/namyoungkim/visor/issues/16 for optimization plans
 const maxLines = 100
 
 // transcriptEntry represents a single line in the JSONL transcript.
@@ -53,7 +51,8 @@ func Parse(path string) *Data {
 	return parseLines(lines)
 }
 
-// tailLines reads the last n lines from a file.
+// tailLines reads the last n lines from a file efficiently.
+// It seeks from EOF and reads backwards to avoid loading the entire file.
 func tailLines(path string, n int) ([]string, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -61,20 +60,96 @@ func tailLines(path string, n int) ([]string, error) {
 	}
 	defer f.Close()
 
-	var lines []string
-	scanner := bufio.NewScanner(f)
-	// Increase buffer size for large JSON lines
-	buf := make([]byte, 0, 64*1024)
-	scanner.Buffer(buf, 1024*1024)
+	// Get file size
+	stat, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
+	fileSize := stat.Size()
 
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-		if len(lines) > n {
-			lines = lines[1:]
+	if fileSize == 0 {
+		return nil, nil
+	}
+
+	// Start with an estimated chunk size (average JSONL line ~2KB, read extra for safety)
+	chunkSize := int64(n * 4 * 1024) // 4KB per line estimate
+	if chunkSize > fileSize {
+		chunkSize = fileSize
+	}
+
+	var lines []string
+	offset := fileSize
+
+	for len(lines) < n && offset > 0 {
+		// Calculate read position
+		offset -= chunkSize
+		if offset < 0 {
+			chunkSize += offset // Adjust chunk size for final read
+			offset = 0
+		}
+
+		// Seek and read chunk
+		if _, err := f.Seek(offset, 0); err != nil {
+			return nil, err
+		}
+
+		chunk := make([]byte, chunkSize)
+		bytesRead, err := f.Read(chunk)
+		if err != nil {
+			return nil, err
+		}
+		chunk = chunk[:bytesRead]
+
+		// Parse lines from chunk
+		chunkLines := splitLines(chunk)
+
+		// If not at start of file, first line might be partial - discard it
+		if offset > 0 && len(chunkLines) > 0 {
+			chunkLines = chunkLines[1:]
+		}
+
+		// Prepend to existing lines
+		lines = append(chunkLines, lines...)
+
+		// Double chunk size for next iteration if needed
+		chunkSize *= 2
+		if chunkSize > 1024*1024 { // Cap at 1MB chunks
+			chunkSize = 1024 * 1024
 		}
 	}
 
-	return lines, scanner.Err()
+	// Return only the last n lines
+	if len(lines) > n {
+		lines = lines[len(lines)-n:]
+	}
+
+	return lines, nil
+}
+
+// splitLines splits a byte slice into lines, handling \n and \r\n.
+func splitLines(data []byte) []string {
+	var lines []string
+	start := 0
+
+	for i := 0; i < len(data); i++ {
+		if data[i] == '\n' {
+			end := i
+			if end > start && data[end-1] == '\r' {
+				end--
+			}
+			if end > start { // Skip empty lines
+				lines = append(lines, string(data[start:end]))
+			}
+			start = i + 1
+		}
+	}
+
+	// Handle last line without newline
+	if start < len(data) {
+		lines = append(lines, string(data[start:]))
+	}
+
+	return lines
 }
 
 // parseLines processes JSONL lines and extracts tools/agents.
