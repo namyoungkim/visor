@@ -2,7 +2,7 @@
 
 visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
-**최종 업데이트**: 2026-02-03 (v0.6.0 완료)
+**최종 업데이트**: 2026-02-04 (v0.7.0 완료)
 
 ---
 
@@ -16,7 +16,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 | **v0.4 커스터마이징 & 자동화** | ✅ 완료 | 100% |
 | **v0.5 TUI 설정 편집기** | ✅ 완료 | 100% |
 | **v0.6 테마 & 비용 추적** | ✅ 완료 | 100% |
-| **v0.7 도구/에이전트 상세** | 🔲 예정 | 0% |
+| **v0.7 도구/에이전트 상세** | ✅ 완료 | 100% |
 
 ---
 
@@ -180,14 +180,32 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
 ---
 
-## v0.7 도구/에이전트 상세 (예정)
+## v0.7 도구/에이전트 상세 (완료)
 
 ### 위젯 확장
 
 | 기능 | 식별자 | 현재 | 변경 후 | 상태 |
 |------|--------|------|---------|------|
-| 도구 사용 횟수 | `tools` | `✓Read ✓Write ◐Bash` | `✓Bash ×7 \| ✓Edit ×4` | 🔲 미구현 |
-| 에이전트 상세 | `agents` | `✓Explore ◐Plan` | `Explore: Analyze widgets (42s)` | 🔲 미구현 |
+| 도구 사용 횟수 | `tools` | `✓Read ✓Write ◐Bash` | `✓Bash ×7 \| ✓Edit ×4` | ✅ 완료 |
+| 에이전트 상세 | `agents` | `✓Explore ◐Plan` | `Explore: Analyze widgets (42s)` | ✅ 완료 |
+
+### 새 위젯 옵션
+
+| 위젯 | 옵션 | 기본값 | 설명 |
+|------|------|--------|------|
+| `tools` | `show_count` | `true` | 도구 호출 횟수 표시 |
+| `agents` | `show_description` | `true` | Task description 표시 |
+| `agents` | `show_duration` | `true` | 실행 시간 표시 |
+| `agents` | `max_description_len` | `20` | description 최대 길이 |
+
+### 데이터 구조 변경
+
+| 구조체 | 필드 | 타입 | 설명 |
+|--------|------|------|------|
+| `Tool` | `Count` | `int` | 같은 이름의 도구 호출 횟수 |
+| `Agent` | `Description` | `string` | Task input.description |
+| `Agent` | `StartTime` | `int64` | tool_use 타임스탬프 (ms) |
+| `Agent` | `EndTime` | `int64` | tool_result 타임스탬프 (ms) |
 
 ---
 
@@ -197,10 +215,30 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 |------|------|------|
 | 커스텀 테마 | 사용자 정의 색상/구분자 | 🔲 미구현 |
 | 테마 설정 저장 | config.toml에 테마 설정 | 🔲 미구현 |
+| 실시간 에이전트 경과시간 | running 상태에서 elapsed time 표시 | 🔲 미구현 |
 
 ---
 
 ## 릴리즈 히스토리
+
+### v0.7.0 (2026-02-04)
+
+**Added**:
+- Tools 위젯 확장 - 도구 사용 횟수 표시
+  - 같은 이름의 도구는 그룹화하여 Count 표시 (`✓Bash ×7 | ✓Edit ×4`)
+  - `show_count` 옵션으로 횟수 표시 on/off (기본: true)
+  - 구분자 변경: 공백 → 파이프 (`|`)
+- Agents 위젯 확장 - 상세 정보 표시
+  - Task description 표시 (`Explore: Analyze widgets`)
+  - 실행 시간 표시 (`(42s)`, `(2m)`, `(1h5m)`)
+  - Running 상태는 `(...)` 표시
+  - `show_description`, `show_duration`, `max_description_len` 옵션
+
+**Changed**:
+- `Tool` 구조체에 `Count` 필드 추가
+- `Agent` 구조체에 `Description`, `StartTime`, `EndTime` 필드 추가
+- Parser가 도구를 ID 대신 Name으로 그룹화
+- TUI 위젯 옵션에 새 옵션 추가
 
 ### v0.6.0 (2026-02-03)
 
@@ -361,9 +399,13 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 3. ~~사용량 제한 위젯~~ ✅ (OAuth API)
 4. ~~TUI 테마 피커~~ ✅
 
-### 다음 (v0.7.0)
-1. **도구 사용 횟수** - tools 위젯 확장 (`✓Bash ×7 | ✓Edit ×4`)
-2. **에이전트 상세** - agents 위젯 확장 (`Explore: Analyze widgets (42s)`)
+### 완료 (v0.7.0)
+1. ~~도구 사용 횟수~~ ✅ - tools 위젯 확장 (`✓Bash ×7 | ✓Edit ×4`)
+2. ~~에이전트 상세~~ ✅ - agents 위젯 확장 (`Explore: Analyze widgets (42s)`)
+
+### 다음 (v0.8.0)
+1. **커스텀 테마** - 사용자 정의 색상/구분자
+2. **테마 설정 저장** - config.toml에 테마 설정
 
 ---
 
