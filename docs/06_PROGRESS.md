@@ -215,7 +215,6 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 |------|------|------|
 | 커스텀 테마 | 사용자 정의 색상/구분자 | 🔲 미구현 |
 | 테마 설정 저장 | config.toml에 테마 설정 | 🔲 미구현 |
-| 실시간 에이전트 경과시간 | running 상태에서 elapsed time 표시 | 🔲 미구현 |
 
 ---
 
@@ -231,7 +230,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 - Agents 위젯 확장 - 상세 정보 표시
   - Task description 표시 (`Explore: Analyze widgets`)
   - 실행 시간 표시 (`(42s)`, `(2m)`, `(1h5m)`)
-  - Running 상태는 `(...)` 표시
+  - Running 상태는 실시간 경과시간 표시 (`(42s...)`)
   - `show_description`, `show_duration`, `max_description_len` 옵션
 
 **Changed**:

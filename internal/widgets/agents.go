@@ -2,6 +2,7 @@ package widgets
 
 import (
 	"strings"
+	"time"
 
 	"github.com/namyoungkim/visor/internal/config"
 	"github.com/namyoungkim/visor/internal/input"
@@ -19,7 +20,7 @@ import (
 //   - max_description_len: max length for description (default: "20")
 //
 // Output format: "Explore: Analyze widgets (42s)" (with description and duration)
-// Running agents show "..." instead of duration
+// Running agents show elapsed time with "..." suffix: "(42s...)"
 type AgentsWidget struct {
 	transcript *transcript.Data
 }
@@ -88,8 +89,10 @@ func (w *AgentsWidget) renderAgent(agent transcript.Agent, showDesc, showDur boo
 
 	// Add duration if enabled
 	if showDur {
-		if agent.Status == "running" {
-			result += render.Colorize(" (...)", "dim")
+		if agent.Status == "running" && agent.StartTime > 0 {
+			// Show elapsed time for running agents with "..." suffix
+			elapsedSec := (nowUnixMilli() - agent.StartTime) / 1000
+			result += render.Colorize(" ("+formatDurationSec(elapsedSec)+"...)", "dim")
 		} else if agent.EndTime > 0 && agent.StartTime > 0 {
 			durationSec := (agent.EndTime - agent.StartTime) / 1000
 			result += render.Colorize(" ("+formatDurationSec(durationSec)+")", "dim")
@@ -127,6 +130,12 @@ func formatDurationSec(seconds int64) string {
 		return itoa(int(hours)) + "h"
 	}
 	return itoa(int(hours)) + "h" + itoa(int(mins)) + "m"
+}
+
+// nowUnixMilli returns the current time in Unix milliseconds.
+// Declared as a variable to allow mocking in tests.
+var nowUnixMilli = func() int64 {
+	return time.Now().UnixMilli()
 }
 
 // agentStatusIcon returns the icon and color for an agent status.

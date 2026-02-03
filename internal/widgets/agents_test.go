@@ -176,7 +176,14 @@ func TestAgentsWidget_Description(t *testing.T) {
 	}
 }
 
-func TestAgentsWidget_RunningShowsEllipsis(t *testing.T) {
+func TestAgentsWidget_RunningShowsElapsedTime(t *testing.T) {
+	// Mock nowUnixMilli to return a fixed time
+	originalNow := nowUnixMilli
+	nowUnixMilli = func() int64 {
+		return 43000 // 42 seconds after StartTime (1000)
+	}
+	defer func() { nowUnixMilli = originalNow }()
+
 	w := &AgentsWidget{}
 	w.SetTranscript(&transcript.Data{
 		Agents: []transcript.Agent{
@@ -192,9 +199,9 @@ func TestAgentsWidget_RunningShowsEllipsis(t *testing.T) {
 
 	result := w.Render(&input.Session{}, &config.WidgetConfig{})
 
-	// Running agents should show (...) instead of duration
-	if !strings.Contains(result, "(...)") {
-		t.Errorf("Expected '(...)' for running agent, got '%s'", result)
+	// Running agents should show elapsed time with "..." suffix
+	if !strings.Contains(result, "42s...") {
+		t.Errorf("Expected '42s...' for running agent, got '%s'", result)
 	}
 }
 

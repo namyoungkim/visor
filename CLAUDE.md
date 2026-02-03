@@ -149,7 +149,7 @@ type Widget interface {
 | Widget | Identifier | Output Example | Unique? |
 |--------|------------|----------------|---------|
 | Tool status | `tools` | `✓Bash ×7 \| ✓Edit ×4 \| ✓Read ×6` | **Yes** |
-| Agent status | `agents` | `Explore: Analyze widgets (42s)` | **Yes** |
+| Agent status | `agents` | `✓Explore: Analyze... (42s)` or `◐Plan: Impl... (5s...)` | **Yes** |
 
 ### Rate Limit Widget (v0.4)
 | Widget | Identifier | Output Example | Unique? |
