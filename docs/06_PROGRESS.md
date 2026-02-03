@@ -2,7 +2,7 @@
 
 visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
-**최종 업데이트**: 2025-02-03 (v0.4.0 완료)
+**최종 업데이트**: 2026-02-03 (v0.5.0 완료)
 
 ---
 
@@ -14,6 +14,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 | **v0.2 효율 심화** | ✅ 완료 | 100% |
 | **v0.3 고급 기능** | ✅ 완료 | 100% |
 | **v0.4 커스터마이징 & 자동화** | ✅ 완료 | 100% |
+| **v0.5 TUI 설정 편집기** | ✅ 완료 | 100% |
 
 ---
 
@@ -127,19 +128,50 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
 ---
 
-## 향후 계획 (v0.5+)
+## v0.5 TUI 설정 편집기 (완료)
 
 | 기능 | 설명 | 상태 |
 |------|------|------|
-| TUI 설정 도구 | 인터랙티브 설정 | 🔲 미구현 |
+| TUI 설정 도구 | `visor --tui` 인터랙티브 편집기 | ✅ 완료 |
+| 위젯 관리 | 추가/삭제/순서변경 | ✅ 완료 |
+| 옵션 편집 | 위젯별 threshold 등 설정 | ✅ 완료 |
+| 레이아웃 변경 | single/split 전환 | ✅ 완료 |
+| 실시간 미리보기 | 변경사항 즉시 확인 | ✅ 완료 |
+| Config 저장 | Save(), DeepCopy() 함수 | ✅ 완료 |
+
+---
+
+## 향후 계획 (v0.6+)
+
+| 기능 | 설명 | 상태 |
+|------|------|------|
 | Powerline 테마 | 특수 문자 스타일 | 🔲 미구현 |
 | 색상 테마 프리셋 | 사전 정의된 테마 | 🔲 미구현 |
+| 누적 비용 추적 | 세션 간 총 비용 | 🔲 미구현 |
 
 ---
 
 ## 릴리즈 히스토리
 
-### v0.4.0 (2025-02-03)
+### v0.5.0 (2026-02-03)
+
+**Added**:
+- TUI 설정 편집기 - `visor --tui`로 인터랙티브 설정 편집
+  - Charm 생태계 사용 (bubbletea, bubbles, lipgloss)
+  - 위젯 추가/삭제/순서변경
+  - 위젯별 옵션 편집 (threshold 등)
+  - 레이아웃 변경 (single/split)
+  - 실시간 미리보기
+  - Vim 스타일 키바인딩 (j/k, J/K, a, d, e)
+- Config 저장 기능 - `config.Save()`, `config.DeepCopy()` 함수 추가
+- 위젯 메타데이터 - 모든 위젯의 옵션 정의 (`internal/tui/widget_options.go`)
+
+**Dependencies**:
+- `github.com/charmbracelet/bubbletea v1.2.4`
+- `github.com/charmbracelet/bubbles v0.20.0`
+- `github.com/charmbracelet/lipgloss v1.0.0`
+
+### v0.4.0 (2026-02-03)
 
 **Added**:
 - 위젯별 threshold 커스터마이징 - Extra 옵션으로 임계값 설정 가능
@@ -158,7 +190,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 - 기본 위젯 10개 → 11개 (block_timer 추가)
 - version 변수가 ldflags로 주입 가능하게 변경
 
-### v0.3.0 (2025-02-03)
+### v0.3.0 (2026-02-03)
 
 **Added**:
 - Transcript 파싱 - Claude Code JSONL 트랜스크립트에서 tool/agent 데이터 추출
@@ -169,7 +201,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 **Changed**:
 - tools 위젯이 약어 대신 풀 네임 표시 (R → Read)
 
-### v0.2.0 (2025-02-03)
+### v0.2.0 (2026-02-03)
 
 **Added**:
 - `burn_rate` 위젯 - 비용 번 레이트 (¢/min 또는 $/min)
@@ -183,7 +215,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 **Security**:
 - Session ID sanitization 추가 - path traversal 방지
 
-### v0.1.2 (2025-02-02)
+### v0.1.2 (2026-02-02)
 
 **Added**:
 - `[general]` 섹션의 `separator` 설정 - 위젯 간 구분자 커스터마이징 (기본값: `" | "`)
@@ -197,7 +229,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
   - `internal/render`: 74.7% → 90.8%
   - `internal/widgets`: 58.9% → 83.6%
 
-### v0.1.1 (2025-02-02)
+### v0.1.1 (2026-02-02)
 
 **Fixed**:
 - Git 명령어 200ms 타임아웃 추가
@@ -213,7 +245,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 **Changed**:
 - 임계값을 상수로 추출
 
-### v0.1.0 (2025-02-02)
+### v0.1.0 (2026-02-02)
 
 **Initial Release**:
 - 7개 MVP 위젯 (model, context, git, cost, cache_hit, api_latency, code_changes)
@@ -243,10 +275,16 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 2. ~~5시간 블록 타이머~~ ✅
 3. ~~GitHub Actions 자동 릴리즈~~ ✅
 
-### 다음 (v0.5.0)
-1. TUI 설정 도구
-2. Powerline 테마
-3. 색상 테마 프리셋
+### 완료 (v0.5.0)
+1. ~~TUI 설정 도구~~ ✅
+2. ~~위젯 관리 (추가/삭제/순서변경)~~ ✅
+3. ~~옵션 편집 (threshold 등)~~ ✅
+4. ~~실시간 미리보기~~ ✅
+
+### 다음 (v0.6.0)
+1. Powerline 테마
+2. 색상 테마 프리셋
+3. 누적 비용 추적
 
 ---
 

@@ -38,6 +38,7 @@ echo '{"session_id":"test","model":{"display_name":"Opus"},"context_window":{"us
 ./visor --setup     # Configure Claude Code statusline
 ./visor --check     # Validate config file
 ./visor --debug     # Debug output to stderr
+./visor --tui       # Interactive TUI config editor
 
 # Install globally
 go install github.com/namyoungkim/visor@latest
@@ -49,14 +50,14 @@ Releases are automated via GitHub Actions. When you push a version tag, GoReleas
 
 ```bash
 # Create annotated tag
-git tag -a v0.4.0 -m "v0.4.0: Brief description
+git tag -a v0.5.0 -m "v0.5.0: Brief description
 
 Features:
 - Feature 1
 - Feature 2"
 
 # Push tag to remote (triggers GitHub Actions release)
-git push origin v0.4.0
+git push origin v0.5.0
 
 # List all tags
 git tag -l
@@ -91,12 +92,13 @@ transcript.Parse() → Data          │  (v0.3)
 ```
 cmd/visor/main.go           # CLI entry point only
 internal/input/             # stdin JSON parsing → Session struct
-internal/config/            # TOML config loading
+internal/config/            # TOML config loading + saving
 internal/widgets/           # Widget interface + implementations
 internal/render/            # Layout, ANSI colors, truncation
 internal/git/               # git CLI wrapper
 internal/history/           # Session history buffer
 internal/transcript/        # JSONL transcript parsing (v0.3)
+internal/tui/               # Interactive TUI config editor (v0.5)
 ```
 
 ### Widget Interface Pattern
@@ -116,9 +118,10 @@ type Widget interface {
 - **Config**: TOML at `~/.config/visor/config.toml` (uses `[[line]]` for multiline layout)
 - **History**: JSON at `~/.cache/visor/history_<session_id>.json`
 - **Git info**: External `git` CLI calls with 200ms timeout (zero dependencies)
-- **Dependencies**: Only `BurntSushi/toml` for config parsing
+- **TUI**: Charm ecosystem (bubbletea, bubbles, lipgloss) for interactive config editor
+- **Dependencies**: `BurntSushi/toml`, `charmbracelet/bubbletea`, `charmbracelet/bubbles`, `charmbracelet/lipgloss`
 
-## Widgets (v0.4.0)
+## Widgets (v0.5.0)
 
 ### Core Widgets (v0.1)
 | Widget | Identifier | Unique? |
@@ -155,7 +158,41 @@ type Widget interface {
 - Compact ETA: `(80 - current%) / context_burn_rate_per_min`
 - Block timer: Remaining time in 5-hour Claude Pro rate limit block
 
-## Config Options (v0.4.0)
+## TUI Config Editor (v0.5)
+
+Interactive terminal UI for configuration editing:
+
+```bash
+./visor --tui
+```
+
+### Keybindings
+| Key | Action |
+|-----|--------|
+| `j/k` | Move cursor |
+| `a` | Add widget |
+| `d` | Delete widget |
+| `e` | Edit widget options |
+| `J/K` | Reorder widgets |
+| `L` | Change layout (single/split) |
+| `n` | Add new line |
+| `s` | Save |
+| `q` | Quit |
+
+### TUI Package Structure
+```
+internal/tui/
+├── tui.go              # Run() entry point
+├── model.go            # Model struct (state)
+├── update.go           # Update() message handling
+├── view.go             # View() rendering
+├── styles.go           # lipgloss styles
+├── keys.go             # Keybinding definitions
+├── widget_options.go   # Widget option metadata
+└── preview.go          # Sample session & preview
+```
+
+## Config Options (v0.5.0)
 
 ### General
 - `[general].separator` - Widget separator (default: `" | "`)
