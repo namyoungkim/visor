@@ -7,6 +7,15 @@
 
 ## [Unreleased]
 
+## [0.3.1] - 2025-02-03
+
+### Fixed
+
+- **tailLines 성능 최적화** - EOF에서 역방향으로 읽어 대용량 파일 처리 개선 (#16)
+  - 전체 파일을 읽지 않고 필요한 만큼만 청크 단위로 읽음
+  - 4KB * N 청크로 시작, 최대 1MB까지 증가
+  - 대용량 트랜스크립트에서 메모리 사용량 감소
+
 ## [0.3.0] - 2025-02-03
 
 ### Added
@@ -131,7 +140,8 @@
 
 ## 링크
 
-[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/namyoungkim/visor/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/namyoungkim/visor/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/namyoungkim/visor/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/namyoungkim/visor/compare/v0.1.0...v0.1.1
