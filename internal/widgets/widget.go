@@ -5,9 +5,11 @@ import (
 	"strings"
 
 	"github.com/namyoungkim/visor/internal/config"
+	"github.com/namyoungkim/visor/internal/cost"
 	"github.com/namyoungkim/visor/internal/history"
 	"github.com/namyoungkim/visor/internal/input"
 	"github.com/namyoungkim/visor/internal/transcript"
+	"github.com/namyoungkim/visor/internal/usage"
 )
 
 // Threshold constants for color coding.
@@ -214,6 +216,15 @@ var toolsWidget = &ToolsWidget{}
 // agentsWidget holds the singleton instance for transcript injection.
 var agentsWidget = &AgentsWidget{}
 
+// Cost tracking widgets (singleton instances for data injection).
+var dailyCostWidget = &DailyCostWidget{}
+var weeklyCostWidget = &WeeklyCostWidget{}
+var blockCostWidget = &BlockCostWidget{}
+
+// Usage limit widgets (singleton instances for data injection).
+var blockLimitWidget = &BlockLimitWidget{}
+var weekLimitWidget = &WeekLimitWidget{}
+
 // SetHistory sets the history on widgets that need it.
 func SetHistory(h *history.History) {
 	contextSparkWidget.SetHistory(h)
@@ -224,6 +235,19 @@ func SetHistory(h *history.History) {
 func SetTranscript(t *transcript.Data) {
 	toolsWidget.SetTranscript(t)
 	agentsWidget.SetTranscript(t)
+}
+
+// SetCostData sets the cost data on widgets that need it.
+func SetCostData(data *cost.CostData) {
+	dailyCostWidget.SetCostData(data)
+	weeklyCostWidget.SetCostData(data)
+	blockCostWidget.SetCostData(data)
+}
+
+// SetUsageLimits sets the usage limits on widgets that need it.
+func SetUsageLimits(limits *usage.Limits) {
+	blockLimitWidget.SetLimits(limits)
+	weekLimitWidget.SetLimits(limits)
 }
 
 func init() {
@@ -241,4 +265,13 @@ func init() {
 	Register(blockTimerWidget)
 	Register(toolsWidget)
 	Register(agentsWidget)
+
+	// Register cost tracking widgets (v0.6)
+	Register(dailyCostWidget)
+	Register(weeklyCostWidget)
+	Register(blockCostWidget)
+
+	// Register usage limit widgets (v0.6)
+	Register(blockLimitWidget)
+	Register(weekLimitWidget)
 }
