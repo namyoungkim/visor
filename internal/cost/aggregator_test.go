@@ -14,30 +14,35 @@ func floatEqual(a, b float64) bool {
 
 func TestAggregate(t *testing.T) {
 	now := time.Now()
+	// Calculate today's start to ensure entries are clearly within/outside today
+	todayStart := startOfDay(now)
 
 	entries := []Entry{
 		{
-			Timestamp: now.Add(-1 * time.Hour),
+			// Clearly within today (after today's start + buffer)
+			Timestamp: todayStart.Add(1 * time.Hour),
 			CostUSD:   0.10,
 		},
 		{
-			Timestamp: now.Add(-2 * time.Hour),
+			// Clearly within today
+			Timestamp: todayStart.Add(2 * time.Hour),
 			CostUSD:   0.20,
 		},
 		{
-			Timestamp: now.Add(-25 * time.Hour), // Yesterday
+			// Clearly yesterday (before today's start)
+			Timestamp: todayStart.Add(-10 * time.Hour),
 			CostUSD:   0.50,
 		},
 	}
 
 	data := Aggregate(entries, now.Add(-3*time.Hour))
 
-	// Today should include first two entries
+	// Today should include first two entries (both are after todayStart)
 	if !floatEqual(data.Today, 0.30) {
 		t.Errorf("Aggregate().Today = %v, want 0.30", data.Today)
 	}
 
-	// Week should include all entries
+	// Week should include all entries (all within same week)
 	if !floatEqual(data.Week, 0.80) {
 		t.Errorf("Aggregate().Week = %v, want 0.80", data.Week)
 	}

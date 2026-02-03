@@ -138,21 +138,33 @@ func (c *Cache) Set(path string, entries []Entry) {
 }
 
 // ParseWithCache parses a JSONL file using cache for unchanged files.
-func (c *Cache) ParseWithCache(path string) ([]Entry, error) {
+// Returns (entries, fromCache, error).
+func (c *Cache) ParseWithCache(path string) ([]Entry, bool, error) {
 	if cached, ok := c.Get(path); ok {
-		// Return minimal info from cache
-		// Note: For full entries, we'd need to store them, which could be large
-		// This is a simplified approach that just validates cache
-		_ = cached
+		// Cache hit: return cached summary as a synthetic entry
+		// This avoids re-parsing unchanged files for cost aggregation
+		return []Entry{{
+			Timestamp: cached.LastParsed,
+			CostUSD:   cached.TotalCost,
+		}}, true, nil
 	}
 
 	entries, err := ParseJSONL(path)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	c.Set(path, entries)
-	return entries, nil
+	return entries, false, nil
+}
+
+// GetCachedSummary returns cached summary without parsing.
+// Returns (totalCost, entryCount, ok).
+func (c *Cache) GetCachedSummary(path string) (float64, int, bool) {
+	if cached, ok := c.Get(path); ok {
+		return cached.TotalCost, cached.EntriesCount, true
+	}
+	return 0, 0, false
 }
 
 // Cleanup removes cache entries for files that no longer exist.

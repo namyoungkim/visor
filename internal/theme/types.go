@@ -1,5 +1,7 @@
 package theme
 
+import "sort"
+
 // Theme represents a complete theme configuration.
 type Theme struct {
 	Name       string
@@ -68,11 +70,12 @@ func Get(name string) *Theme {
 	return presets["default"]
 }
 
-// List returns all available theme names.
+// List returns all available theme names in sorted order.
 func List() []string {
 	names := make([]string, 0, len(presets))
 	for name := range presets {
 		names = append(names, name)
 	}
+	sort.Strings(names)
 	return names
 }

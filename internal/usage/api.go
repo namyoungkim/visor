@@ -12,6 +12,10 @@ import (
 
 const (
 	// API endpoints
+	// NOTE: This is the assumed endpoint for Claude Pro usage data.
+	// The actual endpoint and response structure should be verified
+	// against the official Claude API documentation when available.
+	// This implementation is based on common OAuth API patterns.
 	baseURL = "https://api.claude.ai"
 
 	// Default timeout for API requests

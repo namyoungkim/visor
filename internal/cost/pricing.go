@@ -108,9 +108,3 @@ func CalculateCost(modelID string, inputTokens, outputTokens, cacheRead, cacheWr
 	return cost
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
