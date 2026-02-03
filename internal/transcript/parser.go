@@ -14,8 +14,9 @@ const maxLines = 100
 
 // transcriptEntry represents a single line in the JSONL transcript.
 type transcriptEntry struct {
-	Type    string `json:"type"`
-	Message struct {
+	Type      string `json:"type"`
+	Timestamp int64  `json:"timestamp"` // Unix timestamp in milliseconds
+	Message   struct {
 		Content []contentBlock `json:"content"`
 	} `json:"message"`
 	Data struct {
@@ -33,6 +34,7 @@ type contentBlock struct {
 	IsError   *bool  `json:"is_error"`
 	Input     struct {
 		SubagentType string `json:"subagent_type"`
+		Description  string `json:"description"` // Task description
 	} `json:"input"`
 }
 
@@ -159,10 +161,12 @@ func parseLines(lines []string) *Data {
 		Agents: make([]Agent, 0),
 	}
 
-	toolMap := make(map[string]*Tool)
-	agentMap := make(map[string]*Agent)
-	var toolOrder []string  // Maintain insertion order
-	var agentOrder []string // Maintain insertion order
+	// toolMap groups tools by Name (not ID) to count invocations
+	toolMap := make(map[string]*Tool)    // key: tool Name
+	toolIDMap := make(map[string]string) // key: tool ID -> tool Name (for result lookup)
+	agentMap := make(map[string]*Agent)  // key: tool ID
+	var toolOrder []string               // Maintain insertion order by Name
+	var agentOrder []string              // Maintain insertion order by ID
 
 	for _, line := range lines {
 		var entry transcriptEntry
@@ -172,15 +176,15 @@ func parseLines(lines []string) *Data {
 
 		switch entry.Type {
 		case "assistant":
-			processAssistant(&entry, toolMap, agentMap, &toolOrder, &agentOrder)
+			processAssistant(&entry, toolMap, toolIDMap, agentMap, &toolOrder, &agentOrder)
 		case "user":
-			processToolResult(&entry, toolMap, agentMap)
+			processToolResult(&entry, toolMap, toolIDMap, agentMap)
 		}
 	}
 
 	// Convert maps to slices in insertion order
-	for _, id := range toolOrder {
-		if tool, ok := toolMap[id]; ok {
+	for _, name := range toolOrder {
+		if tool, ok := toolMap[name]; ok {
 			data.Tools = append(data.Tools, *tool)
 		}
 	}
@@ -194,30 +198,41 @@ func parseLines(lines []string) *Data {
 }
 
 // processAssistant handles assistant messages containing tool_use.
-func processAssistant(entry *transcriptEntry, toolMap map[string]*Tool, agentMap map[string]*Agent, toolOrder, agentOrder *[]string) {
+func processAssistant(entry *transcriptEntry, toolMap map[string]*Tool, toolIDMap map[string]string, agentMap map[string]*Agent, toolOrder, agentOrder *[]string) {
 	for _, block := range entry.Message.Content {
 		if block.Type != "tool_use" {
 			continue
 		}
 
-		// Track tool (only if not already seen)
-		if _, exists := toolMap[block.ID]; !exists {
+		// Track tool by Name (group same tools together)
+		toolIDMap[block.ID] = block.Name // Map ID -> Name for result lookup
+
+		if existing, exists := toolMap[block.Name]; exists {
+			// Tool already seen: increment count, update status to running
+			existing.Count++
+			existing.Status = ToolRunning
+			existing.ID = block.ID // Update to latest ID
+		} else {
+			// New tool: create entry
 			tool := &Tool{
 				ID:     block.ID,
 				Name:   block.Name,
 				Status: ToolRunning,
+				Count:  1,
 			}
-			toolMap[block.ID] = tool
-			*toolOrder = append(*toolOrder, block.ID)
+			toolMap[block.Name] = tool
+			*toolOrder = append(*toolOrder, block.Name)
 		}
 
 		// Check if this is a Task tool (spawns agent)
 		if block.Name == "Task" && block.Input.SubagentType != "" {
 			if _, exists := agentMap[block.ID]; !exists {
 				agent := &Agent{
-					ID:     block.ID,
-					Type:   block.Input.SubagentType,
-					Status: "running",
+					ID:          block.ID,
+					Type:        block.Input.SubagentType,
+					Status:      "running",
+					Description: block.Input.Description,
+					StartTime:   entry.Timestamp,
 				}
 				agentMap[block.ID] = agent
 				*agentOrder = append(*agentOrder, block.ID)
@@ -227,24 +242,30 @@ func processAssistant(entry *transcriptEntry, toolMap map[string]*Tool, agentMap
 }
 
 // processToolResult handles tool_result messages to update tool and agent status.
-func processToolResult(entry *transcriptEntry, toolMap map[string]*Tool, agentMap map[string]*Agent) {
+func processToolResult(entry *transcriptEntry, toolMap map[string]*Tool, toolIDMap map[string]string, agentMap map[string]*Agent) {
 	for _, block := range entry.Message.Content {
 		if block.Type != "tool_result" {
 			continue
 		}
 
-		// Update tool status
-		if tool, ok := toolMap[block.ToolUseID]; ok {
-			if block.IsError != nil && *block.IsError {
-				tool.Status = ToolError
-			} else {
-				tool.Status = ToolCompleted
+		// Update tool status (lookup by ID -> Name)
+		if toolName, ok := toolIDMap[block.ToolUseID]; ok {
+			if tool, ok := toolMap[toolName]; ok {
+				// Only update status if this is the latest invocation
+				if tool.ID == block.ToolUseID {
+					if block.IsError != nil && *block.IsError {
+						tool.Status = ToolError
+					} else {
+						tool.Status = ToolCompleted
+					}
+				}
 			}
 		}
 
 		// Update agent status (Task tool completion)
 		if agent, ok := agentMap[block.ToolUseID]; ok {
 			agent.Status = "completed"
+			agent.EndTime = entry.Timestamp
 		}
 	}
 }
