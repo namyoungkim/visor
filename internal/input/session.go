@@ -2,12 +2,13 @@ package input
 
 // Session represents the parsed stdin JSON from Claude Code.
 type Session struct {
-	SessionID     string        `json:"session_id"`
-	Model         Model         `json:"model"`
-	Cost          Cost          `json:"cost"`
-	ContextWindow ContextWindow `json:"context_window"`
-	Workspace     Workspace     `json:"workspace"`
-	CurrentUsage  *CurrentUsage `json:"current_usage"`
+	SessionID      string        `json:"session_id"`
+	Model          Model         `json:"model"`
+	Cost           Cost          `json:"cost"`
+	ContextWindow  ContextWindow `json:"context_window"`
+	Workspace      Workspace     `json:"workspace"`
+	CurrentUsage   *CurrentUsage `json:"current_usage"`
+	TranscriptPath string        `json:"transcript_path"`
 }
 
 // Model contains model information.

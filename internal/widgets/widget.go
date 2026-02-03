@@ -7,6 +7,7 @@ import (
 	"github.com/namyoungkim/visor/internal/config"
 	"github.com/namyoungkim/visor/internal/history"
 	"github.com/namyoungkim/visor/internal/input"
+	"github.com/namyoungkim/visor/internal/transcript"
 )
 
 // Threshold constants for color coding.
@@ -188,9 +189,21 @@ func RenderAll(session *input.Session, widgets []config.WidgetConfig) []string {
 // contextSparkWidget holds the singleton instance for history injection.
 var contextSparkWidget = &ContextSparkWidget{}
 
+// toolsWidget holds the singleton instance for transcript injection.
+var toolsWidget = &ToolsWidget{}
+
+// agentsWidget holds the singleton instance for transcript injection.
+var agentsWidget = &AgentsWidget{}
+
 // SetHistory sets the history on widgets that need it.
 func SetHistory(h *history.History) {
 	contextSparkWidget.SetHistory(h)
+}
+
+// SetTranscript sets the transcript data on widgets that need it.
+func SetTranscript(t *transcript.Data) {
+	toolsWidget.SetTranscript(t)
+	agentsWidget.SetTranscript(t)
 }
 
 func init() {
@@ -205,4 +218,6 @@ func init() {
 	Register(&BurnRateWidget{})
 	Register(&CompactETAWidget{})
 	Register(contextSparkWidget)
+	Register(toolsWidget)
+	Register(agentsWidget)
 }
