@@ -14,6 +14,8 @@ import (
 //   - show_label: "true"/"false" - whether to show "Ctx:" prefix (default: true)
 //   - show_bar: "true"/"false" - whether to show progress bar (default: true)
 //   - bar_width: "10" - progress bar width in characters (default: 10)
+//   - warn_threshold: "60" - percentage for warning color (default: 60)
+//   - critical_threshold: "80" - percentage for critical/red color (default: 80)
 type ContextWidget struct{}
 
 func (w *ContextWidget) Name() string {
@@ -22,7 +24,9 @@ func (w *ContextWidget) Name() string {
 
 func (w *ContextWidget) Render(session *input.Session, cfg *config.WidgetConfig) string {
 	pct := session.ContextWindow.UsedPercentage
-	color := ColorByThreshold(pct, ContextWarningPct, ContextDangerPct)
+	warnThreshold := GetExtraFloat(cfg, "warn_threshold", ContextWarningPct)
+	criticalThreshold := GetExtraFloat(cfg, "critical_threshold", ContextDangerPct)
+	color := ColorByThreshold(pct, warnThreshold, criticalThreshold)
 
 	pctStr := fmt.Sprintf("%.0f%%", pct)
 
