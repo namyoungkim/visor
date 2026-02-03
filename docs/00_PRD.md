@@ -156,7 +156,7 @@ total_api_duration_ms < 1000  → "XXXms" (예: "850ms")
 | 위젯 | 식별자 | 데이터 소스 | 상태 |
 |-------|--------|-----------|------|
 | Tool 활동 | `tools` | transcript JSONL 파싱 | ✅ `✓Read ✓Write ◐Bash` |
-| Agent 상태 | `agents` | transcript JSONL 파싱 | ✅ `◐ 1 agent`, `✓ 2 done` |
+| Agent 상태 | `agents` | transcript JSONL 파싱 | ✅ `✓Plan ◐Explore` |
 | 5시간 블록 타이머 | `block_timer` | 세션 시작 시간 기반 | 🔲 v0.4 예정 |
 
 ### 3.3 레이아웃 시스템
@@ -325,7 +325,7 @@ config.Load() → Config     │
 |------|------|------|
 | Transcript 파싱 | tool/agent 활동 추적 | ✅ `internal/transcript/` |
 | `tools` 위젯 | 도구 호출 상태 표시 | ✅ `✓Read ✓Write ◐Bash` |
-| `agents` 위젯 | 에이전트 상태 표시 | ✅ `◐ 1 agent` |
+| `agents` 위젯 | 에이전트 상태 표시 | ✅ `✓Plan ◐Explore` |
 | 5시간 블록 타이머 | 사용량 블록 모니터링 | 🔲 v0.4 예정 |
 | GitHub 릴리즈 자동화 | goreleaser + GitHub Actions | 🔲 v0.4 예정 |
 

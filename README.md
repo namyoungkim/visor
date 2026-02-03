@@ -64,7 +64,7 @@ export CLAUDE_STATUSLINE_COMMAND="visor"
 | Compact 예측 | `compact_eta` | 80% context 도달 예측 | `~18m` |
 | Context 스파크라인 | `context_spark` | 히스토리 기반 미니 그래프 | `▂▃▄▅▆` |
 | 도구 상태 | `tools` | 최근 도구 호출 상태 | `✓Read ✓Write ◐Bash` |
-| 에이전트 상태 | `agents` | 서브 에이전트 상태 | `◐ 1 agent` |
+| 에이전트 상태 | `agents` | 서브 에이전트 상태 | `✓Plan ◐Explore` |
 
 ### 고유 메트릭 상세
 

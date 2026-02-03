@@ -137,7 +137,7 @@ type Widget interface {
 | Widget | Identifier | Output Example | Unique? |
 |--------|------------|----------------|---------|
 | Tool status | `tools` | `✓Read ✓Write ◐Bash` | **Yes** |
-| Agent status | `agents` | `◐ 1 agent`, `✓ 2 done` | **Yes** |
+| Agent status | `agents` | `✓Plan ◐Explore` | **Yes** |
 
 ### Widget Formulas
 - Cache hit rate: `cache_read_tokens / (cache_read + input_tokens) × 100`
@@ -170,7 +170,7 @@ type Widget interface {
 - `context_spark`: `width` (default: 8)
 - `burn_rate`, `cost`: `show_label`
 - `tools`: `max_display` (default: 3), `show_label`
-- `agents`: `show_label`
+- `agents`: `max_display` (default: 3), `show_label`
 
 ## Performance Requirements
 
