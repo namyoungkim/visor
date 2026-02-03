@@ -57,14 +57,11 @@ func TestParse_ToolUseAndResult(t *testing.T) {
 }
 
 func TestParse_ToolError(t *testing.T) {
-	isError := true
 	content := `{"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_001","name":"Bash"}]}}
 {"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"toolu_001","is_error":true}]}}
 `
 	path := writeTempFile(t, content)
 	defer os.Remove(path)
-
-	_ = isError // suppress unused warning
 
 	data := Parse(path)
 	if len(data.Tools) != 1 {
@@ -89,6 +86,9 @@ func TestParse_TaskAgent(t *testing.T) {
 	if data.Agents[0].Type != "Explore" {
 		t.Errorf("expected Explore agent type, got %s", data.Agents[0].Type)
 	}
+	if data.Agents[0].Status != "completed" {
+		t.Errorf("expected completed status, got %s", data.Agents[0].Status)
+	}
 }
 
 func TestParse_MalformedJSON(t *testing.T) {
@@ -106,6 +106,28 @@ not valid json
 	}
 	if data.Tools[0].Status != ToolCompleted {
 		t.Errorf("expected completed status, got %s", data.Tools[0].Status)
+	}
+}
+
+func TestParse_ToolOrder(t *testing.T) {
+	content := `{"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_001","name":"Read"}]}}
+{"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_002","name":"Write"}]}}
+{"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_003","name":"Bash"}]}}
+`
+	path := writeTempFile(t, content)
+	defer os.Remove(path)
+
+	data := Parse(path)
+	if len(data.Tools) != 3 {
+		t.Fatalf("expected 3 tools, got %d", len(data.Tools))
+	}
+
+	// Verify insertion order is preserved
+	expectedOrder := []string{"Read", "Write", "Bash"}
+	for i, expected := range expectedOrder {
+		if data.Tools[i].Name != expected {
+			t.Errorf("tool %d: expected %s, got %s", i, expected, data.Tools[i].Name)
+		}
 	}
 }
 

@@ -80,6 +80,8 @@ func parseLines(lines []string) *Data {
 
 	toolMap := make(map[string]*Tool)
 	agentMap := make(map[string]*Agent)
+	var toolOrder []string  // Maintain insertion order
+	var agentOrder []string // Maintain insertion order
 
 	for _, line := range lines {
 		var entry transcriptEntry
@@ -89,84 +91,79 @@ func parseLines(lines []string) *Data {
 
 		switch entry.Type {
 		case "assistant":
-			processAssistant(&entry, toolMap, agentMap)
+			processAssistant(&entry, toolMap, agentMap, &toolOrder, &agentOrder)
 		case "user":
-			processToolResult(&entry, toolMap)
-		case "progress":
-			processProgress(&entry, agentMap)
+			processToolResult(&entry, toolMap, agentMap)
 		}
 	}
 
-	// Convert maps to slices (maintaining insertion order via map iteration is fine for display)
-	for _, tool := range toolMap {
-		data.Tools = append(data.Tools, *tool)
+	// Convert maps to slices in insertion order
+	for _, id := range toolOrder {
+		if tool, ok := toolMap[id]; ok {
+			data.Tools = append(data.Tools, *tool)
+		}
 	}
-	for _, agent := range agentMap {
-		data.Agents = append(data.Agents, *agent)
+	for _, id := range agentOrder {
+		if agent, ok := agentMap[id]; ok {
+			data.Agents = append(data.Agents, *agent)
+		}
 	}
 
 	return data
 }
 
 // processAssistant handles assistant messages containing tool_use.
-func processAssistant(entry *transcriptEntry, toolMap map[string]*Tool, agentMap map[string]*Agent) {
+func processAssistant(entry *transcriptEntry, toolMap map[string]*Tool, agentMap map[string]*Agent, toolOrder, agentOrder *[]string) {
 	for _, block := range entry.Message.Content {
 		if block.Type != "tool_use" {
 			continue
 		}
 
-		// Track tool
-		tool := &Tool{
-			ID:     block.ID,
-			Name:   block.Name,
-			Status: ToolRunning,
+		// Track tool (only if not already seen)
+		if _, exists := toolMap[block.ID]; !exists {
+			tool := &Tool{
+				ID:     block.ID,
+				Name:   block.Name,
+				Status: ToolRunning,
+			}
+			toolMap[block.ID] = tool
+			*toolOrder = append(*toolOrder, block.ID)
 		}
-		toolMap[block.ID] = tool
 
 		// Check if this is a Task tool (spawns agent)
 		if block.Name == "Task" && block.Input.SubagentType != "" {
-			agent := &Agent{
-				ID:     block.ID,
-				Type:   block.Input.SubagentType,
-				Status: "running",
+			if _, exists := agentMap[block.ID]; !exists {
+				agent := &Agent{
+					ID:     block.ID,
+					Type:   block.Input.SubagentType,
+					Status: "running",
+				}
+				agentMap[block.ID] = agent
+				*agentOrder = append(*agentOrder, block.ID)
 			}
-			agentMap[block.ID] = agent
 		}
 	}
 }
 
-// processToolResult handles tool_result messages to update tool status.
-func processToolResult(entry *transcriptEntry, toolMap map[string]*Tool) {
+// processToolResult handles tool_result messages to update tool and agent status.
+func processToolResult(entry *transcriptEntry, toolMap map[string]*Tool, agentMap map[string]*Agent) {
 	for _, block := range entry.Message.Content {
 		if block.Type != "tool_result" {
 			continue
 		}
 
-		tool, ok := toolMap[block.ToolUseID]
-		if !ok {
-			continue
+		// Update tool status
+		if tool, ok := toolMap[block.ToolUseID]; ok {
+			if block.IsError != nil && *block.IsError {
+				tool.Status = ToolError
+			} else {
+				tool.Status = ToolCompleted
+			}
 		}
 
-		if block.IsError != nil && *block.IsError {
-			tool.Status = ToolError
-		} else {
-			tool.Status = ToolCompleted
-		}
-	}
-}
-
-// processProgress handles progress messages to track agent status.
-func processProgress(entry *transcriptEntry, agentMap map[string]*Agent) {
-	// Progress entries with agentId indicate running agents
-	if entry.Data.AgentID == "" {
-		return
-	}
-
-	// Try to find and update the agent by matching toolUseID
-	for _, agent := range agentMap {
-		if agent.Status == "running" {
-			// Agent is still running, nothing to update
-			return
+		// Update agent status (Task tool completion)
+		if agent, ok := agentMap[block.ToolUseID]; ok {
+			agent.Status = "completed"
 		}
 	}
 }

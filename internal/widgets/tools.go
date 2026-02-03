@@ -89,7 +89,7 @@ func toolAbbrev(name string) string {
 		"Grep":         "S", // Search
 		"Task":         "T",
 		"WebFetch":     "F",
-		"WebSearch":    "W",
+		"WebSearch":    "Q", // Query
 		"NotebookEdit": "N",
 	}
 
