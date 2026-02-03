@@ -6,6 +6,12 @@ import (
 	"os"
 )
 
+// maxLines limits the number of transcript lines to parse.
+// 100 lines is sufficient for typical sessions:
+// - Average tool call produces ~2 lines (tool_use + tool_result)
+// - 100 lines ≈ 50 tool invocations worth of history
+// - Keeps memory usage bounded for long-running sessions
+// See: https://github.com/namyoungkim/visor/issues/16 for optimization plans
 const maxLines = 100
 
 // transcriptEntry represents a single line in the JSONL transcript.
