@@ -2,7 +2,7 @@
 
 visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
-**최종 업데이트**: 2025-02-03 (v0.3.0 완료)
+**최종 업데이트**: 2025-02-03 (v0.4.0 완료)
 
 ---
 
@@ -12,7 +12,8 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 |-------|------|--------|
 | **v0.1 MVP** | ✅ 완료 | 100% |
 | **v0.2 효율 심화** | ✅ 완료 | 100% |
-| **v0.3 고급 기능** | ✅ 완료 | 60% (core features) |
+| **v0.3 고급 기능** | ✅ 완료 | 100% |
+| **v0.4 커스터마이징 & 자동화** | ✅ 완료 | 100% |
 
 ---
 
@@ -101,25 +102,61 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 | Context 프로그레스 바 | `████░░░░░░` 형식 | ✅ 완료 (v0.1.2) |
 | Split 레이아웃 | 좌/우 정렬 | ✅ 완료 |
 | 세션 히스토리 버퍼 | 호출 간 데이터 유지 | ✅ 완료 |
-| 위젯별 threshold 설정 | warn_threshold, critical_threshold | 🔲 미구현 (v0.3)
+| 위젯별 threshold 설정 | warn_threshold, critical_threshold | ✅ 완료 (v0.4)
 
 ---
 
-## v0.3 고급 기능 (진행중)
+## v0.3 고급 기능 (완료)
 
 | 기능 | 설명 | 상태 |
 |------|------|------|
 | Transcript 파싱 | tool/agent 활동 추적 | ✅ 완료 |
 | Tool 위젯 | `tools` - 도구 사용 표시 | ✅ 완료 |
 | Agent 위젯 | `agents` - 에이전트 상태 | ✅ 완료 |
-| 5시간 블록 타이머 | `block_timer` | 🔲 미구현 |
+
+---
+
+## v0.4 커스터마이징 & 자동화 (완료)
+
+| 기능 | 설명 | 상태 |
+|------|------|------|
+| 위젯별 threshold 설정 | Extra 옵션으로 임계값 커스터마이징 | ✅ 완료 |
+| 5시간 블록 타이머 | `block_timer` 위젯 | ✅ 완료 |
+| GitHub Actions | 자동 릴리즈 (goreleaser) | ✅ 완료 |
+| GetExtraFloat 헬퍼 | float64 Extra 옵션 파싱 | ✅ 완료 |
+
+---
+
+## 향후 계획 (v0.5+)
+
+| 기능 | 설명 | 상태 |
+|------|------|------|
 | TUI 설정 도구 | 인터랙티브 설정 | 🔲 미구현 |
 | Powerline 테마 | 특수 문자 스타일 | 🔲 미구현 |
-| GitHub Actions | 자동 릴리즈 | 🔲 미구현 |
+| 색상 테마 프리셋 | 사전 정의된 테마 | 🔲 미구현 |
 
 ---
 
 ## 릴리즈 히스토리
+
+### v0.4.0 (2025-02-03)
+
+**Added**:
+- 위젯별 threshold 커스터마이징 - Extra 옵션으로 임계값 설정 가능
+  - `context`: `warn_threshold`, `critical_threshold`
+  - `cost`: `warn_threshold`, `critical_threshold`
+  - `cache_hit`: `good_threshold`, `warn_threshold`
+  - `api_latency`: `warn_threshold`, `critical_threshold`
+  - `burn_rate`: `warn_threshold`, `critical_threshold`
+  - `block_timer`: `warn_threshold`, `critical_threshold`
+- `block_timer` 위젯 - 5시간 Claude Pro 블록 남은 시간 표시
+- `GetExtraFloat()` 헬퍼 함수 추가
+- GitHub Actions 자동 릴리즈 워크플로우
+- goreleaser 설정 (Linux/macOS, amd64/arm64)
+
+**Changed**:
+- 기본 위젯 10개 → 11개 (block_timer 추가)
+- version 변수가 ldflags로 주입 가능하게 변경
 
 ### v0.3.0 (2025-02-03)
 
@@ -201,11 +238,15 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 1. ~~Transcript JSONL 파싱~~ ✅
 2. ~~Tool/Agent 위젯~~ ✅
 
-### 다음 (v0.4.0)
-1. 위젯별 threshold 설정
-2. 5시간 블록 타이머
-3. GitHub Actions 자동 릴리즈
-4. tailLines 성능 최적화 (#16)
+### 완료 (v0.4.0)
+1. ~~위젯별 threshold 설정~~ ✅
+2. ~~5시간 블록 타이머~~ ✅
+3. ~~GitHub Actions 자동 릴리즈~~ ✅
+
+### 다음 (v0.5.0)
+1. TUI 설정 도구
+2. Powerline 테마
+3. 색상 테마 프리셋
 
 ---
 

@@ -23,8 +23,55 @@ type Entry struct {
 
 // History manages session history data.
 type History struct {
-	SessionID string  `json:"session_id"`
-	Entries   []Entry `json:"entries"`
+	SessionID      string  `json:"session_id"`
+	Entries        []Entry `json:"entries"`
+	BlockStartTime int64   `json:"block_start_ts,omitempty"`
+}
+
+// BlockDurationMs is the duration of a Claude Pro rate limit block (5 hours).
+const BlockDurationMs = 5 * 60 * 60 * 1000 // 5 hours in milliseconds
+
+// UpdateBlockStartTime sets the block start time if not already set or if expired.
+func (h *History) UpdateBlockStartTime() {
+	now := time.Now().UnixMilli()
+
+	// If no block start time or block has expired, start a new block
+	if h.BlockStartTime == 0 || now-h.BlockStartTime >= BlockDurationMs {
+		h.BlockStartTime = now
+	}
+}
+
+// GetBlockRemainingMs returns the remaining milliseconds in the current block.
+// Returns 0 if block has expired.
+func (h *History) GetBlockRemainingMs() int64 {
+	if h.BlockStartTime == 0 {
+		return 0
+	}
+
+	now := time.Now().UnixMilli()
+	elapsed := now - h.BlockStartTime
+	remaining := BlockDurationMs - elapsed
+
+	if remaining < 0 {
+		return 0
+	}
+	return remaining
+}
+
+// GetBlockElapsedPct returns the percentage of the block that has elapsed.
+func (h *History) GetBlockElapsedPct() float64 {
+	if h.BlockStartTime == 0 {
+		return 0
+	}
+
+	now := time.Now().UnixMilli()
+	elapsed := now - h.BlockStartTime
+
+	if elapsed >= BlockDurationMs {
+		return 100.0
+	}
+
+	return float64(elapsed) / float64(BlockDurationMs) * 100
 }
 
 // HistoryDirFunc is the function used to get the history directory.

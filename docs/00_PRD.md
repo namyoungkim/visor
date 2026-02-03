@@ -157,7 +157,12 @@ total_api_duration_ms < 1000  → "XXXms" (예: "850ms")
 |-------|--------|-----------|------|
 | Tool 활동 | `tools` | transcript JSONL 파싱 | ✅ `✓Read ✓Write ◐Bash` |
 | Agent 상태 | `agents` | transcript JSONL 파싱 | ✅ `✓Plan ◐Explore` |
-| 5시간 블록 타이머 | `block_timer` | 세션 시작 시간 기반 | 🔲 v0.4 예정 |
+
+#### Phase 4 위젯 (v0.4) ✅ 완료
+
+| 위젯 | 식별자 | 데이터 소스 | 상태 |
+|-------|--------|-----------|------|
+| 5시간 블록 타이머 | `block_timer` | 세션 히스토리 기반 | ✅ `Block: 4h23m` |
 
 ### 3.3 레이아웃 시스템
 
@@ -326,8 +331,14 @@ config.Load() → Config     │
 | Transcript 파싱 | tool/agent 활동 추적 | ✅ `internal/transcript/` |
 | `tools` 위젯 | 도구 호출 상태 표시 | ✅ `✓Read ✓Write ◐Bash` |
 | `agents` 위젯 | 에이전트 상태 표시 | ✅ `✓Plan ◐Explore` |
-| 5시간 블록 타이머 | 사용량 블록 모니터링 | 🔲 v0.4 예정 |
-| GitHub 릴리즈 자동화 | goreleaser + GitHub Actions | 🔲 v0.4 예정 |
+
+### v0.4 — 커스터마이징 & 자동화 ✅ 완료
+
+| 기능 | 설명 | 상태 |
+|------|------|------|
+| 위젯별 threshold 설정 | Extra 옵션으로 임계값 커스터마이징 | ✅ `warn_threshold`, `critical_threshold` |
+| 5시간 블록 타이머 | 사용량 블록 모니터링 | ✅ `block_timer` 위젯 |
+| GitHub 릴리즈 자동화 | goreleaser + GitHub Actions | ✅ `.goreleaser.yml` |
 
 ---
 
@@ -337,7 +348,7 @@ config.Load() → Config     │
 |------|------|------|
 | **일일 사용** | 매일 Claude Code 세션에서 활성화 | ✅ 달성 |
 | **Cold startup** | < 5ms | ✅ ~19ms (첫 실행 포함) |
-| **차별 기능** | 3개 이상 유니크 위젯 | ✅ 8개 (cache_hit, api_latency, code_changes, burn_rate, compact_eta, context_spark, tools, agents) |
+| **차별 기능** | 3개 이상 유니크 위젯 | ✅ 9개 (cache_hit, api_latency, code_changes, burn_rate, compact_eta, context_spark, tools, agents, block_timer) |
 | **설치 경험** | 2분 이내 완료 | ✅ go install → --setup → 동작 |
 | **안정성** | JSON 파싱 실패 시 panic 0 | ✅ graceful fallback |
 

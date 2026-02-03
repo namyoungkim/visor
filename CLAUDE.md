@@ -45,19 +45,24 @@ go install github.com/namyoungkim/visor@latest
 
 ## Release
 
+Releases are automated via GitHub Actions. When you push a version tag, GoReleaser builds binaries for Linux/macOS (amd64/arm64) and creates a GitHub Release.
+
 ```bash
 # Create annotated tag
-git tag -a v0.2.x -m "v0.2.x: Brief description
+git tag -a v0.4.0 -m "v0.4.0: Brief description
 
 Features:
 - Feature 1
 - Feature 2"
 
-# Push tag to remote
-git push origin v0.2.x
+# Push tag to remote (triggers GitHub Actions release)
+git push origin v0.4.0
 
 # List all tags
 git tag -l
+
+# Local build with version
+go build -ldflags "-X main.version=0.4.0" -o visor ./cmd/visor
 ```
 
 ## Architecture
@@ -113,7 +118,7 @@ type Widget interface {
 - **Git info**: External `git` CLI calls with 200ms timeout (zero dependencies)
 - **Dependencies**: Only `BurntSushi/toml` for config parsing
 
-## Widgets (v0.3.0)
+## Widgets (v0.4.0)
 
 ### Core Widgets (v0.1)
 | Widget | Identifier | Unique? |
@@ -139,12 +144,18 @@ type Widget interface {
 | Tool status | `tools` | `✓Read ✓Write ◐Bash` | **Yes** |
 | Agent status | `agents` | `✓Plan ◐Explore` | **Yes** |
 
+### Rate Limit Widget (v0.4)
+| Widget | Identifier | Output Example | Unique? |
+|--------|------------|----------------|---------|
+| Block timer | `block_timer` | `Block: 4h23m` | **Yes** |
+
 ### Widget Formulas
 - Cache hit rate: `cache_read_tokens / (cache_read + input_tokens) × 100`
 - Burn rate: `total_cost_usd / (total_duration_ms / 60000)`
 - Compact ETA: `(80 - current%) / context_burn_rate_per_min`
+- Block timer: Remaining time in 5-hour Claude Pro rate limit block
 
-## Config Options (v0.3.0)
+## Config Options (v0.4.0)
 
 ### General
 - `[general].separator` - Widget separator (default: `" | "`)
@@ -165,10 +176,14 @@ type Widget interface {
 ```
 
 ### Widget Extras
-- `context`: `show_bar`, `bar_width`
+- `context`: `show_bar`, `bar_width`, `warn_threshold` (60), `critical_threshold` (80)
 - `compact_eta`: `show_when_above` (default: 40)
 - `context_spark`: `width` (default: 8)
-- `burn_rate`, `cost`: `show_label`
+- `burn_rate`: `show_label`, `warn_threshold` (10), `critical_threshold` (25) (cents/min)
+- `cost`: `show_label`, `warn_threshold` (0.5), `critical_threshold` (1.0) (USD)
+- `cache_hit`: `show_label`, `good_threshold` (80), `warn_threshold` (50)
+- `api_latency`: `warn_threshold` (2000), `critical_threshold` (5000) (ms)
+- `block_timer`: `show_label`, `warn_threshold` (80), `critical_threshold` (95) (% elapsed)
 - `tools`: `max_display` (default: 3), `show_label`
 - `agents`: `max_display` (default: 3), `show_label`
 

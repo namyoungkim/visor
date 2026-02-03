@@ -20,6 +20,8 @@ const (
 //
 // Supported Extra options:
 //   - show_label: "true"/"false" - whether to show "Burn:" prefix (default: false)
+//   - warn_threshold: "10" - cents/min for warning color (default: 10)
+//   - critical_threshold: "25" - cents/min for critical/red color (default: 25)
 type BurnRateWidget struct{}
 
 func (w *BurnRateWidget) Name() string {
@@ -61,7 +63,9 @@ func (w *BurnRateWidget) Render(session *input.Session, cfg *config.WidgetConfig
 		text = value
 	}
 
-	color := ColorByThreshold(burnRateCents, BurnRateWarningCents, BurnRateDangerCents)
+	warnThreshold := GetExtraFloat(cfg, "warn_threshold", BurnRateWarningCents)
+	criticalThreshold := GetExtraFloat(cfg, "critical_threshold", BurnRateDangerCents)
+	color := ColorByThreshold(burnRateCents, warnThreshold, criticalThreshold)
 	return render.Colorize(text, color)
 }
 

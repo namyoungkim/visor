@@ -14,6 +14,8 @@ import (
 //
 // Supported Extra options:
 //   - show_label: "true"/"false" - whether to show "Cache:" prefix (default: true)
+//   - good_threshold: "80" - percentage for good/green color (default: 80)
+//   - warn_threshold: "50" - percentage for warning color (default: 50)
 type CacheHitWidget struct{}
 
 func (w *CacheHitWidget) Name() string {
@@ -43,7 +45,9 @@ func (w *CacheHitWidget) Render(session *input.Session, cfg *config.WidgetConfig
 	}
 
 	rate := float64(cacheRead) / float64(total) * 100
-	color := ColorByThresholdInverse(rate, CacheHitGoodPct, CacheHitWarningPct)
+	goodThreshold := GetExtraFloat(cfg, "good_threshold", CacheHitGoodPct)
+	warnThreshold := GetExtraFloat(cfg, "warn_threshold", CacheHitWarningPct)
+	color := ColorByThresholdInverse(rate, goodThreshold, warnThreshold)
 
 	value := fmt.Sprintf("%.0f%%", rate)
 

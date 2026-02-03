@@ -44,6 +44,7 @@ visor/
 │   │   ├── code_changes.go  # 코드 변경량 위젯 (고유)
 │   │   ├── tools.go         # 도구 상태 위젯 (v0.3)
 │   │   ├── agents.go        # 에이전트 상태 위젯 (v0.3)
+│   │   ├── block_timer.go   # 5시간 블록 타이머 위젯 (v0.4)
 │   │   └── *_test.go        # 위젯별 테스트
 │   ├── render/              # 출력 렌더링
 │   │   ├── ansi.go          # ANSI 컬러 코드
@@ -295,10 +296,11 @@ func gitCommandRun(args ...string) error            // 출력 없는 git 실행
 - 비 git 디렉토리에서 빈 Status 반환
 - 대형 저장소에서도 statusline 멈춤 방지
 
-### internal/history (v0.2)
+### internal/history (v0.2, v0.4 확장)
 
 ```go
 const MaxEntries = 20  // 세션당 최대 히스토리 수
+const BlockDurationMs = 5 * 60 * 60 * 1000  // 5시간 블록 (v0.4)
 
 type Entry struct {
     Timestamp      int64   `json:"ts"`
@@ -310,8 +312,9 @@ type Entry struct {
 }
 
 type History struct {
-    SessionID string  `json:"session_id"`
-    Entries   []Entry `json:"entries"`
+    SessionID      string  `json:"session_id"`
+    Entries        []Entry `json:"entries"`
+    BlockStartTime int64   `json:"block_start_ts,omitempty"`  // v0.4: 블록 시작 시간
 }
 
 func Load(sessionID string) (*History, error)   // 히스토리 로딩
@@ -320,12 +323,18 @@ func (h *History) Add(entry Entry)              // 엔트리 추가
 func (h *History) GetContextHistory(n int) []float64  // 최근 n개 컨텍스트 값
 func (h *History) Latest() *Entry               // 최신 엔트리
 func (h *History) Count() int                   // 엔트리 수
+
+// v0.4: 블록 타이머 지원
+func (h *History) UpdateBlockStartTime()        // 블록 시작 시간 설정/갱신
+func (h *History) GetBlockRemainingMs() int64   // 남은 시간 (ms)
+func (h *History) GetBlockElapsedPct() float64  // 경과 비율 (%)
 ```
 
 - 히스토리 저장 경로: `~/.cache/visor/history_<session_id>.json`
 - 세션별로 독립적인 히스토리 관리
 - 최대 20개 엔트리 유지 (FIFO)
 - Session ID sanitization: 영문, 숫자, `-`, `_`만 허용 (path traversal 방지)
+- v0.4: 5시간 블록 타이머 지원 (Claude Pro 사용량 블록)
 
 ---
 
@@ -390,6 +399,10 @@ const (
     CompactETAWarningMin = 10.0  // Compact 예측 경고 (<10분)
     CompactETADangerMin  = 5.0   // Compact 예측 위험 (<5분)
     CompactThresholdPct  = 80.0  // Compact 트리거 임계값
+
+    // v0.4: Block timer thresholds (percentage elapsed)
+    BlockTimerWarningPct  = 80.0   // 블록 타이머 경고 (80% 경과)
+    BlockTimerCriticalPct = 95.0   // 블록 타이머 위험 (95% 경과)
 )
 ```
 
@@ -417,6 +430,9 @@ func GetExtraBool(cfg *config.WidgetConfig, key string, defaultValue bool) bool
 
 // Extra 맵에서 int 값 조회
 func GetExtraInt(cfg *config.WidgetConfig, key string, defaultValue int) int
+
+// v0.4: Extra 맵에서 float64 값 조회
+func GetExtraFloat(cfg *config.WidgetConfig, key string, defaultValue float64) float64
 
 // 렌더링
 func RenderAll(session *input.Session, widgets []config.WidgetConfig) []string
@@ -608,6 +624,53 @@ name = "burn_rate"
 show_label = "true"      # "Burn:" 접두사 표시
 ```
 
+### v0.4 위젯 Extra 옵션 (Threshold 커스터마이징)
+
+```toml
+# Context 위젯 - 컨텍스트 사용률 임계값
+[[line.widget]]
+name = "context"
+[line.widget.extra]
+warn_threshold = "60"      # 노란색 전환 % (기본: 60)
+critical_threshold = "80"  # 빨간색 전환 % (기본: 80)
+
+# Cost 위젯 - 비용 임계값 (USD)
+[[line.widget]]
+name = "cost"
+[line.widget.extra]
+warn_threshold = "0.5"     # 노란색 전환 (기본: $0.50)
+critical_threshold = "1.0" # 빨간색 전환 (기본: $1.00)
+
+# Cache Hit 위젯 - 캐시 히트율 임계값 (역순)
+[[line.widget]]
+name = "cache_hit"
+[line.widget.extra]
+good_threshold = "80"      # 초록색 전환 % (기본: 80)
+warn_threshold = "50"      # 노란색 전환 % (기본: 50)
+
+# API Latency 위젯 - 지연시간 임계값 (ms)
+[[line.widget]]
+name = "api_latency"
+[line.widget.extra]
+warn_threshold = "2000"    # 노란색 전환 (기본: 2000ms)
+critical_threshold = "5000" # 빨간색 전환 (기본: 5000ms)
+
+# Burn Rate 위젯 - 번 레이트 임계값 (cents/min)
+[[line.widget]]
+name = "burn_rate"
+[line.widget.extra]
+warn_threshold = "10"      # 노란색 전환 (기본: 10¢/min)
+critical_threshold = "25"  # 빨간색 전환 (기본: 25¢/min)
+
+# Block Timer 위젯 - 블록 경과율 임계값 (%)
+[[line.widget]]
+name = "block_timer"
+[line.widget.extra]
+show_label = "true"        # "Block:" 접두사 표시 (기본: true)
+warn_threshold = "80"      # 노란색 전환 (기본: 80% 경과)
+critical_threshold = "95"  # 빨간색 전환 (기본: 95% 경과)
+```
+
 ### 스타일 옵션
 
 ```toml
@@ -756,22 +819,30 @@ func Parse(path string) *Data   // JSONL 파싱 (마지막 100줄)
 
 ---
 
-## 향후 개선 방향 (v0.4+)
+## v0.4 구현 완료
+
+1. **설정 확장** ✅
+   - 위젯별 threshold 커스터마이징 (`warn_threshold`, `critical_threshold`)
+   - `GetExtraFloat()` 헬퍼 함수 추가
+
+2. **배포 자동화** ✅
+   - GitHub Actions 자동 릴리즈 (`.github/workflows/release.yml`)
+   - goreleaser 통합 (`.goreleaser.yml`)
+   - 태그 푸시 시 Linux/macOS (amd64/arm64) 자동 빌드
+
+3. **추가 위젯** ✅
+   - `block_timer` - 5시간 블록 남은 시간 표시
+
+## 향후 개선 방향 (v0.5+)
 
 1. **설정 확장**
-   - 위젯별 threshold 커스터마이징
    - 색상 테마 프리셋
    - Powerline 스타일 지원
 
-2. **배포 자동화**
-   - GitHub Actions 자동 릴리즈
-   - goreleaser 통합
-
-3. **성능 개선**
+2. **성능 개선**
    - Git 정보 캐싱
    - 설정 파일 변경 감지
-   - tailLines EOF 최적화 (#16)
 
-4. **추가 위젯**
-   - 5시간 블록 타이머
+3. **추가 기능**
    - 누적 비용 추적
+   - TUI 설정 도구

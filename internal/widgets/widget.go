@@ -27,6 +27,10 @@ const (
 	// API latency thresholds (ms)
 	LatencyWarningMs = 2000
 	LatencyDangerMs  = 5000
+
+	// Block timer thresholds (percentage elapsed)
+	BlockTimerWarningPct  = 80.0 // 80% elapsed = 1 hour remaining
+	BlockTimerCriticalPct = 95.0 // 95% elapsed = 15 minutes remaining
 )
 
 // ColorByThreshold returns a color based on value and thresholds.
@@ -105,6 +109,18 @@ func GetExtraInt(cfg *config.WidgetConfig, key string, defaultValue int) int {
 	}
 	if n, err := strconv.Atoi(v); err == nil {
 		return n
+	}
+	return defaultValue
+}
+
+// GetExtraFloat returns a float64 value from the Extra map.
+func GetExtraFloat(cfg *config.WidgetConfig, key string, defaultValue float64) float64 {
+	v := GetExtra(cfg, key, "")
+	if v == "" {
+		return defaultValue
+	}
+	if f, err := strconv.ParseFloat(v, 64); err == nil {
+		return f
 	}
 	return defaultValue
 }
@@ -189,6 +205,9 @@ func RenderAll(session *input.Session, widgets []config.WidgetConfig) []string {
 // contextSparkWidget holds the singleton instance for history injection.
 var contextSparkWidget = &ContextSparkWidget{}
 
+// blockTimerWidget holds the singleton instance for history injection.
+var blockTimerWidget = &BlockTimerWidget{}
+
 // toolsWidget holds the singleton instance for transcript injection.
 var toolsWidget = &ToolsWidget{}
 
@@ -198,6 +217,7 @@ var agentsWidget = &AgentsWidget{}
 // SetHistory sets the history on widgets that need it.
 func SetHistory(h *history.History) {
 	contextSparkWidget.SetHistory(h)
+	blockTimerWidget.SetHistory(h)
 }
 
 // SetTranscript sets the transcript data on widgets that need it.
@@ -218,6 +238,7 @@ func init() {
 	Register(&BurnRateWidget{})
 	Register(&CompactETAWidget{})
 	Register(contextSparkWidget)
+	Register(blockTimerWidget)
 	Register(toolsWidget)
 	Register(agentsWidget)
 }

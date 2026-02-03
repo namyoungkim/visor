@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestHistory_AddAndCount(t *testing.T) {
@@ -174,5 +175,132 @@ func TestSanitizeSessionID_LongInput(t *testing.T) {
 	result := sanitizeSessionID(longID)
 	if len(result) > 64 {
 		t.Errorf("expected max length 64, got %d", len(result))
+	}
+}
+
+func TestHistory_UpdateBlockStartTime(t *testing.T) {
+	h := &History{SessionID: "test"}
+
+	// First call should set the block start time
+	h.UpdateBlockStartTime()
+	if h.BlockStartTime == 0 {
+		t.Error("expected BlockStartTime to be set")
+	}
+
+	firstTime := h.BlockStartTime
+
+	// Immediate second call should not change it (block not expired)
+	h.UpdateBlockStartTime()
+	if h.BlockStartTime != firstTime {
+		t.Error("expected BlockStartTime to remain unchanged")
+	}
+
+	// Simulate expired block (set start time to 6 hours ago)
+	expiredTime := time.Now().UnixMilli() - (6 * 60 * 60 * 1000)
+	h.BlockStartTime = expiredTime
+	h.UpdateBlockStartTime()
+
+	// After update, block start time should be recent (not the expired time)
+	if h.BlockStartTime == expiredTime {
+		t.Error("expected BlockStartTime to be updated after expiry")
+	}
+
+	// New block start time should be recent (within last second)
+	if time.Now().UnixMilli()-h.BlockStartTime > 1000 {
+		t.Error("expected BlockStartTime to be set to current time")
+	}
+}
+
+func TestHistory_GetBlockRemainingMs(t *testing.T) {
+	h := &History{SessionID: "test"}
+
+	// No block start time
+	if remaining := h.GetBlockRemainingMs(); remaining != 0 {
+		t.Errorf("expected 0 for no block start, got %d", remaining)
+	}
+
+	// Just started block (should be close to 5 hours)
+	h.BlockStartTime = time.Now().UnixMilli()
+	remaining := h.GetBlockRemainingMs()
+
+	// Should be within 1 second of full duration
+	expectedMin := int64(BlockDurationMs - 1000)
+	if remaining < expectedMin {
+		t.Errorf("expected remaining >= %d, got %d", expectedMin, remaining)
+	}
+
+	// 2 hours elapsed (3 hours remaining)
+	h.BlockStartTime = time.Now().UnixMilli() - (2 * 60 * 60 * 1000)
+	remaining = h.GetBlockRemainingMs()
+
+	// Should be around 3 hours (±1 second tolerance)
+	expected := int64(3 * 60 * 60 * 1000)
+	tolerance := int64(1000)
+	if remaining < expected-tolerance || remaining > expected+tolerance {
+		t.Errorf("expected ~%d, got %d", expected, remaining)
+	}
+
+	// Expired block
+	h.BlockStartTime = time.Now().UnixMilli() - (6 * 60 * 60 * 1000)
+	if remaining := h.GetBlockRemainingMs(); remaining != 0 {
+		t.Errorf("expected 0 for expired block, got %d", remaining)
+	}
+}
+
+func TestHistory_GetBlockElapsedPct(t *testing.T) {
+	h := &History{SessionID: "test"}
+
+	// No block start time
+	if pct := h.GetBlockElapsedPct(); pct != 0 {
+		t.Errorf("expected 0 for no block start, got %.1f", pct)
+	}
+
+	// Just started (0% elapsed)
+	h.BlockStartTime = time.Now().UnixMilli()
+	pct := h.GetBlockElapsedPct()
+	if pct > 1.0 { // Allow small tolerance for test execution time
+		t.Errorf("expected ~0%% elapsed, got %.1f%%", pct)
+	}
+
+	// 50% elapsed (2.5 hours)
+	h.BlockStartTime = time.Now().UnixMilli() - (int64(BlockDurationMs) / 2)
+	pct = h.GetBlockElapsedPct()
+	if pct < 49.0 || pct > 51.0 {
+		t.Errorf("expected ~50%% elapsed, got %.1f%%", pct)
+	}
+
+	// Fully expired (100%)
+	h.BlockStartTime = time.Now().UnixMilli() - (6 * 60 * 60 * 1000)
+	pct = h.GetBlockElapsedPct()
+	if pct != 100.0 {
+		t.Errorf("expected 100%% for expired block, got %.1f%%", pct)
+	}
+}
+
+func TestHistory_BlockStartTime_Persistence(t *testing.T) {
+	tmpDir := t.TempDir()
+	sessionID := "test_block_persistence"
+
+	origDir := HistoryDirFunc
+	HistoryDirFunc = func() string { return tmpDir }
+	defer func() { HistoryDirFunc = origDir }()
+
+	// Create history with block start time
+	h := &History{SessionID: sessionID}
+	h.UpdateBlockStartTime()
+	originalBlockStart := h.BlockStartTime
+
+	if err := h.Save(); err != nil {
+		t.Fatalf("failed to save: %v", err)
+	}
+
+	// Load and verify block start time persisted
+	loaded, err := Load(sessionID)
+	if err != nil {
+		t.Fatalf("failed to load: %v", err)
+	}
+
+	if loaded.BlockStartTime != originalBlockStart {
+		t.Errorf("expected BlockStartTime %d, got %d", originalBlockStart, loaded.BlockStartTime)
 	}
 }

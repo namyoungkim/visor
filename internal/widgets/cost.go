@@ -12,6 +12,8 @@ import (
 //
 // Supported Extra options:
 //   - show_label: "true"/"false" - whether to show "Cost:" prefix (default: false)
+//   - warn_threshold: "0.5" - USD amount for warning color (default: 0.5)
+//   - critical_threshold: "1.0" - USD amount for critical/red color (default: 1.0)
 type CostWidget struct{}
 
 func (w *CostWidget) Name() string {
@@ -40,7 +42,9 @@ func (w *CostWidget) Render(session *input.Session, cfg *config.WidgetConfig) st
 		text = value
 	}
 
-	color := ColorByThreshold(cost, CostWarningUSD, CostDangerUSD)
+	warnThreshold := GetExtraFloat(cfg, "warn_threshold", CostWarningUSD)
+	criticalThreshold := GetExtraFloat(cfg, "critical_threshold", CostDangerUSD)
+	color := ColorByThreshold(cost, warnThreshold, criticalThreshold)
 	return render.Colorize(text, color)
 }
 

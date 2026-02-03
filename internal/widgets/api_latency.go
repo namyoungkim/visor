@@ -10,6 +10,10 @@ import (
 
 // APILatencyWidget displays the total API latency.
 // This is a unique metric that no other statusline exposes.
+//
+// Supported Extra options:
+//   - warn_threshold: "2000" - milliseconds for warning color (default: 2000)
+//   - critical_threshold: "5000" - milliseconds for critical/red color (default: 5000)
 type APILatencyWidget struct{}
 
 func (w *APILatencyWidget) Name() string {
@@ -32,7 +36,9 @@ func (w *APILatencyWidget) Render(session *input.Session, cfg *config.WidgetConf
 		text = fmt.Sprintf("API: %dms", ms)
 	}
 
-	color := ColorByThreshold(float64(ms), LatencyWarningMs, LatencyDangerMs)
+	warnThreshold := GetExtraFloat(cfg, "warn_threshold", LatencyWarningMs)
+	criticalThreshold := GetExtraFloat(cfg, "critical_threshold", LatencyDangerMs)
+	color := ColorByThreshold(float64(ms), warnThreshold, criticalThreshold)
 	return render.Colorize(text, color)
 }
 

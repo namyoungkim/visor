@@ -7,6 +7,32 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-02-03
+
+### Added
+
+- **위젯별 Threshold 커스터마이징** - Extra 옵션으로 색상 임계값 설정 가능
+  - `context`: `warn_threshold` (60%), `critical_threshold` (80%)
+  - `cost`: `warn_threshold` ($0.50), `critical_threshold` ($1.00)
+  - `cache_hit`: `good_threshold` (80%), `warn_threshold` (50%)
+  - `api_latency`: `warn_threshold` (2000ms), `critical_threshold` (5000ms)
+  - `burn_rate`: `warn_threshold` (10¢/min), `critical_threshold` (25¢/min)
+- **`block_timer` 위젯** - 5시간 Claude Pro 사용량 블록 남은 시간 표시
+  - `Block: 4h23m` 형식으로 출력
+  - 80% 경과 시 노란색, 95% 경과 시 빨간색
+  - 블록 만료 시 자동 갱신
+- **`GetExtraFloat()` 헬퍼** - Extra 맵에서 float64 값 파싱
+- **GitHub Actions 자동 릴리즈**
+  - `.goreleaser.yml` - 멀티 플랫폼 빌드 설정
+  - `.github/workflows/release.yml` - 태그 푸시 시 자동 릴리즈
+  - Linux/macOS (amd64/arm64) 바이너리 자동 생성
+
+### Changed
+
+- 기본 위젯 10개 → 11개 (`block_timer` 추가)
+- `version` 변수가 ldflags로 주입 가능하게 변경 (`-X main.version=X.Y.Z`)
+- History 구조체에 `BlockStartTime` 필드 추가
+
 ## [0.3.1] - 2025-02-03
 
 ### Fixed
@@ -140,7 +166,8 @@
 
 ## 링크
 
-[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/namyoungkim/visor/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/namyoungkim/visor/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/namyoungkim/visor/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/namyoungkim/visor/compare/v0.1.1...v0.2.0
