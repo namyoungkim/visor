@@ -45,7 +45,6 @@ type Model struct {
 
 	// Add widget state
 	addWidgetCursor int
-	addWidgetFilter string
 
 	// Edit options state
 	editWidget       *config.WidgetConfig

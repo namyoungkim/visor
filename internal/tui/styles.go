@@ -39,16 +39,6 @@ var (
 	disabledStyle = lipgloss.NewStyle().
 			Foreground(dimColor)
 
-	// Widget enabled indicator
-	enabledIndicator = lipgloss.NewStyle().
-				Foreground(successColor).
-				SetString("●")
-
-	// Widget disabled indicator
-	disabledIndicator = lipgloss.NewStyle().
-				Foreground(dimColor).
-				SetString("○")
-
 	// Section header style
 	sectionStyle = lipgloss.NewStyle().
 			Bold(true).
@@ -94,16 +84,4 @@ var (
 	lineHeaderStyle = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(primaryColor)
-
-	// Button style
-	buttonStyle = lipgloss.NewStyle().
-			Foreground(textColor).
-			Background(dimColor).
-			Padding(0, 1)
-
-	// Active button style
-	activeButtonStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("0")).
-				Background(secondaryColor).
-				Padding(0, 1)
 )

@@ -78,7 +78,7 @@ func (m Model) viewMain() string {
 	}
 
 	// Help
-	helpText := "[j/k] Move  [e] Edit  [a] Add  [d] Delete  [J/K] Reorder  [l] Layout  [n] New line  [s] Save  [?] Help  [q] Quit"
+	helpText := "[j/k] Move  [e] Edit  [a] Add  [d] Delete  [J/K] Reorder  [L] Layout  [n] New line  [s] Save  [?] Help  [q] Quit"
 	b.WriteString(helpStyle.Render(helpText))
 
 	return b.String()
@@ -303,7 +303,7 @@ func (m Model) viewHelp() string {
 			"Line Management",
 			[]string{
 				"n           Add new line",
-				"l           Change layout (single/split)",
+				"L           Change layout (single/split)",
 			},
 		},
 		{

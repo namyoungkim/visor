@@ -68,8 +68,8 @@ func DefaultKeyMap() KeyMap {
 			key.WithHelp("J", "move down"),
 		),
 		Layout: key.NewBinding(
-			key.WithKeys("l"),
-			key.WithHelp("l", "layout"),
+			key.WithKeys("L"),
+			key.WithHelp("L", "layout"),
 		),
 		NewLine: key.NewBinding(
 			key.WithKeys("n"),

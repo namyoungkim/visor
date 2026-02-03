@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"strconv"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -332,7 +334,10 @@ func (m *Model) deleteCurrentWidget() {
 		return
 	}
 
-	newWidgets := append(widgets[:m.widgetIndex], widgets[m.widgetIndex+1:]...)
+	// Create a new slice to avoid modifying the original backing array
+	newWidgets := make([]config.WidgetConfig, 0, len(widgets)-1)
+	newWidgets = append(newWidgets, widgets[:m.widgetIndex]...)
+	newWidgets = append(newWidgets, widgets[m.widgetIndex+1:]...)
 	m.setCurrentWidgets(newWidgets)
 	m.markDirty()
 
@@ -436,6 +441,12 @@ func (m *Model) applyEditedOptions() {
 	for i, opt := range m.editWidgetMeta.Options {
 		if i < len(m.editInputs) {
 			value := m.editInputs[i].Value()
+
+			// Validate based on option type
+			if !m.validateOptionValue(value, opt.Type) {
+				continue // Skip invalid values
+			}
+
 			if value != opt.DefaultValue && value != "" {
 				m.editWidget.Extra[opt.Key] = value
 			} else {
@@ -450,4 +461,25 @@ func (m *Model) applyEditedOptions() {
 	}
 
 	m.markDirty()
+}
+
+// validateOptionValue validates the value based on the option type
+func (m *Model) validateOptionValue(value string, optType OptionType) bool {
+	if value == "" {
+		return true // Empty is always valid (uses default)
+	}
+
+	switch optType {
+	case OptionTypeBool:
+		return value == "true" || value == "false"
+	case OptionTypeInt:
+		_, err := strconv.Atoi(value)
+		return err == nil
+	case OptionTypeFloat:
+		_, err := strconv.ParseFloat(value, 64)
+		return err == nil
+	case OptionTypeString:
+		return true
+	}
+	return true
 }
