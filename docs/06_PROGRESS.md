@@ -187,7 +187,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 | 기능 | 식별자 | 현재 | 변경 후 | 상태 |
 |------|--------|------|---------|------|
 | 도구 사용 횟수 | `tools` | `✓Read ✓Write ◐Bash` | `✓Bash ×7 \| ✓Edit ×4` | ✅ 완료 |
-| 에이전트 상세 | `agents` | `✓Explore ◐Plan` | `Explore: Analyze widgets (42s)` | ✅ 완료 |
+| 에이전트 상세 | `agents` | `✓Explore ◐Plan` | `✓Explore: Analyze... (42s)` / `◐Plan: Impl... (5s...)` | ✅ 완료 |
 
 ### 새 위젯 옵션
 
@@ -238,6 +238,9 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 - `Agent` 구조체에 `Description`, `StartTime`, `EndTime` 필드 추가
 - Parser가 도구를 ID 대신 Name으로 그룹화
 - TUI 위젯 옵션에 새 옵션 추가
+
+**Fixed**:
+- `truncateString` 함수가 멀티바이트 문자(한글 등)를 올바르게 처리하도록 수정 (바이트 → rune 기준)
 
 ### v0.6.0 (2026-02-03)
 

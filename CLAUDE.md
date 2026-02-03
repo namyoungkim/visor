@@ -50,20 +50,20 @@ Releases are automated via GitHub Actions. When you push a version tag, GoReleas
 
 ```bash
 # Create annotated tag
-git tag -a v0.5.0 -m "v0.5.0: Brief description
+git tag -a v0.7.0 -m "v0.7.0: Brief description
 
 Features:
 - Feature 1
 - Feature 2"
 
 # Push tag to remote (triggers GitHub Actions release)
-git push origin v0.5.0
+git push origin v0.7.0
 
 # List all tags
 git tag -l
 
 # Local build with version
-go build -ldflags "-X main.version=0.4.0" -o visor ./cmd/visor
+go build -ldflags "-X main.version=0.7.0" -o visor ./cmd/visor
 ```
 
 ## Architecture
