@@ -3,11 +3,21 @@ package config
 // DefaultSeparator is the default separator between widgets.
 const DefaultSeparator = " | "
 
+// DefaultTheme is the default theme name.
+const DefaultTheme = "default"
+
 // DefaultConfig returns the default configuration.
 func DefaultConfig() *Config {
 	return &Config{
 		General: GeneralConfig{
 			Separator: DefaultSeparator,
+		},
+		Theme: ThemeConfig{
+			Name:      DefaultTheme,
+			Powerline: false,
+		},
+		Usage: UsageConfig{
+			Enabled: true, // Enable usage tracking by default
 		},
 		Lines: []Line{
 			{
@@ -36,6 +46,15 @@ func DefaultConfigTOML() string {
 
 [general]
 separator = " | "  # Widget separator (default: " | ")
+
+[theme]
+name = "default"   # Theme preset: default, powerline, gruvbox, nord, gruvbox-powerline, nord-powerline
+# powerline = false  # Enable powerline-style arrows (requires Powerline/Nerd font)
+
+[usage]
+enabled = true     # Enable usage tracking (daily/weekly cost, rate limits)
+# provider = ""    # Auto-detect: anthropic, claude_pro, aws, gcp
+# projects_dir = "" # Default: ~/.claude/projects
 
 # === Single-line layout (default) ===
 [[line]]

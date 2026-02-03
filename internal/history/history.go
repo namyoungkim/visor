@@ -74,6 +74,15 @@ func (h *History) GetBlockElapsedPct() float64 {
 	return float64(elapsed) / float64(BlockDurationMs) * 100
 }
 
+// GetBlockStartTime returns the block start time as time.Time.
+// Returns zero time if no block has been started.
+func (h *History) GetBlockStartTime() time.Time {
+	if h.BlockStartTime == 0 {
+		return time.Time{}
+	}
+	return time.UnixMilli(h.BlockStartTime)
+}
+
 // HistoryDirFunc is the function used to get the history directory.
 // Can be overridden in tests.
 var HistoryDirFunc = defaultHistoryDir
