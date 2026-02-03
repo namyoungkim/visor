@@ -26,8 +26,8 @@ go version  # should be 1.22+
 # Build
 go build -o visor ./cmd/visor
 
-# Run tests
-go test ./...
+# Run tests (CGO_ENABLED=0 required on macOS to avoid dyld LC_UUID errors)
+CGO_ENABLED=0 go test ./...
 
 # Manual testing
 echo '{"session_id":"test","model":{"display_name":"Opus"},"context_window":{"used_percentage":42.5},"cost":{"total_cost_usd":0.48,"total_duration_ms":45000}}' | ./visor
@@ -50,20 +50,20 @@ Releases are automated via GitHub Actions. When you push a version tag, GoReleas
 
 ```bash
 # Create annotated tag
-git tag -a v0.5.0 -m "v0.5.0: Brief description
+git tag -a v0.7.0 -m "v0.7.0: Brief description
 
 Features:
 - Feature 1
 - Feature 2"
 
 # Push tag to remote (triggers GitHub Actions release)
-git push origin v0.5.0
+git push origin v0.7.0
 
 # List all tags
 git tag -l
 
 # Local build with version
-go build -ldflags "-X main.version=0.4.0" -o visor ./cmd/visor
+go build -ldflags "-X main.version=0.7.0" -o visor ./cmd/visor
 ```
 
 ## Architecture
@@ -125,7 +125,7 @@ type Widget interface {
 - **TUI**: Charm ecosystem (bubbletea, bubbles, lipgloss) for interactive config editor
 - **Dependencies**: `BurntSushi/toml`, `charmbracelet/bubbletea`, `charmbracelet/bubbles`, `charmbracelet/lipgloss`
 
-## Widgets (v0.6.0)
+## Widgets (v0.7.0)
 
 ### Core Widgets (v0.1)
 | Widget | Identifier | Unique? |
@@ -145,11 +145,11 @@ type Widget interface {
 | Compact ETA | `compact_eta` | `~18m` | **Yes** |
 | Context sparkline | `context_spark` | `▂▃▄▅▆` | **Yes** |
 
-### Transcript Widgets (v0.3)
+### Transcript Widgets (v0.3, v0.7)
 | Widget | Identifier | Output Example | Unique? |
 |--------|------------|----------------|---------|
-| Tool status | `tools` | `✓Read ✓Write ◐Bash` | **Yes** |
-| Agent status | `agents` | `✓Plan ◐Explore` | **Yes** |
+| Tool status | `tools` | `✓Bash ×7 \| ✓Edit ×4 \| ✓Read ×6` | **Yes** |
+| Agent status | `agents` | `✓Explore: Analyze... (42s)` or `◐Plan: Impl... (5s...)` | **Yes** |
 
 ### Rate Limit Widget (v0.4)
 | Widget | Identifier | Output Example | Unique? |
@@ -221,7 +221,7 @@ visor supports multiple theme presets:
 
 Theme picker in TUI: press `t` key.
 
-## Config Options (v0.6.0)
+## Config Options (v0.7.0)
 
 ### General
 - `[general].separator` - Widget separator (default: `" | "`)
@@ -250,8 +250,8 @@ Theme picker in TUI: press `t` key.
 - `cache_hit`: `show_label`, `good_threshold` (80), `warn_threshold` (50)
 - `api_latency`: `warn_threshold` (2000), `critical_threshold` (5000) (ms)
 - `block_timer`: `show_label`, `warn_threshold` (80), `critical_threshold` (95) (% elapsed)
-- `tools`: `max_display` (default: 3), `show_label`
-- `agents`: `max_display` (default: 3), `show_label`
+- `tools`: `max_display` (default: 3), `show_label`, `show_count` (default: true)
+- `agents`: `max_display` (default: 3), `show_label`, `show_description` (default: true), `show_duration` (default: true), `max_description_len` (default: 20)
 
 ## Performance Requirements
 

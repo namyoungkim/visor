@@ -137,7 +137,7 @@ func TestToolsWidget_ShouldRender(t *testing.T) {
 	}{
 		{"nil transcript", nil, false},
 		{"empty tools", &transcript.Data{Tools: []transcript.Tool{}}, false},
-		{"with tools", &transcript.Data{Tools: []transcript.Tool{{ID: "1", Name: "Read"}}}, true},
+		{"with tools", &transcript.Data{Tools: []transcript.Tool{{ID: "1", Name: "Read", Count: 1}}}, true},
 	}
 
 	for _, tt := range tests {
@@ -148,5 +148,90 @@ func TestToolsWidget_ShouldRender(t *testing.T) {
 				t.Errorf("Expected %v, got %v", tt.expected, result)
 			}
 		})
+	}
+}
+
+func TestToolsWidget_ShowCount(t *testing.T) {
+	w := &ToolsWidget{}
+	w.SetTranscript(&transcript.Data{
+		Tools: []transcript.Tool{
+			{ID: "1", Name: "Read", Status: transcript.ToolCompleted, Count: 7},
+			{ID: "2", Name: "Edit", Status: transcript.ToolCompleted, Count: 4},
+			{ID: "3", Name: "Bash", Status: transcript.ToolRunning, Count: 1},
+		},
+	})
+
+	// Default: show_count = true
+	result := w.Render(&input.Session{}, &config.WidgetConfig{})
+
+	// Should show counts for tools with Count > 1
+	if !strings.Contains(result, "×7") {
+		t.Errorf("Expected '×7' for Read (count=7), got '%s'", result)
+	}
+	if !strings.Contains(result, "×4") {
+		t.Errorf("Expected '×4' for Edit (count=4), got '%s'", result)
+	}
+	// Should NOT show count for Bash (count=1)
+	if strings.Contains(result, "×1") {
+		t.Errorf("Should not show '×1' for count=1, got '%s'", result)
+	}
+}
+
+func TestToolsWidget_HideCount(t *testing.T) {
+	w := &ToolsWidget{}
+	w.SetTranscript(&transcript.Data{
+		Tools: []transcript.Tool{
+			{ID: "1", Name: "Read", Status: transcript.ToolCompleted, Count: 7},
+		},
+	})
+
+	cfg := &config.WidgetConfig{
+		Extra: map[string]string{"show_count": "false"},
+	}
+
+	result := w.Render(&input.Session{}, cfg)
+
+	// Should NOT show count when show_count=false
+	if strings.Contains(result, "×") {
+		t.Errorf("Should not show count when show_count=false, got '%s'", result)
+	}
+}
+
+func TestToolsWidget_PipeSeparator(t *testing.T) {
+	w := &ToolsWidget{}
+	w.SetTranscript(&transcript.Data{
+		Tools: []transcript.Tool{
+			{ID: "1", Name: "Read", Status: transcript.ToolCompleted, Count: 1},
+			{ID: "2", Name: "Write", Status: transcript.ToolCompleted, Count: 1},
+		},
+	})
+
+	result := w.Render(&input.Session{}, &config.WidgetConfig{})
+
+	// Should use " | " separator
+	if !strings.Contains(result, " | ") {
+		t.Errorf("Expected ' | ' separator, got '%s'", result)
+	}
+}
+
+func Test_itoa(t *testing.T) {
+	tests := []struct {
+		input    int
+		expected string
+	}{
+		{0, "0"},
+		{1, "1"},
+		{42, "42"},
+		{123, "123"},
+		{-1, "-1"},
+		{-42, "-42"},
+		{-123, "-123"},
+	}
+
+	for _, tt := range tests {
+		result := itoa(tt.input)
+		if result != tt.expected {
+			t.Errorf("itoa(%d) = %q, expected %q", tt.input, result, tt.expected)
+		}
 	}
 }

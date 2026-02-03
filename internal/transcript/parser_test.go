@@ -151,6 +151,111 @@ func TestTailLines(t *testing.T) {
 	}
 }
 
+func TestParse_ToolCount(t *testing.T) {
+	// Multiple Read calls should be grouped together
+	content := `{"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_001","name":"Read"}]}}
+{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"toolu_001"}]}}
+{"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_002","name":"Read"}]}}
+{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"toolu_002"}]}}
+{"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_003","name":"Read"}]}}
+{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"toolu_003"}]}}
+{"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_004","name":"Edit"}]}}
+{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"toolu_004"}]}}
+`
+	path := writeTempFile(t, content)
+	defer os.Remove(path)
+
+	data := Parse(path)
+
+	// Should have 2 tools: Read and Edit (grouped by name)
+	if len(data.Tools) != 2 {
+		t.Fatalf("expected 2 tools (grouped by name), got %d", len(data.Tools))
+	}
+
+	// Find Read tool
+	var readTool *Tool
+	for i := range data.Tools {
+		if data.Tools[i].Name == "Read" {
+			readTool = &data.Tools[i]
+			break
+		}
+	}
+	if readTool == nil {
+		t.Fatal("expected Read tool")
+	}
+	if readTool.Count != 3 {
+		t.Errorf("expected Read count=3, got %d", readTool.Count)
+	}
+	if readTool.Status != ToolCompleted {
+		t.Errorf("expected Read status=completed, got %s", readTool.Status)
+	}
+}
+
+func TestParse_ToolRunningStatus(t *testing.T) {
+	// Last invocation is still running
+	content := `{"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_001","name":"Bash"}]}}
+{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"toolu_001"}]}}
+{"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_002","name":"Bash"}]}}
+`
+	path := writeTempFile(t, content)
+	defer os.Remove(path)
+
+	data := Parse(path)
+
+	if len(data.Tools) != 1 {
+		t.Fatalf("expected 1 tool (grouped by name), got %d", len(data.Tools))
+	}
+	if data.Tools[0].Count != 2 {
+		t.Errorf("expected count=2, got %d", data.Tools[0].Count)
+	}
+	// Should be running because the latest invocation hasn't completed
+	if data.Tools[0].Status != ToolRunning {
+		t.Errorf("expected running status, got %s", data.Tools[0].Status)
+	}
+}
+
+func TestParse_AgentDescription(t *testing.T) {
+	content := `{"type":"assistant","timestamp":1000,"message":{"content":[{"type":"tool_use","id":"toolu_001","name":"Task","input":{"subagent_type":"Explore","description":"Analyze widget structure"}}]}}
+{"type":"user","timestamp":43000,"message":{"content":[{"type":"tool_result","tool_use_id":"toolu_001"}]}}
+`
+	path := writeTempFile(t, content)
+	defer os.Remove(path)
+
+	data := Parse(path)
+
+	if len(data.Agents) != 1 {
+		t.Fatalf("expected 1 agent, got %d", len(data.Agents))
+	}
+	if data.Agents[0].Description != "Analyze widget structure" {
+		t.Errorf("expected description 'Analyze widget structure', got '%s'", data.Agents[0].Description)
+	}
+	if data.Agents[0].StartTime != 1000 {
+		t.Errorf("expected StartTime=1000, got %d", data.Agents[0].StartTime)
+	}
+	if data.Agents[0].EndTime != 43000 {
+		t.Errorf("expected EndTime=43000, got %d", data.Agents[0].EndTime)
+	}
+}
+
+func TestParse_AgentRunning(t *testing.T) {
+	content := `{"type":"assistant","timestamp":1000,"message":{"content":[{"type":"tool_use","id":"toolu_001","name":"Task","input":{"subagent_type":"Plan","description":"Plan implementation"}}]}}
+`
+	path := writeTempFile(t, content)
+	defer os.Remove(path)
+
+	data := Parse(path)
+
+	if len(data.Agents) != 1 {
+		t.Fatalf("expected 1 agent, got %d", len(data.Agents))
+	}
+	if data.Agents[0].Status != "running" {
+		t.Errorf("expected running status, got '%s'", data.Agents[0].Status)
+	}
+	if data.Agents[0].EndTime != 0 {
+		t.Errorf("expected EndTime=0 for running agent, got %d", data.Agents[0].EndTime)
+	}
+}
+
 func writeTempFile(t *testing.T, content string) string {
 	t.Helper()
 	dir := t.TempDir()

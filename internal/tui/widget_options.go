@@ -117,18 +117,22 @@ func AllWidgets() []WidgetMeta {
 		},
 		{
 			Name:        "tools",
-			Description: "Active tool calls status",
+			Description: "Active tool calls with usage count",
 			Options: []OptionDef{
 				{Key: "max_display", Type: OptionTypeInt, DefaultValue: "3", Description: "Max tools to display"},
 				{Key: "show_label", Type: OptionTypeBool, DefaultValue: "false", Description: "Show 'Tools:' prefix"},
+				{Key: "show_count", Type: OptionTypeBool, DefaultValue: "true", Description: "Show invocation count"},
 			},
 		},
 		{
 			Name:        "agents",
-			Description: "Active agent status",
+			Description: "Active agent status with details",
 			Options: []OptionDef{
 				{Key: "max_display", Type: OptionTypeInt, DefaultValue: "3", Description: "Max agents to display"},
 				{Key: "show_label", Type: OptionTypeBool, DefaultValue: "false", Description: "Show 'Agents:' prefix"},
+				{Key: "show_description", Type: OptionTypeBool, DefaultValue: "true", Description: "Show task description"},
+				{Key: "show_duration", Type: OptionTypeBool, DefaultValue: "true", Description: "Show elapsed time"},
+				{Key: "max_description_len", Type: OptionTypeInt, DefaultValue: "20", Description: "Max description length"},
 			},
 		},
 		// v0.6 Cost tracking widgets

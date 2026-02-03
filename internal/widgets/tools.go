@@ -9,13 +9,14 @@ import (
 	"github.com/namyoungkim/visor/internal/transcript"
 )
 
-// ToolsWidget displays recent tool invocations with their status.
+// ToolsWidget displays recent tool invocations with their status and count.
 //
 // Supported Extra options:
 //   - max_display: maximum number of tools to show (default: "3")
 //   - show_label: "true"/"false" - show prefix (default: false)
+//   - show_count: "true"/"false" - show invocation count (default: true)
 //
-// Output format: "✓Read ✓Write ◐Bash" (completed Read, Write; running Bash)
+// Output format: "✓Bash ×7 | ✓Edit ×4 | ✓Read ×6" (with counts)
 // Status icons: ✓ (completed), ✗ (error), ◐ (running)
 type ToolsWidget struct {
 	transcript *transcript.Data
@@ -36,6 +37,7 @@ func (w *ToolsWidget) Render(session *input.Session, cfg *config.WidgetConfig) s
 	}
 
 	maxDisplay := GetExtraInt(cfg, "max_display", 3)
+	showCount := GetExtraBool(cfg, "show_count", true)
 	tools := w.transcript.Tools
 
 	// Show only the last N tools
@@ -47,16 +49,41 @@ func (w *ToolsWidget) Render(session *input.Session, cfg *config.WidgetConfig) s
 	var parts []string
 	for _, tool := range tools[start:] {
 		icon, color := toolStatusIcon(tool.Status)
-		parts = append(parts, render.Colorize(icon+tool.Name, color))
+		part := render.Colorize(icon+tool.Name, color) + countSuffix(showCount, tool.Count)
+		parts = append(parts, part)
 	}
 
-	text := strings.Join(parts, " ")
+	text := strings.Join(parts, " | ")
 
 	if GetExtraBool(cfg, "show_label", false) {
 		text = "Tools: " + text
 	}
 
 	return text
+}
+
+// countSuffix returns the count suffix (e.g., " ×7") if show_count is enabled and count > 1.
+func countSuffix(showCount bool, count int) string {
+	if showCount && count > 1 {
+		return render.Colorize(" ×"+itoa(count), "dim")
+	}
+	return ""
+}
+
+// itoa converts an int to a string without importing strconv.
+func itoa(n int) string {
+	if n == 0 {
+		return "0"
+	}
+	if n < 0 {
+		return "-" + itoa(-n)
+	}
+	var digits []byte
+	for n > 0 {
+		digits = append([]byte{byte('0' + n%10)}, digits...)
+		n /= 10
+	}
+	return string(digits)
 }
 
 func (w *ToolsWidget) ShouldRender(session *input.Session, cfg *config.WidgetConfig) bool {
