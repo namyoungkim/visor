@@ -10,6 +10,7 @@ import (
 	"github.com/namyoungkim/visor/internal/input"
 	"github.com/namyoungkim/visor/internal/render"
 	"github.com/namyoungkim/visor/internal/transcript"
+	"github.com/namyoungkim/visor/internal/tui"
 	"github.com/namyoungkim/visor/internal/widgets"
 )
 
@@ -23,6 +24,7 @@ func main() {
 	setupFlag := flag.Bool("setup", false, "Configure Claude Code to use visor statusline")
 	checkFlag := flag.Bool("check", false, "Validate configuration file")
 	debugFlag := flag.Bool("debug", false, "Enable debug output to stderr")
+	tuiFlag := flag.Bool("tui", false, "Open interactive configuration editor")
 
 	flag.Parse()
 
@@ -52,6 +54,14 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Println("Config is valid")
+		return
+	}
+
+	if *tuiFlag {
+		if err := tui.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "TUI error: %v\n", err)
+			os.Exit(1)
+		}
 		return
 	}
 
