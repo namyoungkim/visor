@@ -188,6 +188,45 @@ func TestGetExtraInt(t *testing.T) {
 	}
 }
 
+func TestGetExtraFloat(t *testing.T) {
+	cfg := &config.WidgetConfig{
+		Extra: map[string]string{
+			"threshold": "0.5",
+			"rate":      "10.25",
+			"zero":      "0",
+			"negative":  "-5.5",
+			"invalid":   "abc",
+		},
+	}
+
+	tests := []struct {
+		key      string
+		defVal   float64
+		expected float64
+	}{
+		{"threshold", 1.0, 0.5},
+		{"rate", 0.0, 10.25},
+		{"zero", 1.0, 0.0},
+		{"negative", 0.0, -5.5},
+		{"invalid", 1.0, 1.0},   // Invalid number returns default
+		{"missing", 99.9, 99.9}, // Missing key returns default
+	}
+
+	for _, tt := range tests {
+		result := GetExtraFloat(cfg, tt.key, tt.defVal)
+		if result != tt.expected {
+			t.Errorf("GetExtraFloat(%q, %.1f) = %.2f, expected %.2f",
+				tt.key, tt.defVal, result, tt.expected)
+		}
+	}
+
+	// Test nil Extra map
+	cfgNil := &config.WidgetConfig{}
+	if v := GetExtraFloat(cfgNil, "key", 42.0); v != 42.0 {
+		t.Errorf("Expected 42.0 for nil Extra, got %.1f", v)
+	}
+}
+
 func TestProgressBar(t *testing.T) {
 	tests := []struct {
 		pct      float64

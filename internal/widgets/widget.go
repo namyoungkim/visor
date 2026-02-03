@@ -27,6 +27,10 @@ const (
 	// API latency thresholds (ms)
 	LatencyWarningMs = 2000
 	LatencyDangerMs  = 5000
+
+	// Block timer thresholds (percentage elapsed)
+	BlockTimerWarningPct  = 80.0 // 80% elapsed = 1 hour remaining
+	BlockTimerCriticalPct = 95.0 // 95% elapsed = 15 minutes remaining
 )
 
 // ColorByThreshold returns a color based on value and thresholds.

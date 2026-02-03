@@ -9,12 +9,6 @@ import (
 	"github.com/namyoungkim/visor/internal/render"
 )
 
-// Block timer thresholds (percentage elapsed).
-const (
-	BlockTimerWarningPct  = 80.0 // 80% elapsed = 1 hour remaining
-	BlockTimerCriticalPct = 95.0 // 95% elapsed = 15 minutes remaining
-)
-
 // BlockTimerWidget displays remaining time in the 5-hour Claude Pro rate limit block.
 //
 // Supported Extra options:
