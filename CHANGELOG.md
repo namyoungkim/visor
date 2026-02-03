@@ -7,6 +7,42 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-02-03
+
+### Added
+
+- **테마 시스템** - Powerline 및 색상 테마 지원
+  - 프리셋 테마: `default`, `powerline`, `gruvbox`, `nord`, `gruvbox-powerline`, `nord-powerline`
+  - Powerline 글리프 구분자 지원 (`, `)
+  - Hex 색상 코드 지원 (`#RRGGBB`)
+  - TUI 테마 피커 (`t` 키)
+- **누적 비용 추적** - JSONL 트랜스크립트 파싱으로 비용 집계
+  - `daily_cost` 위젯 - 오늘 누적 비용
+  - `weekly_cost` 위젯 - 이번 주 누적 비용
+  - `block_cost` 위젯 - 5시간 블록 비용
+  - Provider별 가격 적용 (Anthropic/Vertex/Bedrock)
+  - 증분 파싱 캐시 시스템
+- **사용량 제한 위젯** - Claude Pro OAuth API 연동
+  - `block_limit` 위젯 - 5시간 블록 사용률 (`5h: 42%`)
+  - `week_limit` 위젯 - 7일 사용률 (`7d: 69%`)
+  - macOS Keychain credential provider
+- **internal/theme/** - 테마 관리 패키지
+- **internal/cost/** - JSONL 파싱 및 비용 집계 패키지
+- **internal/auth/** - OAuth credential provider 패키지
+- **internal/usage/** - 사용량 API 클라이언트 패키지
+
+### Changed
+
+- TUI에 테마 피커 추가 (`t` 키)
+- render 패키지에 Powerline 레이아웃 및 Hex 색상 지원 추가
+- 기본 위젯 11개 → 17개 (cost/usage 위젯 6개 추가)
+
+### Fixed
+
+- 테마 리스트 정렬 (TUI에서 일관된 순서)
+- Go 1.22+ builtin min 함수 사용 (중복 제거)
+- 캐시 히트 시 파싱 스킵으로 성능 개선
+
 ## [0.5.0] - 2026-02-03
 
 ### Added
@@ -186,7 +222,8 @@
 
 ## 링크
 
-[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/namyoungkim/visor/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/namyoungkim/visor/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/namyoungkim/visor/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/namyoungkim/visor/compare/v0.3.0...v0.3.1
