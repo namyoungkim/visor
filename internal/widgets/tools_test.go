@@ -213,3 +213,25 @@ func TestToolsWidget_PipeSeparator(t *testing.T) {
 		t.Errorf("Expected ' | ' separator, got '%s'", result)
 	}
 }
+
+func Test_itoa(t *testing.T) {
+	tests := []struct {
+		input    int
+		expected string
+	}{
+		{0, "0"},
+		{1, "1"},
+		{42, "42"},
+		{123, "123"},
+		{-1, "-1"},
+		{-42, "-42"},
+		{-123, "-123"},
+	}
+
+	for _, tt := range tests {
+		result := itoa(tt.input)
+		if result != tt.expected {
+			t.Errorf("itoa(%d) = %q, expected %q", tt.input, result, tt.expected)
+		}
+	}
+}

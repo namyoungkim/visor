@@ -26,8 +26,8 @@ go version  # should be 1.22+
 # Build
 go build -o visor ./cmd/visor
 
-# Run tests
-go test ./...
+# Run tests (CGO_ENABLED=0 required on macOS to avoid dyld LC_UUID errors)
+CGO_ENABLED=0 go test ./...
 
 # Manual testing
 echo '{"session_id":"test","model":{"display_name":"Opus"},"context_window":{"used_percentage":42.5},"cost":{"total_cost_usd":0.48,"total_duration_ms":45000}}' | ./visor
