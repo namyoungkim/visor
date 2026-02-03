@@ -13,7 +13,8 @@ import (
 	"github.com/namyoungkim/visor/internal/widgets"
 )
 
-var version = "0.3.0"
+// version is set by ldflags during build, defaults to "dev" for local builds
+var version = "dev"
 
 func main() {
 	// Define flags
@@ -74,6 +75,9 @@ func main() {
 	if err != nil && *debugFlag {
 		fmt.Fprintf(os.Stderr, "[visor] history error: %v\n", err)
 	}
+
+	// Update block timer (for Claude Pro rate limit tracking)
+	hist.UpdateBlockStartTime()
 
 	// Calculate cache hit rate for history
 	var cacheHitPct float64
