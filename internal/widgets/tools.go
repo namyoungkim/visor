@@ -15,7 +15,7 @@ import (
 //   - max_display: maximum number of tools to show (default: "3")
 //   - show_label: "true"/"false" - show prefix (default: false)
 //
-// Output format: "✓R ✓W ◐B" (completed Read, Write; running Bash)
+// Output format: "✓Read ✓Write ◐Bash" (completed Read, Write; running Bash)
 // Status icons: ✓ (completed), ✗ (error), ◐ (running)
 type ToolsWidget struct {
 	transcript *transcript.Data
@@ -47,8 +47,7 @@ func (w *ToolsWidget) Render(session *input.Session, cfg *config.WidgetConfig) s
 	var parts []string
 	for _, tool := range tools[start:] {
 		icon, color := toolStatusIcon(tool.Status)
-		abbrev := toolAbbrev(tool.Name)
-		parts = append(parts, render.Colorize(icon+abbrev, color))
+		parts = append(parts, render.Colorize(icon+tool.Name, color))
 	}
 
 	text := strings.Join(parts, " ")
@@ -78,28 +77,3 @@ func toolStatusIcon(status transcript.ToolStatus) (string, string) {
 	}
 }
 
-// toolAbbrev returns a 1-character abbreviation for a tool name.
-func toolAbbrev(name string) string {
-	abbrevMap := map[string]string{
-		"Read":         "R",
-		"Write":        "W",
-		"Edit":         "E",
-		"Bash":         "B",
-		"Glob":         "G",
-		"Grep":         "S", // Search
-		"Task":         "T",
-		"WebFetch":     "F",
-		"WebSearch":    "Q", // Query
-		"NotebookEdit": "N",
-	}
-
-	if abbrev, ok := abbrevMap[name]; ok {
-		return abbrev
-	}
-
-	// Default: first character
-	if len(name) > 0 {
-		return string(name[0])
-	}
-	return "?"
-}
