@@ -148,3 +148,212 @@ func TestAgentsWidget_ShouldRender(t *testing.T) {
 		})
 	}
 }
+
+func TestAgentsWidget_Description(t *testing.T) {
+	w := &AgentsWidget{}
+	w.SetTranscript(&transcript.Data{
+		Agents: []transcript.Agent{
+			{
+				ID:          "1",
+				Type:        "Explore",
+				Status:      "completed",
+				Description: "Analyze widget structure",
+				StartTime:   1000,
+				EndTime:     43000, // 42 seconds
+			},
+		},
+	})
+
+	result := w.Render(&input.Session{}, &config.WidgetConfig{})
+
+	// Should show description
+	if !strings.Contains(result, "Analyze widget") {
+		t.Errorf("Expected description 'Analyze widget...', got '%s'", result)
+	}
+	// Should show duration
+	if !strings.Contains(result, "42s") {
+		t.Errorf("Expected duration '42s', got '%s'", result)
+	}
+}
+
+func TestAgentsWidget_RunningShowsEllipsis(t *testing.T) {
+	w := &AgentsWidget{}
+	w.SetTranscript(&transcript.Data{
+		Agents: []transcript.Agent{
+			{
+				ID:          "1",
+				Type:        "Plan",
+				Status:      "running",
+				Description: "Planning implementation",
+				StartTime:   1000,
+			},
+		},
+	})
+
+	result := w.Render(&input.Session{}, &config.WidgetConfig{})
+
+	// Running agents should show (...) instead of duration
+	if !strings.Contains(result, "(...)") {
+		t.Errorf("Expected '(...)' for running agent, got '%s'", result)
+	}
+}
+
+func TestAgentsWidget_HideDescription(t *testing.T) {
+	w := &AgentsWidget{}
+	w.SetTranscript(&transcript.Data{
+		Agents: []transcript.Agent{
+			{
+				ID:          "1",
+				Type:        "Explore",
+				Status:      "completed",
+				Description: "Analyze widget structure",
+				StartTime:   1000,
+				EndTime:     43000,
+			},
+		},
+	})
+
+	cfg := &config.WidgetConfig{
+		Extra: map[string]string{"show_description": "false"},
+	}
+
+	result := w.Render(&input.Session{}, cfg)
+
+	// Should NOT show description
+	if strings.Contains(result, "Analyze") {
+		t.Errorf("Should not show description when show_description=false, got '%s'", result)
+	}
+	// But should still show duration
+	if !strings.Contains(result, "42s") {
+		t.Errorf("Expected duration '42s', got '%s'", result)
+	}
+}
+
+func TestAgentsWidget_HideDuration(t *testing.T) {
+	w := &AgentsWidget{}
+	w.SetTranscript(&transcript.Data{
+		Agents: []transcript.Agent{
+			{
+				ID:          "1",
+				Type:        "Explore",
+				Status:      "completed",
+				Description: "Analyze widget structure",
+				StartTime:   1000,
+				EndTime:     43000,
+			},
+		},
+	})
+
+	cfg := &config.WidgetConfig{
+		Extra: map[string]string{"show_duration": "false"},
+	}
+
+	result := w.Render(&input.Session{}, cfg)
+
+	// Should show description
+	if !strings.Contains(result, "Analyze") {
+		t.Errorf("Expected description, got '%s'", result)
+	}
+	// Should NOT show duration
+	if strings.Contains(result, "42s") {
+		t.Errorf("Should not show duration when show_duration=false, got '%s'", result)
+	}
+}
+
+func TestAgentsWidget_DescriptionTruncation(t *testing.T) {
+	w := &AgentsWidget{}
+	w.SetTranscript(&transcript.Data{
+		Agents: []transcript.Agent{
+			{
+				ID:          "1",
+				Type:        "Explore",
+				Status:      "completed",
+				Description: "This is a very long description that should be truncated",
+				StartTime:   1000,
+				EndTime:     2000,
+			},
+		},
+	})
+
+	cfg := &config.WidgetConfig{
+		Extra: map[string]string{"max_description_len": "10"},
+	}
+
+	result := w.Render(&input.Session{}, cfg)
+
+	// Description should be truncated with "..."
+	if strings.Contains(result, "truncated") {
+		t.Errorf("Description should be truncated, got '%s'", result)
+	}
+	if !strings.Contains(result, "...") {
+		t.Errorf("Expected '...' for truncation, got '%s'", result)
+	}
+}
+
+func TestAgentsWidget_PipeSeparator(t *testing.T) {
+	w := &AgentsWidget{}
+	w.SetTranscript(&transcript.Data{
+		Agents: []transcript.Agent{
+			{ID: "1", Type: "Plan", Status: "completed"},
+			{ID: "2", Type: "Explore", Status: "completed"},
+		},
+	})
+
+	cfg := &config.WidgetConfig{
+		Extra: map[string]string{"show_description": "false", "show_duration": "false"},
+	}
+
+	result := w.Render(&input.Session{}, cfg)
+
+	// Should use " | " separator
+	if !strings.Contains(result, " | ") {
+		t.Errorf("Expected ' | ' separator, got '%s'", result)
+	}
+}
+
+func TestFormatDurationSec(t *testing.T) {
+	tests := []struct {
+		seconds  int64
+		expected string
+	}{
+		{0, "0s"},
+		{42, "42s"},
+		{59, "59s"},
+		{60, "1m"},
+		{90, "1m"},
+		{120, "2m"},
+		{3600, "1h"},
+		{3660, "1h1m"},
+		{7200, "2h"},
+		{7320, "2h2m"},
+	}
+
+	for _, tt := range tests {
+		result := formatDurationSec(tt.seconds)
+		if result != tt.expected {
+			t.Errorf("formatDurationSec(%d) = %s, want %s", tt.seconds, result, tt.expected)
+		}
+	}
+}
+
+func TestTruncateString(t *testing.T) {
+	tests := []struct {
+		input    string
+		maxLen   int
+		expected string
+	}{
+		{"short", 10, "short"},
+		{"exactly10!", 10, "exactly10!"},
+		{"this is longer", 10, "this is..."},
+		{"abc", 3, "abc"},      // Fits exactly, no truncation
+		{"abcd", 3, "..."},     // maxLen <= 3 returns "..."
+		{"abcdef", 5, "ab..."}, // Truncates normally
+	}
+
+	for _, tt := range tests {
+		result := truncateString(tt.input, tt.maxLen)
+		if result != tt.expected {
+			t.Errorf("truncateString(%q, %d) = %q, want %q", tt.input, tt.maxLen, result, tt.expected)
+		}
+	}
+}
