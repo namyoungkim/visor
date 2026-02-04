@@ -255,6 +255,7 @@ right = " :: "
 
 ### General
 - `[general].separator` - Widget separator (default: `" | "`)
+- `[general].debug` - Enable debug output to stderr (default: `false`). Can also use `--debug` CLI flag.
 
 ### Layout Types
 ```toml
