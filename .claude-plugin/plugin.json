@@ -1,0 +1,12 @@
+{
+  "name": "visor",
+  "description": "Claude Code efficiency dashboard statusline",
+  "version": "0.9.0",
+  "author": {
+    "name": "Leo",
+    "url": "https://github.com/namyoungkim"
+  },
+  "repository": "https://github.com/namyoungkim/visor",
+  "license": "MIT",
+  "keywords": ["statusline", "dashboard", "efficiency"]
+}
