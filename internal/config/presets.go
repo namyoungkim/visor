@@ -69,13 +69,13 @@ var Presets = map[string]Preset{
 	},
 	"full": {
 		Name:        "full",
-		Description: "All widgets, multi-line layout (18 widgets)",
+		Description: "All widgets, multi-line layout (16 widgets)",
 		Lines: [][]WidgetDef{
 			{W("model"), W("context"), W("cost"), W("git")},
 			{WL("cache_hit"), WL("api_latency"), WL("burn_rate"), WL("compact_eta"), W("context_spark")},
 			{W("tools"), W("code_changes")},
 			{W("agents")},
-			{WL("block_timer"), WL("block_limit"), WL("week_limit"), WL("daily_cost"), WL("weekly_cost"), WL("block_cost")},
+			{WL("block_timer"), WL("daily_cost"), WL("weekly_cost"), WL("block_cost")},
 		},
 	},
 }
