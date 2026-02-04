@@ -1,6 +1,8 @@
 package config
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -135,4 +137,74 @@ func TestPresetWidgetCounts(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestInitWithPreset(t *testing.T) {
+	t.Run("creates config file with preset", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		path := filepath.Join(tmpDir, "config.toml")
+
+		err := InitWithPreset("minimal", path)
+		if err != nil {
+			t.Fatalf("InitWithPreset() error = %v", err)
+		}
+
+		// Verify file exists
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			t.Error("Config file was not created")
+		}
+
+		// Verify content
+		content, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatalf("Failed to read config file: %v", err)
+		}
+
+		contentStr := string(content)
+		if !strings.Contains(contentStr, "# Preset: minimal") {
+			t.Error("Config file should contain preset comment")
+		}
+		if !strings.Contains(contentStr, `name = "model"`) {
+			t.Error("Config file should contain model widget")
+		}
+	})
+
+	t.Run("creates directory if not exists", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		path := filepath.Join(tmpDir, "nested", "dir", "config.toml")
+
+		err := InitWithPreset("default", path)
+		if err != nil {
+			t.Fatalf("InitWithPreset() error = %v", err)
+		}
+
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			t.Error("Config file was not created in nested directory")
+		}
+	})
+
+	t.Run("returns error for unknown preset", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		path := filepath.Join(tmpDir, "config.toml")
+
+		err := InitWithPreset("unknown", path)
+		if err == nil {
+			t.Error("InitWithPreset() should return error for unknown preset")
+		}
+	})
+
+	t.Run("empty preset defaults to default", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		path := filepath.Join(tmpDir, "config.toml")
+
+		err := InitWithPreset("", path)
+		if err != nil {
+			t.Fatalf("InitWithPreset() error = %v", err)
+		}
+
+		content, _ := os.ReadFile(path)
+		if !strings.Contains(string(content), "# Preset: default") {
+			t.Error("Empty preset should default to 'default'")
+		}
+	})
 }

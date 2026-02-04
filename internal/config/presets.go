@@ -131,12 +131,14 @@ enabled = true     # Enable usage tracking (daily/weekly cost, rate limits)
 }
 
 // InitWithPreset creates a configuration file using the specified preset.
+// If preset is empty, defaults to "default" for API safety (CLI already validates).
+// If path is empty, uses DefaultConfigPath().
 func InitWithPreset(preset, path string) error {
 	if path == "" {
 		path = DefaultConfigPath()
 	}
 
-	// Default to "default" preset if empty
+	// Default to "default" preset if empty (defensive check for direct API calls)
 	if preset == "" {
 		preset = "default"
 	}
