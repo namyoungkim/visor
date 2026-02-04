@@ -25,7 +25,7 @@ func (w *SessionIDWidget) Render(session *input.Session, cfg *config.WidgetConfi
 		return ""
 	}
 
-	maxLen := GetExtraInt(cfg, "max_length", 8)
+	maxLen := GetExtraInt(cfg, "max_length", 0)
 	if maxLen > 0 && len(id) > maxLen {
 		id = id[:maxLen]
 	}

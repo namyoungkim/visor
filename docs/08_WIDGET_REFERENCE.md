@@ -528,7 +528,7 @@ bar_width = "10"
 
 | 항목 | 값 |
 |------|-----|
-| **출력 예시** | `a1b2c3d4`, `Session: a1b2c3d4` |
+| **출력 예시** | `a1b2c3d4e5f6g7h8`, `Session: a1b2c3d4e5f6g7h8` |
 | **색상** | Gray (고정) |
 | **표시 조건** | 세션 ID가 있을 때 |
 
@@ -537,7 +537,7 @@ bar_width = "10"
 | 옵션 | 기본값 | 설명 |
 |------|--------|------|
 | `show_label` | `false` | "Session:" 접두사 표시 |
-| `max_length` | `8` | 최대 표시 길이 (0=전체) |
+| `max_length` | `0` | 최대 표시 길이 (0=전체) |
 
 ---
 
@@ -779,16 +779,19 @@ Claude 설정 파일들의 구성 항목 수를 표시합니다. **visor 고유 
   name = "todos"
 ```
 
-**출력 예시**: `Opus | Pro | a1b2c3d4 | ⏱️ 5m | 42.1 tok/s | ⊙ Implement feature (3/5)`
+**출력 예시**: `Opus | Pro | a1b2c3d4e5f6 | ⏱️ 5m | 42.1 tok/s | ⊙ Implement feature (3/5)`
 
 ### 풀 모니터링 (멀티라인)
 
+`visor --init full`로 생성되는 6라인 레이아웃입니다.
+
 ```toml
+# Line 1: 세션 개요
 [[line]]
   [[line.widget]]
   name = "model"
   [[line.widget]]
-  name = "plan"
+  name = "session_id"
   [[line.widget]]
   name = "context"
   [[line.widget]]
@@ -798,20 +801,61 @@ Claude 설정 파일들의 구성 항목 수를 표시합니다. **visor 고유 
   [[line.widget]]
   name = "git"
 
+# Line 2: 도구 (가변 길이)
 [[line]]
   [[line.widget]]
   name = "tools"
+
+# Line 3: 에이전트 (가변 길이)
+[[line]]
   [[line.widget]]
   name = "agents"
+
+# Line 4: 효율성 메트릭
+[[line]]
+  [[line.widget]]
+  name = "cache_hit"
+  [[line.widget]]
+  name = "api_latency"
+  [[line.widget]]
+  name = "token_speed"
+  [[line.widget]]
+  name = "burn_rate"
+  [[line.widget]]
+  name = "compact_eta"
+  [[line.widget]]
+  name = "context_spark"
+
+# Line 5: 작업/설정 현황
+[[line]]
+  [[line.widget]]
+  name = "plan"
   [[line.widget]]
   name = "todos"
   [[line.widget]]
+  name = "code_changes"
+  [[line.widget]]
   name = "config_counts"
+
+# Line 6: 비용 추적
+[[line]]
+  [[line.widget]]
+  name = "block_timer"
+  [[line.widget]]
+  name = "daily_cost"
+  [[line.widget]]
+  name = "weekly_cost"
+  [[line.widget]]
+  name = "block_cost"
 ```
 
 **출력 예시**:
-- Line 1: `Opus | Pro | Ctx: 42% ████░░░░░░ | ⏱️ 15m | $0.45 | main +2~1`
-- Line 2: `✓Bash ×7 | ✓Edit ×4 | ◐Explore: Analyzing (5s...) | ⊙ Task (3/5) | 2📄 3🔒 2🔌`
+- Line 1: `Opus | a1b2c3d4e5f6 | Ctx: 42% ████░░░░░░ | ⏱️ 15m | $0.45 | main +2~1`
+- Line 2: `✓Bash ×7 | ✓Edit ×4 | ✓Read ×12`
+- Line 3: `◐Explore: Analyzing codebase (5s...)`
+- Line 4: `Cache: 80% | API: 1.2s | 42.1 tok/s | 12.5¢/min | ~18m | ▂▃▄▅▆`
+- Line 5: `Pro | ⊙ Implement feature (3/5) | +25/-10 | 2📄 3🔒 2🔌 1🪝`
+- Line 6: `Block: 4h23m | $2.34 today | $15.67 week | $0.45 block`
 
 ---
 
