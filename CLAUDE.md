@@ -306,7 +306,7 @@ Initialize config with presets for different use cases:
 | `efficiency` | 6 | model, context, burn_rate, cache_hit, compact_eta, cost |
 | `developer` | 6 | model, context, tools, agents, code_changes, git |
 | `pro` | 6 | model, context, block_limit, week_limit, daily_cost, cost |
-| `full` | 18 | All widgets in 5 lines by category |
+| `full` | 16 | All widgets in 5 lines by category |
 
 ## Performance Requirements
 
