@@ -105,6 +105,7 @@ internal/theme/             # Theme presets and management (v0.6)
 internal/cost/              # JSONL parsing and cost aggregation (v0.6)
 internal/auth/              # OAuth credential providers (v0.6)
 internal/usage/             # Usage limit API client (v0.6)
+internal/claudeconfig/      # Claude config parsing (v0.10)
 ```
 
 ### Widget Interface Pattern
@@ -127,7 +128,7 @@ type Widget interface {
 - **TUI**: Charm ecosystem (bubbletea, bubbles, lipgloss) for interactive config editor
 - **Dependencies**: `BurntSushi/toml`, `charmbracelet/bubbletea`, `charmbracelet/bubbles`, `charmbracelet/lipgloss`
 
-## Widgets (v0.8.0)
+## Widgets (v0.10.0)
 
 ### Core Widgets (v0.1)
 | Widget | Identifier | Unique? |
@@ -147,11 +148,12 @@ type Widget interface {
 | Compact ETA | `compact_eta` | `~18m` | **Yes** |
 | Context sparkline | `context_spark` | `▂▃▄▅▆` | **Yes** |
 
-### Transcript Widgets (v0.3, v0.7)
+### Transcript Widgets (v0.3, v0.7, v0.10)
 | Widget | Identifier | Output Example | Unique? |
 |--------|------------|----------------|---------|
 | Tool status | `tools` | `✓Bash ×7 \| ✓Edit ×4 \| ✓Read ×6` | **Yes** |
 | Agent status | `agents` | `✓Explore: Analyze... (42s)` or `◐Plan: Impl... (5s...)` | **Yes** |
+| Task progress | `todos` | `⊙ Task name (3/5)` or `✓ All done (5/5)` | **Yes** |
 
 ### Rate Limit Widget (v0.4)
 | Widget | Identifier | Output Example | Unique? |
@@ -167,11 +169,20 @@ type Widget interface {
 | 5-hour limit | `block_limit` | `5h: 42%` | **Yes** |
 | 7-day limit | `week_limit` | `7d: 69%` | **Yes** |
 
+### Session Info Widgets (v0.10)
+| Widget | Identifier | Output Example | Unique? |
+|--------|------------|----------------|---------|
+| Session duration | `duration` | `⏱️ 5m` or `1h23m` | **Yes** |
+| Token speed | `token_speed` | `42.1 tok/s` | **Yes** |
+| Plan type | `plan` | `Pro` or `API` or `Bedrock` | **Yes** |
+| Config counts | `config_counts` | `2 CLAUDE.md \| 3 rules \| 2 MCPs` | **Yes** |
+
 ### Widget Formulas
 - Cache hit rate: `cache_read_tokens / (cache_read + input_tokens) × 100`
 - Burn rate: `total_cost_usd / (total_duration_ms / 60000)`
 - Compact ETA: `(80 - current%) / context_burn_rate_per_min`
 - Block timer: Remaining time in 5-hour Claude Pro rate limit block
+- Token speed: `total_output_tokens / (total_api_duration_ms / 1000)`
 
 ## TUI Config Editor (v0.5)
 
@@ -284,6 +295,10 @@ right = " :: "
 - `block_limit`: `show_label`, `show_remaining`, `show_bar` (false), `bar_width` (10), `warn_threshold` (70), `critical_threshold` (90)
 - `tools`: `max_display` (default: 0, unlimited), `show_label`, `show_count` (default: true)
 - `agents`: `max_display` (default: 0, unlimited), `show_label`, `show_description` (default: true), `show_duration` (default: true), `max_description_len` (default: 20)
+- `duration`: `show_icon` (default: true) - show ⏱️ prefix
+- `token_speed`: `show_label`, `warn_threshold` (20), `critical_threshold` (10) (tokens/sec, lower is worse)
+- `todos`: `show_label`, `max_subject_len` (default: 30)
+- `config_counts`: `show_claude_md` (default: true), `show_rules` (default: true), `show_mcps` (default: true), `show_hooks` (default: true)
 
 ## Configuration Presets (v0.9)
 
@@ -295,7 +310,7 @@ Initialize config with presets for different use cases:
 ./visor --init efficiency # Cost optimization focus
 ./visor --init developer  # Tool/agent monitoring
 ./visor --init pro        # Claude Pro rate limits
-./visor --init full       # All 18 widgets, multi-line
+./visor --init full       # All 21 widgets, multi-line
 ./visor --init help       # List available presets
 ```
 
@@ -304,9 +319,9 @@ Initialize config with presets for different use cases:
 | `minimal` | 4 | model, context, cost, git |
 | `default` | 6 | model, context, cache_hit, api_latency, cost, git |
 | `efficiency` | 6 | model, context, burn_rate, cache_hit, compact_eta, cost |
-| `developer` | 6 | model, context, tools, agents, code_changes, git |
+| `developer` | 7 | model, context, tools, agents, todos, code_changes, git |
 | `pro` | 6 | model, context, block_limit, week_limit, daily_cost, cost |
-| `full` | 16 | All widgets in 5 lines by category |
+| `full` | 21 | All widgets in 5 lines by category |
 
 ## Performance Requirements
 

@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/namyoungkim/visor/internal/claudeconfig"
 	"github.com/namyoungkim/visor/internal/config"
 	"github.com/namyoungkim/visor/internal/cost"
 	"github.com/namyoungkim/visor/internal/history"
@@ -216,6 +217,12 @@ var toolsWidget = &ToolsWidget{}
 // agentsWidget holds the singleton instance for transcript injection.
 var agentsWidget = &AgentsWidget{}
 
+// todosWidget holds the singleton instance for transcript injection.
+var todosWidget = &TodosWidget{}
+
+// configCountsWidget holds the singleton instance for config data injection.
+var configCountsWidget = &ConfigCountsWidget{}
+
 // Cost tracking widgets (singleton instances for data injection).
 var dailyCostWidget = &DailyCostWidget{}
 var weeklyCostWidget = &WeeklyCostWidget{}
@@ -235,6 +242,7 @@ func SetHistory(h *history.History) {
 func SetTranscript(t *transcript.Data) {
 	toolsWidget.SetTranscript(t)
 	agentsWidget.SetTranscript(t)
+	todosWidget.SetTranscript(t)
 }
 
 // SetCostData sets the cost data on widgets that need it.
@@ -248,6 +256,11 @@ func SetCostData(data *cost.CostData) {
 func SetUsageLimits(limits *usage.Limits) {
 	blockLimitWidget.SetLimits(limits)
 	weekLimitWidget.SetLimits(limits)
+}
+
+// SetConfigCounts sets the config counts on widgets that need it.
+func SetConfigCounts(counts *claudeconfig.Counts) {
+	configCountsWidget.SetCounts(counts)
 }
 
 func init() {
@@ -274,4 +287,11 @@ func init() {
 	// Register usage limit widgets (v0.6)
 	Register(blockLimitWidget)
 	Register(weekLimitWidget)
+
+	// Register new widgets (v0.10)
+	Register(&DurationWidget{})
+	Register(&TokenSpeedWidget{})
+	Register(&PlanWidget{})
+	Register(todosWidget)
+	Register(configCountsWidget)
 }
