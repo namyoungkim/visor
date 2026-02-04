@@ -172,6 +172,7 @@ type Widget interface {
 ### Session Info Widgets (v0.10)
 | Widget | Identifier | Output Example | Unique? |
 |--------|------------|----------------|---------|
+| Session ID | `session_id` | `abc123de` | **Yes** |
 | Session duration | `duration` | `⏱️ 5m` or `1h23m` | **Yes** |
 | Token speed | `token_speed` | `42.1 tok/s` | **Yes** |
 | Plan type | `plan` | `Pro` or `API` or `Bedrock` | **Yes** |
@@ -299,8 +300,9 @@ right = " :: "
 - `token_speed`: `show_label`, `warn_threshold` (20), `critical_threshold` (10) (tokens/sec, lower is worse)
 - `todos`: `show_label`, `max_subject_len` (default: 30)
 - `config_counts`: `show_claude_md` (default: true), `show_rules` (default: true), `show_mcps` (default: true), `show_hooks` (default: true)
+- `session_id`: `show_label`, `max_length` (default: 8, 0 = full)
 
-## Configuration Presets (v0.9)
+## Configuration Presets (v0.10)
 
 Initialize config with presets for different use cases:
 
@@ -310,7 +312,7 @@ Initialize config with presets for different use cases:
 ./visor --init efficiency # Cost optimization focus
 ./visor --init developer  # Tool/agent monitoring
 ./visor --init pro        # Claude Pro rate limits
-./visor --init full       # All 21 widgets, multi-line
+./visor --init full       # All 22 widgets, multi-line
 ./visor --init help       # List available presets
 ```
 
@@ -321,7 +323,7 @@ Initialize config with presets for different use cases:
 | `efficiency` | 6 | model, context, burn_rate, cache_hit, compact_eta, cost |
 | `developer` | 7 | model, context, tools, agents, todos, code_changes, git |
 | `pro` | 6 | model, context, block_limit, week_limit, daily_cost, cost |
-| `full` | 21 | All widgets in 5 lines by category |
+| `full` | 22 | All widgets in 5 lines by category |
 
 ## Performance Requirements
 
