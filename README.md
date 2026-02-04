@@ -224,6 +224,54 @@ visor는 여러 테마 프리셋을 지원합니다:
 
 TUI에서 `t` 키로 테마를 변경할 수 있습니다.
 
+### 커스텀 테마 (v0.8)
+
+프리셋 테마를 기반으로 색상과 구분자를 커스터마이징할 수 있습니다:
+
+```toml
+[theme]
+name = "gruvbox"       # 베이스 프리셋
+powerline = true       # Powerline 스타일 적용 (선택)
+
+# 색상 오버라이드 (선택)
+[theme.colors]
+warning = "#ff00ff"    # Hex 색상
+critical = "red"       # Named 색상
+backgrounds = ["#111111", "#222222", "#333333"]
+
+# 구분자 오버라이드 (선택)
+[theme.separators]
+left = " :: "
+right = " :: "
+```
+
+**지원 색상 형식:**
+- Hex: `#RGB`, `#RRGGBB`, `#RRGGBBAA`
+- Named: `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`, `gray`
+- Bright: `brightred`, `brightgreen`, `brightyellow`, `brightblue`, `brightmagenta`, `brightcyan`, `brightwhite`
+
+**색상 필드:**
+| 필드 | 설명 |
+|------|------|
+| `normal` | 기본 텍스트 색상 |
+| `warning` | 경고 상태 (노란색 계열) |
+| `critical` | 위험 상태 (빨간색 계열) |
+| `good` | 양호 상태 (초록색 계열) |
+| `primary` | 주 강조색 |
+| `secondary` | 보조 강조색 |
+| `muted` | 흐린 텍스트 |
+| `backgrounds` | Powerline 배경색 (배열) |
+
+**구분자 필드:**
+| 필드 | 설명 |
+|------|------|
+| `left` | 좌측 구분자 |
+| `right` | 우측 구분자 |
+| `left_soft` | 좌측 소프트 구분자 |
+| `right_soft` | 우측 소프트 구분자 |
+| `left_hard` | 좌측 하드 구분자 (Powerline) |
+| `right_hard` | 우측 하드 구분자 (Powerline) |
+
 ## TUI 설정 편집기
 
 인터랙티브 TUI로 설정을 편집할 수 있습니다:

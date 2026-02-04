@@ -7,6 +7,47 @@
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-02-04
+
+### Added
+
+- **커스텀 테마 오버라이드** - 프리셋 테마의 색상/구분자를 개별 커스터마이징
+  - `[theme.colors]` - 색상 오버라이드 (normal, warning, critical, good, primary, secondary, muted, backgrounds)
+  - `[theme.separators]` - 구분자 오버라이드 (left, right, left_soft, right_soft, left_hard, right_hard)
+  - `theme.powerline = true` - 프리셋에 Powerline 스타일 적용
+- **테마 해석 함수** - `theme.Resolve()` 프리셋 + 오버라이드 병합
+- **색상 검증** - `theme.ValidateColor()` hex/named color 검증
+- **config.Validate() 색상 검증** - `--check` 시 잘못된 색상 에러 반환
+- 잘못된 테마 프리셋명 처리 - default로 자동 폴백
+
+### Changed
+
+- `config.ThemeConfig` 구조체에 `Colors`, `Separators`, `Powerline` 필드 추가
+- `config.Validate()` 함수에서 테마 색상 유효성 검증
+
+## [0.7.0] - 2026-02-04
+
+### Added
+
+- **도구 사용 횟수** - `tools` 위젯에 호출 횟수 표시 (`✓Bash ×7 | ✓Edit ×4`)
+  - 같은 이름의 도구를 그룹화하여 Count 표시
+  - `show_count` 옵션으로 횟수 표시 on/off (기본: true)
+- **에이전트 상세 정보** - `agents` 위젯에 description과 실행 시간 표시
+  - Task description 표시 (`Explore: Analyze widgets`)
+  - 실행 시간 표시 (`(42s)`, `(2m)`, `(1h5m)`)
+  - Running 상태는 실시간 경과시간 표시 (`(42s...)`)
+  - `show_description`, `show_duration`, `max_description_len` 옵션
+
+### Changed
+
+- `Tool` 구조체에 `Count` 필드 추가
+- `Agent` 구조체에 `Description`, `StartTime`, `EndTime` 필드 추가
+- Parser가 도구를 ID 대신 Name으로 그룹화
+
+### Fixed
+
+- `truncateString` 함수가 멀티바이트 문자를 올바르게 처리하도록 수정
+
 ## [0.6.0] - 2026-02-03
 
 ### Added
@@ -222,7 +263,9 @@
 
 ## 링크
 
-[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/namyoungkim/visor/compare/v0.7.0...v0.8.0
+[0.7.0]: https://github.com/namyoungkim/visor/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/namyoungkim/visor/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/namyoungkim/visor/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/namyoungkim/visor/compare/v0.3.1...v0.4.0
