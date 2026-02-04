@@ -216,3 +216,123 @@ func TestDeepCopy_SplitLayout(t *testing.T) {
 		t.Error("Original left widget was modified")
 	}
 }
+
+func TestDeepCopy_ThemeConfig(t *testing.T) {
+	original := &Config{
+		Theme: ThemeConfig{
+			Name:      "gruvbox",
+			Powerline: true,
+			Colors: &ColorOverrides{
+				Warning:     "#ff00ff",
+				Critical:    "#ff0000",
+				Backgrounds: []string{"#111111", "#222222"},
+			},
+			Separators: &SeparatorOverrides{
+				Left:  " :: ",
+				Right: " :: ",
+			},
+		},
+	}
+
+	copy := DeepCopy(original)
+
+	// Verify values are preserved
+	if copy.Theme.Name != "gruvbox" {
+		t.Errorf("Expected theme name 'gruvbox', got '%s'", copy.Theme.Name)
+	}
+
+	if !copy.Theme.Powerline {
+		t.Error("Expected powerline to be true")
+	}
+
+	if copy.Theme.Colors == nil {
+		t.Fatal("Expected colors to be copied")
+	}
+
+	if copy.Theme.Colors.Warning != "#ff00ff" {
+		t.Errorf("Expected warning '#ff00ff', got '%s'", copy.Theme.Colors.Warning)
+	}
+
+	if len(copy.Theme.Colors.Backgrounds) != 2 {
+		t.Fatalf("Expected 2 backgrounds, got %d", len(copy.Theme.Colors.Backgrounds))
+	}
+
+	if copy.Theme.Separators == nil {
+		t.Fatal("Expected separators to be copied")
+	}
+
+	if copy.Theme.Separators.Left != " :: " {
+		t.Errorf("Expected left separator ' :: ', got '%s'", copy.Theme.Separators.Left)
+	}
+
+	// Verify independence
+	copy.Theme.Colors.Warning = "#000000"
+	copy.Theme.Colors.Backgrounds[0] = "#ffffff"
+	copy.Theme.Separators.Left = " | "
+
+	if original.Theme.Colors.Warning != "#ff00ff" {
+		t.Error("Original color was modified")
+	}
+
+	if original.Theme.Colors.Backgrounds[0] != "#111111" {
+		t.Error("Original backgrounds was modified")
+	}
+
+	if original.Theme.Separators.Left != " :: " {
+		t.Error("Original separator was modified")
+	}
+}
+
+func TestDeepCopy_UsageConfig(t *testing.T) {
+	original := &Config{
+		Usage: UsageConfig{
+			Enabled:     true,
+			Provider:    "claude_pro",
+			ProjectsDir: "/custom/path",
+		},
+	}
+
+	copy := DeepCopy(original)
+
+	if !copy.Usage.Enabled {
+		t.Error("Expected usage enabled to be true")
+	}
+
+	if copy.Usage.Provider != "claude_pro" {
+		t.Errorf("Expected provider 'claude_pro', got '%s'", copy.Usage.Provider)
+	}
+
+	if copy.Usage.ProjectsDir != "/custom/path" {
+		t.Errorf("Expected projects_dir '/custom/path', got '%s'", copy.Usage.ProjectsDir)
+	}
+}
+
+func TestDeepCopy_NilColorOverrides(t *testing.T) {
+	original := &Config{
+		Theme: ThemeConfig{
+			Name:   "default",
+			Colors: nil,
+		},
+	}
+
+	copy := DeepCopy(original)
+
+	if copy.Theme.Colors != nil {
+		t.Error("Expected nil colors to remain nil")
+	}
+}
+
+func TestDeepCopy_NilSeparatorOverrides(t *testing.T) {
+	original := &Config{
+		Theme: ThemeConfig{
+			Name:       "default",
+			Separators: nil,
+		},
+	}
+
+	copy := DeepCopy(original)
+
+	if copy.Theme.Separators != nil {
+		t.Error("Expected nil separators to remain nil")
+	}
+}

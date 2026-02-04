@@ -833,16 +833,104 @@ func Parse(path string) *Data   // JSONL 파싱 (마지막 100줄)
 3. **추가 위젯** ✅
    - `block_timer` - 5시간 블록 남은 시간 표시
 
-## 향후 개선 방향 (v0.5+)
+## v0.8 커스텀 테마 (완료)
 
-1. **설정 확장**
-   - 색상 테마 프리셋
-   - Powerline 스타일 지원
+### 테마 설정
+
+```toml
+[theme]
+name = "gruvbox"       # 베이스 프리셋
+powerline = true       # Powerline 스타일 적용 (선택)
+
+# 색상 오버라이드 (선택)
+[theme.colors]
+warning = "#ff00ff"    # Hex 색상
+critical = "red"       # Named 색상
+backgrounds = ["#111111", "#222222", "#333333"]
+
+# 구분자 오버라이드 (선택)
+[theme.separators]
+left = " :: "
+right = " :: "
+```
+
+### 테마 관련 타입 (internal/config/types.go)
+
+```go
+type ThemeConfig struct {
+    Name       string             `toml:"name"`       // 프리셋 이름
+    Powerline  bool               `toml:"powerline"`  // Powerline 스타일
+    Colors     *ColorOverrides    `toml:"colors"`     // 색상 오버라이드
+    Separators *SeparatorOverrides `toml:"separators"` // 구분자 오버라이드
+}
+
+type ColorOverrides struct {
+    Normal      string   `toml:"normal"`
+    Warning     string   `toml:"warning"`
+    Critical    string   `toml:"critical"`
+    Good        string   `toml:"good"`
+    Primary     string   `toml:"primary"`
+    Secondary   string   `toml:"secondary"`
+    Muted       string   `toml:"muted"`
+    Backgrounds []string `toml:"backgrounds"`
+}
+
+type SeparatorOverrides struct {
+    Left      string `toml:"left"`
+    Right     string `toml:"right"`
+    LeftSoft  string `toml:"left_soft"`
+    RightSoft string `toml:"right_soft"`
+    LeftHard  string `toml:"left_hard"`
+    RightHard string `toml:"right_hard"`
+}
+```
+
+### 테마 패키지 (internal/theme/)
+
+```go
+// 테마 해석 - 프리셋 + 오버라이드 병합
+func Resolve(cfg *config.ThemeConfig) *Theme
+
+// 색상 검증 - hex (#RGB, #RRGGBB, #RRGGBBAA) 및 named 색상
+func ValidateColor(color string) bool
+
+// 프리셋 조회 - 없으면 default 반환
+func Get(name string) *Theme
+
+// 프리셋 목록
+func List() []string
+```
+
+### 색상 검증 (internal/config/loader.go)
+
+`config.Validate()` 함수에서 테마 색상 검증:
+
+```go
+func Validate(path string) error {
+    // TOML 파싱
+    var cfg Config
+    if _, err := toml.DecodeFile(path, &cfg); err != nil {
+        return err
+    }
+
+    // 테마 색상 검증
+    if cfg.Theme.Colors != nil {
+        if err := validateColors(cfg.Theme.Colors); err != nil {
+            return err
+        }
+    }
+
+    return nil
+}
+```
+
+---
+
+## 향후 개선 방향 (v0.9+)
+
+1. **TUI 테마 편집**
+   - TUI에서 색상/구분자 직접 편집
 
 2. **성능 개선**
    - Git 정보 캐싱
    - 설정 파일 변경 감지
-
-3. **추가 기능**
-   - 누적 비용 추적
-   - TUI 설정 도구

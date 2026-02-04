@@ -50,20 +50,20 @@ Releases are automated via GitHub Actions. When you push a version tag, GoReleas
 
 ```bash
 # Create annotated tag
-git tag -a v0.7.0 -m "v0.7.0: Brief description
+git tag -a v0.8.0 -m "v0.8.0: Brief description
 
 Features:
 - Feature 1
 - Feature 2"
 
 # Push tag to remote (triggers GitHub Actions release)
-git push origin v0.7.0
+git push origin v0.8.0
 
 # List all tags
 git tag -l
 
 # Local build with version
-go build -ldflags "-X main.version=0.7.0" -o visor ./cmd/visor
+go build -ldflags "-X main.version=0.8.0" -o visor ./cmd/visor
 ```
 
 ## Architecture
@@ -125,7 +125,7 @@ type Widget interface {
 - **TUI**: Charm ecosystem (bubbletea, bubbles, lipgloss) for interactive config editor
 - **Dependencies**: `BurntSushi/toml`, `charmbracelet/bubbletea`, `charmbracelet/bubbles`, `charmbracelet/lipgloss`
 
-## Widgets (v0.7.0)
+## Widgets (v0.8.0)
 
 ### Core Widgets (v0.1)
 | Widget | Identifier | Unique? |
@@ -206,7 +206,7 @@ internal/tui/
 └── preview.go          # Sample session & preview
 ```
 
-## Themes (v0.6)
+## Themes (v0.6, v0.8)
 
 visor supports multiple theme presets:
 
@@ -221,7 +221,35 @@ visor supports multiple theme presets:
 
 Theme picker in TUI: press `t` key.
 
-## Config Options (v0.7.0)
+### Custom Theme Overrides (v0.8)
+
+Override preset colors and separators:
+
+```toml
+[theme]
+name = "gruvbox"       # Base preset
+powerline = true       # Enable Powerline style
+
+[theme.colors]
+warning = "#ff00ff"    # Hex color
+critical = "red"       # Named color
+backgrounds = ["#111111", "#222222"]
+
+[theme.separators]
+left = " :: "
+right = " :: "
+```
+
+**Supported color formats:**
+- Hex: `#RGB`, `#RRGGBB`, `#RRGGBBAA`
+- Named: `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`, `gray`
+- Bright: `brightred`, `brightgreen`, etc.
+
+**Color fields:** `normal`, `warning`, `critical`, `good`, `primary`, `secondary`, `muted`, `backgrounds`
+
+**Separator fields:** `left`, `right`, `left_soft`, `right_soft`, `left_hard`, `right_hard`
+
+## Config Options (v0.8.0)
 
 ### General
 - `[general].separator` - Widget separator (default: `" | "`)

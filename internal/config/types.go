@@ -21,6 +21,36 @@ type ThemeConfig struct {
 	// Powerline enables powerline-style rendering with arrows and backgrounds.
 	// This is automatically true for themes ending in "-powerline".
 	Powerline bool `toml:"powerline"`
+
+	// Colors allows overriding individual colors from the preset.
+	Colors *ColorOverrides `toml:"colors,omitempty"`
+
+	// Separators allows overriding separator characters from the preset.
+	Separators *SeparatorOverrides `toml:"separators,omitempty"`
+}
+
+// ColorOverrides allows overriding individual colors from a theme preset.
+// Empty strings mean "use preset value".
+type ColorOverrides struct {
+	Normal      string   `toml:"normal,omitempty"`
+	Warning     string   `toml:"warning,omitempty"`
+	Critical    string   `toml:"critical,omitempty"`
+	Good        string   `toml:"good,omitempty"`
+	Primary     string   `toml:"primary,omitempty"`
+	Secondary   string   `toml:"secondary,omitempty"`
+	Muted       string   `toml:"muted,omitempty"`
+	Backgrounds []string `toml:"backgrounds,omitempty"`
+}
+
+// SeparatorOverrides allows overriding separator characters from a theme preset.
+// Empty strings mean "use preset value".
+type SeparatorOverrides struct {
+	Left      string `toml:"left,omitempty"`
+	Right     string `toml:"right,omitempty"`
+	LeftSoft  string `toml:"left_soft,omitempty"`
+	RightSoft string `toml:"right_soft,omitempty"`
+	LeftHard  string `toml:"left_hard,omitempty"`
+	RightHard string `toml:"right_hard,omitempty"`
 }
 
 // UsageConfig contains usage tracking settings.
