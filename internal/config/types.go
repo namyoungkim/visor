@@ -11,6 +11,7 @@ type Config struct {
 // GeneralConfig contains global settings.
 type GeneralConfig struct {
 	Separator string `toml:"separator"`
+	Debug     bool   `toml:"debug"`
 }
 
 // ThemeConfig contains theme settings.
