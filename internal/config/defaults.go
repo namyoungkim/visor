@@ -51,6 +51,24 @@ separator = " | "  # Widget separator (default: " | ")
 name = "default"   # Theme preset: default, powerline, gruvbox, nord, gruvbox-powerline, nord-powerline
 # powerline = false  # Enable powerline-style arrows (requires Powerline/Nerd font)
 
+# === Custom theme colors (optional) ===
+# Override individual colors from the preset:
+# [theme.colors]
+# normal = "#ebdbb2"    # Default text color
+# warning = "#fabd2f"   # Warning state (e.g., context > 60%)
+# critical = "#fb4934"  # Critical state (e.g., context > 80%)
+# good = "#b8bb26"      # Success state (e.g., high cache hit rate)
+# primary = "#83a598"   # Primary accent color
+# secondary = "#8ec07c" # Secondary accent color
+# muted = "#928374"     # Dimmed text
+# backgrounds = ["#3c3836", "#504945", "#665c54"]  # Powerline segment backgrounds
+
+# === Custom separators (optional) ===
+# Override separator characters:
+# [theme.separators]
+# left = " :: "         # Regular left separator
+# right = " :: "        # Regular right separator
+
 [usage]
 enabled = true     # Enable usage tracking (daily/weekly cost, rate limits)
 # provider = ""    # Auto-detect: anthropic, claude_pro, aws, gcp

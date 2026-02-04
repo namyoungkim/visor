@@ -47,7 +47,45 @@ func DeepCopy(cfg *Config) *Config {
 		General: GeneralConfig{
 			Separator: cfg.General.Separator,
 		},
+		Theme: ThemeConfig{
+			Name:      cfg.Theme.Name,
+			Powerline: cfg.Theme.Powerline,
+		},
+		Usage: UsageConfig{
+			Enabled:     cfg.Usage.Enabled,
+			Provider:    cfg.Usage.Provider,
+			ProjectsDir: cfg.Usage.ProjectsDir,
+		},
 		Lines: make([]Line, len(cfg.Lines)),
+	}
+
+	// Deep copy color overrides
+	if cfg.Theme.Colors != nil {
+		newCfg.Theme.Colors = &ColorOverrides{
+			Normal:    cfg.Theme.Colors.Normal,
+			Warning:   cfg.Theme.Colors.Warning,
+			Critical:  cfg.Theme.Colors.Critical,
+			Good:      cfg.Theme.Colors.Good,
+			Primary:   cfg.Theme.Colors.Primary,
+			Secondary: cfg.Theme.Colors.Secondary,
+			Muted:     cfg.Theme.Colors.Muted,
+		}
+		if len(cfg.Theme.Colors.Backgrounds) > 0 {
+			newCfg.Theme.Colors.Backgrounds = make([]string, len(cfg.Theme.Colors.Backgrounds))
+			copy(newCfg.Theme.Colors.Backgrounds, cfg.Theme.Colors.Backgrounds)
+		}
+	}
+
+	// Deep copy separator overrides
+	if cfg.Theme.Separators != nil {
+		newCfg.Theme.Separators = &SeparatorOverrides{
+			Left:      cfg.Theme.Separators.Left,
+			Right:     cfg.Theme.Separators.Right,
+			LeftSoft:  cfg.Theme.Separators.LeftSoft,
+			RightSoft: cfg.Theme.Separators.RightSoft,
+			LeftHard:  cfg.Theme.Separators.LeftHard,
+			RightHard: cfg.Theme.Separators.RightHard,
+		}
 	}
 
 	for i, line := range cfg.Lines {
