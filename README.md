@@ -97,8 +97,21 @@ rate = cache_read_tokens / (cache_read_tokens + input_tokens) × 100
 ### 기본 설정 생성
 
 ```bash
-visor --init
+visor --init              # 'default' 프리셋 사용
+visor --init minimal      # 특정 프리셋 사용
+visor --init help         # 사용 가능한 프리셋 목록
 ```
+
+#### 프리셋 종류
+
+| 프리셋 | 설명 | 위젯 |
+|--------|------|------|
+| `minimal` | 필수 정보만 (4개) | model, context, cost, git |
+| `default` | 균형 잡힌 기본값 (6개) | model, context, cache_hit, api_latency, cost, git |
+| `efficiency` | 비용 최적화 중심 (6개) | model, context, burn_rate, cache_hit, compact_eta, cost |
+| `developer` | 도구/에이전트 모니터링 (6개) | model, context, tools, agents, code_changes, git |
+| `pro` | Claude Pro 사용량 제한 (6개) | model, context, block_limit, week_limit, daily_cost, cost |
+| `full` | 모든 위젯, 멀티라인 (18개) | 카테고리별 5개 라인 |
 
 `~/.config/visor/config.toml` 생성:
 
@@ -305,12 +318,14 @@ visor --tui
 ## CLI 옵션
 
 ```bash
-visor --version   # 버전 출력
-visor --init      # 기본 설정 파일 생성
-visor --setup     # Claude Code 연동 가이드
-visor --check     # 설정 파일 유효성 검사
-visor --debug     # 디버그 정보 출력 (stderr)
-visor --tui       # 인터랙티브 설정 편집기
+visor --version         # 버전 출력
+visor --init            # 기본 설정 파일 생성 (default 프리셋)
+visor --init minimal    # 특정 프리셋으로 설정 생성
+visor --init help       # 프리셋 목록 보기
+visor --setup           # Claude Code 연동 가이드
+visor --check           # 설정 파일 유효성 검사
+visor --debug           # 디버그 정보 출력 (stderr)
+visor --tui             # 인터랙티브 설정 편집기
 ```
 
 ## 수동 테스트
