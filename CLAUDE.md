@@ -169,14 +169,15 @@ type Widget interface {
 | 5-hour limit | `block_limit` | `5h: 42%` | **Yes** |
 | 7-day limit | `week_limit` | `7d: 69%` | **Yes** |
 
-### Session Info Widgets (v0.10)
+### Session Info Widgets (v0.10, 6 widgets)
 | Widget | Identifier | Output Example | Unique? |
 |--------|------------|----------------|---------|
-| Session ID | `session_id` | `abc123de` | **Yes** |
-| Session duration | `duration` | `⏱️ 5m` or `1h23m` | **Yes** |
+| Session ID | `session_id` | `abc123de` | No |
+| Session duration | `duration` | `⏱️ 5m` or `1h23m` | No |
 | Token speed | `token_speed` | `42.1 tok/s` | **Yes** |
-| Plan type | `plan` | `Pro` or `API` or `Bedrock` | **Yes** |
-| Config counts | `config_counts` | `2 CLAUDE.md \| 3 rules \| 2 MCPs` | **Yes** |
+| Plan type | `plan` | `Pro` or `API` or `Bedrock` | No |
+| Task progress | `todos` | `⊙ Task (3/5)` or `✓ All done (5/5)` | **Yes** |
+| Config counts | `config_counts` | `2📄 3🔒 2🔌 1🪝` | **Yes** |
 
 ### Widget Formulas
 - Cache hit rate: `cache_read_tokens / (cache_read + input_tokens) × 100`

@@ -761,6 +761,58 @@ Claude 설정 파일들의 구성 항목 수를 표시합니다. **visor 고유 
 
 **출력 예시**: `Opus | Ctx: 65% ██████░░░░ | ▂▃▄▅▆ | ~18m | 15.2¢/min`
 
+### 세션 정보 중심
+
+```toml
+[[line]]
+  [[line.widget]]
+  name = "model"
+  [[line.widget]]
+  name = "plan"
+  [[line.widget]]
+  name = "session_id"
+  [[line.widget]]
+  name = "duration"
+  [[line.widget]]
+  name = "token_speed"
+  [[line.widget]]
+  name = "todos"
+```
+
+**출력 예시**: `Opus | Pro | a1b2c3d4 | ⏱️ 5m | 42.1 tok/s | ⊙ Implement feature (3/5)`
+
+### 풀 모니터링 (멀티라인)
+
+```toml
+[[line]]
+  [[line.widget]]
+  name = "model"
+  [[line.widget]]
+  name = "plan"
+  [[line.widget]]
+  name = "context"
+  [[line.widget]]
+  name = "duration"
+  [[line.widget]]
+  name = "cost"
+  [[line.widget]]
+  name = "git"
+
+[[line]]
+  [[line.widget]]
+  name = "tools"
+  [[line.widget]]
+  name = "agents"
+  [[line.widget]]
+  name = "todos"
+  [[line.widget]]
+  name = "config_counts"
+```
+
+**출력 예시**:
+- Line 1: `Opus | Pro | Ctx: 42% ████░░░░░░ | ⏱️ 15m | $0.45 | main +2~1`
+- Line 2: `✓Bash ×7 | ✓Edit ×4 | ◐Explore: Analyzing (5s...) | ⊙ Task (3/5) | 2📄 3🔒 2🔌`
+
 ---
 
 ## 위젯 요약표
