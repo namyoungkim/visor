@@ -13,13 +13,15 @@ const commandTimeout = 200 * time.Millisecond
 
 // Status represents git repository status.
 type Status struct {
-	Branch   string
-	IsRepo   bool
-	IsDirty  bool
-	Ahead    int
-	Behind   int
-	Staged   int
-	Modified int
+	Branch    string
+	IsRepo    bool
+	IsDirty   bool
+	Ahead     int
+	Behind    int
+	Staged    int
+	Modified  int
+	Untracked int
+	Stash     int
 }
 
 // GetStatus returns the current git status.
@@ -37,11 +39,14 @@ func GetStatus() Status {
 	status.Branch = getBranch()
 
 	// Get status counts
-	status.Staged, status.Modified = getStatusCounts()
-	status.IsDirty = status.Staged > 0 || status.Modified > 0
+	status.Staged, status.Modified, status.Untracked = getStatusCounts()
+	status.IsDirty = status.Staged > 0 || status.Modified > 0 || status.Untracked > 0
 
 	// Get ahead/behind counts
 	status.Ahead, status.Behind = getAheadBehind()
+
+	// Get stash count
+	status.Stash = getStashCount()
 
 	return status
 }
@@ -79,10 +84,10 @@ func getBranch() string {
 	return strings.TrimSpace(string(out))
 }
 
-func getStatusCounts() (staged, modified int) {
+func getStatusCounts() (staged, modified, untracked int) {
 	out, err := gitCommand("status", "--porcelain")
 	if err != nil {
-		return 0, 0
+		return 0, 0, 0
 	}
 
 	lines := strings.Split(string(out), "\n")
@@ -93,6 +98,12 @@ func getStatusCounts() (staged, modified int) {
 		index := line[0]
 		worktree := line[1]
 
+		// Untracked files
+		if index == '?' && worktree == '?' {
+			untracked++
+			continue
+		}
+
 		// Staged changes (index has M, A, D, R, C)
 		if index != ' ' && index != '?' {
 			staged++
@@ -102,7 +113,7 @@ func getStatusCounts() (staged, modified int) {
 			modified++
 		}
 	}
-	return staged, modified
+	return staged, modified, untracked
 }
 
 func getAheadBehind() (ahead, behind int) {
@@ -118,4 +129,18 @@ func getAheadBehind() (ahead, behind int) {
 		ahead, _ = strconv.Atoi(strings.TrimSpace(parts[1]))
 	}
 	return ahead, behind
+}
+
+func getStashCount() int {
+	out, err := gitCommand("stash", "list")
+	if err != nil {
+		return 0
+	}
+
+	content := strings.TrimSpace(string(out))
+	if content == "" {
+		return 0
+	}
+
+	return len(strings.Split(content, "\n"))
 }
