@@ -281,8 +281,8 @@ right = " :: "
 - `api_latency`: `warn_threshold` (2000), `critical_threshold` (5000) (ms)
 - `block_timer`: `show_label`, `warn_threshold` (80), `critical_threshold` (95) (% elapsed)
 - `block_limit`: `show_label`, `show_remaining`, `show_bar` (false), `bar_width` (10), `warn_threshold` (70), `critical_threshold` (90)
-- `tools`: `max_display` (default: 3), `show_label`, `show_count` (default: true)
-- `agents`: `max_display` (default: 3), `show_label`, `show_description` (default: true), `show_duration` (default: true), `max_description_len` (default: 20)
+- `tools`: `max_display` (default: 0, unlimited), `show_label`, `show_count` (default: true)
+- `agents`: `max_display` (default: 0, unlimited), `show_label`, `show_description` (default: true), `show_duration` (default: true), `max_description_len` (default: 20)
 
 ## Configuration Presets (v0.9)
 
