@@ -2,27 +2,86 @@ package transcript
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"strconv"
+	"time"
 )
 
-// maxLines limits the number of transcript lines to parse.
-// 100 lines is sufficient for typical sessions:
+// defaultMaxLines is the default number of transcript lines to parse.
+// 500 lines covers longer sessions while keeping memory bounded:
 // - Average tool call produces ~2 lines (tool_use + tool_result)
-// - 100 lines ≈ 50 tool invocations worth of history
-// - Keeps memory usage bounded for long-running sessions
-const maxLines = 100
+// - 500 lines ≈ 250 tool invocations worth of history
+const defaultMaxLines = 500
+
+// getMaxLines returns the maximum lines to parse.
+// Can be overridden via VISOR_TRANSCRIPT_MAX_LINES environment variable.
+func getMaxLines() int {
+	if env := os.Getenv("VISOR_TRANSCRIPT_MAX_LINES"); env != "" {
+		if n, err := strconv.Atoi(env); err == nil && n > 0 {
+			return n
+		}
+	}
+	return defaultMaxLines
+}
 
 // transcriptEntry represents a single line in the JSONL transcript.
 type transcriptEntry struct {
-	Type      string `json:"type"`
-	Timestamp int64  `json:"timestamp"` // Unix timestamp in milliseconds
+	Type      string          `json:"type"`
+	Timestamp json.RawMessage `json:"timestamp"` // Can be int64 (millis) or string (ISO 8601)
 	Message   struct {
-		Content []contentBlock `json:"content"`
+		Content json.RawMessage `json:"content"` // Can be string or []contentBlock
 	} `json:"message"`
 	Data struct {
 		AgentID string `json:"agentId"`
 	} `json:"data"`
 	ToolUseID string `json:"toolUseID"`
+}
+
+// parseTimestamp attempts to parse timestamp from various formats.
+// Returns Unix milliseconds or 0 if parsing fails.
+func parseTimestamp(raw json.RawMessage) int64 {
+	if len(raw) == 0 {
+		return 0
+	}
+
+	// Try int64 first (Unix milliseconds)
+	var ts int64
+	if err := json.Unmarshal(raw, &ts); err == nil {
+		return ts
+	}
+
+	// Try string (ISO 8601)
+	var s string
+	if err := json.Unmarshal(raw, &s); err == nil {
+		// Parse ISO 8601: "2026-02-02T13:40:23.478Z"
+		if t, err := time.Parse(time.RFC3339Nano, s); err == nil {
+			return t.UnixMilli()
+		}
+		// Try without nanoseconds: "2026-02-02T13:40:23Z"
+		if t, err := time.Parse(time.RFC3339, s); err == nil {
+			return t.UnixMilli()
+		}
+	}
+
+	return 0
+}
+
+// parseContentBlocks attempts to parse content as []contentBlock.
+// Returns nil if content is a string or cannot be parsed.
+func parseContentBlocks(raw json.RawMessage) []contentBlock {
+	if len(raw) == 0 {
+		return nil
+	}
+	// Check if it starts with '[' (array) or '"' (string)
+	if raw[0] != '[' {
+		return nil
+	}
+	var blocks []contentBlock
+	if err := json.Unmarshal(raw, &blocks); err != nil {
+		return nil
+	}
+	return blocks
 }
 
 // contentBlock represents a content block in the message.
@@ -41,16 +100,29 @@ type contentBlock struct {
 // Parse reads a JSONL transcript file and extracts tool/agent data.
 // Returns empty Data on any error (graceful fallback).
 func Parse(path string) *Data {
+	return ParseWithDebug(path, false)
+}
+
+// ParseWithDebug reads a JSONL transcript file with optional debug output.
+func ParseWithDebug(path string, debug bool) *Data {
 	if path == "" {
 		return &Data{}
 	}
 
+	maxLines := getMaxLines()
 	lines, err := tailLines(path, maxLines)
 	if err != nil {
+		if debug {
+			fmt.Fprintf(os.Stderr, "[transcript] error reading file: %v\n", err)
+		}
 		return &Data{}
 	}
 
-	return parseLines(lines)
+	if debug {
+		fmt.Fprintf(os.Stderr, "[transcript] parsed %d lines (max: %d)\n", len(lines), maxLines)
+	}
+
+	return parseLinesWithDebug(lines, debug)
 }
 
 // tailLines reads the last n lines from a file efficiently.
@@ -156,6 +228,11 @@ func splitLines(data []byte) []string {
 
 // parseLines processes JSONL lines and extracts tools/agents.
 func parseLines(lines []string) *Data {
+	return parseLinesWithDebug(lines, false)
+}
+
+// parseLinesWithDebug processes JSONL lines.
+func parseLinesWithDebug(lines []string, debug bool) *Data {
 	data := &Data{
 		Tools:  make([]Tool, 0),
 		Agents: make([]Agent, 0),
@@ -168,9 +245,11 @@ func parseLines(lines []string) *Data {
 	var toolOrder []string               // Maintain insertion order by Name
 	var agentOrder []string              // Maintain insertion order by ID
 
+	parseErrors := 0
 	for _, line := range lines {
 		var entry transcriptEntry
 		if err := json.Unmarshal([]byte(line), &entry); err != nil {
+			parseErrors++
 			continue
 		}
 
@@ -194,12 +273,18 @@ func parseLines(lines []string) *Data {
 		}
 	}
 
+	if debug {
+		fmt.Fprintf(os.Stderr, "[transcript] tools=%d, agents=%d, parseErrors=%d\n",
+			len(data.Tools), len(data.Agents), parseErrors)
+	}
+
 	return data
 }
 
 // processAssistant handles assistant messages containing tool_use.
 func processAssistant(entry *transcriptEntry, toolMap map[string]*Tool, toolIDMap map[string]string, agentMap map[string]*Agent, toolOrder, agentOrder *[]string) {
-	for _, block := range entry.Message.Content {
+	blocks := parseContentBlocks(entry.Message.Content)
+	for _, block := range blocks {
 		if block.Type != "tool_use" {
 			continue
 		}
@@ -232,7 +317,7 @@ func processAssistant(entry *transcriptEntry, toolMap map[string]*Tool, toolIDMa
 					Type:        block.Input.SubagentType,
 					Status:      "running",
 					Description: block.Input.Description,
-					StartTime:   entry.Timestamp,
+					StartTime:   parseTimestamp(entry.Timestamp),
 				}
 				agentMap[block.ID] = agent
 				*agentOrder = append(*agentOrder, block.ID)
@@ -243,7 +328,8 @@ func processAssistant(entry *transcriptEntry, toolMap map[string]*Tool, toolIDMa
 
 // processToolResult handles tool_result messages to update tool and agent status.
 func processToolResult(entry *transcriptEntry, toolMap map[string]*Tool, toolIDMap map[string]string, agentMap map[string]*Agent) {
-	for _, block := range entry.Message.Content {
+	blocks := parseContentBlocks(entry.Message.Content)
+	for _, block := range blocks {
 		if block.Type != "tool_result" {
 			continue
 		}
@@ -265,7 +351,7 @@ func processToolResult(entry *transcriptEntry, toolMap map[string]*Tool, toolIDM
 		// Update agent status (Task tool completion)
 		if agent, ok := agentMap[block.ToolUseID]; ok {
 			agent.Status = "completed"
-			agent.EndTime = entry.Timestamp
+			agent.EndTime = parseTimestamp(entry.Timestamp)
 		}
 	}
 }
