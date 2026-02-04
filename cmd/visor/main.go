@@ -97,14 +97,16 @@ func main() {
 		return
 	}
 
-	if *debugFlag {
-		fmt.Fprintf(os.Stderr, "[visor] config loaded from: %s\n", config.DefaultConfigPath())
-		fmt.Fprintf(os.Stderr, "[visor] session model: %s\n", session.Model.DisplayName)
+	// Merge debug flag: CLI flag OR config option
+	debug := *debugFlag || cfg.General.Debug
+
+	if debug {
+		fmt.Fprintf(os.Stderr, "[visor] session: %s, model: %s\n", session.SessionID, session.Model.DisplayName)
 	}
 
 	// Load history for this session
 	hist, err := history.Load(session.SessionID)
-	if err != nil && *debugFlag {
+	if err != nil && debug {
 		fmt.Fprintf(os.Stderr, "[visor] history error: %v\n", err)
 	}
 
@@ -133,21 +135,21 @@ func main() {
 	widgets.SetHistory(hist)
 
 	// Load transcript for tools/agents widgets
-	transcriptData := transcript.Parse(session.TranscriptPath)
+	transcriptData := transcript.ParseWithDebug(session.TranscriptPath, debug)
 	widgets.SetTranscript(transcriptData)
 
-	if *debugFlag {
-		fmt.Fprintf(os.Stderr, "[visor] transcript path: %s\n", session.TranscriptPath)
-		fmt.Fprintf(os.Stderr, "[visor] transcript tools: %d, agents: %d\n", len(transcriptData.Tools), len(transcriptData.Agents))
+	if debug {
+		fmt.Fprintf(os.Stderr, "[visor] transcript: %s (tools=%d, agents=%d)\n",
+			session.TranscriptPath, len(transcriptData.Tools), len(transcriptData.Agents))
 	}
 
 	// Load cost data for daily/weekly/block cost widgets (v0.6)
 	if cfg.Usage.Enabled {
-		costData := loadCostData(session, hist, cfg, *debugFlag)
+		costData := loadCostData(session, hist, cfg, debug)
 		widgets.SetCostData(costData)
 
 		// Try to load usage limits from OAuth API
-		limits := loadUsageLimits(*debugFlag)
+		limits := loadUsageLimits(debug)
 		widgets.SetUsageLimits(limits)
 	}
 
@@ -157,7 +159,7 @@ func main() {
 	}
 
 	// Save history
-	if err := hist.Save(); err != nil && *debugFlag {
+	if err := hist.Save(); err != nil && debug {
 		fmt.Fprintf(os.Stderr, "[visor] failed to save history: %v\n", err)
 	}
 }
