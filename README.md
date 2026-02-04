@@ -1,6 +1,6 @@
 # visor
 
-Claude Code용 효율성 대시보드 statusline. 캐시 히트율, API 지연시간, 코드 변경량 등 다른 statusline에서 제공하지 않는 고유 메트릭을 실시간으로 표시합니다.
+Claude Code용 효율성 대시보드. 캐시 히트율, API 지연시간, 비용 소모율 등 숨겨진 메트릭을 실시간으로 표시합니다.
 
 ```
 Opus | Ctx: 42% ████░░░░░░ | Cache: 80% | API: 2.5s | $0.15 | +25/-10 | main ↑1
@@ -8,14 +8,38 @@ Opus | Ctx: 42% ████░░░░░░ | Cache: 80% | API: 2.5s | $0.15 
 
 ## 특징
 
-- **고유 메트릭**: 캐시 히트율, API 지연시간, 코드 변경량 - stdin JSON에 있지만 아무도 활용하지 않던 데이터
-- **빠른 시작**: Go로 작성되어 < 5ms cold startup
-- **설정 가능**: TOML 설정으로 위젯 순서, 색상 커스터마이징
-- **안정성**: 잘못된 JSON에서도 panic 없이 graceful fallback
+- **숨겨진 메트릭 시각화**: 캐시 히트율, API 지연시간, 코드 변경량 등 Claude Code가 내부적으로 사용하지만 노출하지 않던 데이터
+- **빠른 시작**: Go 기반으로 5ms 이내 cold startup
+- **유연한 설정**: TOML 설정 파일과 TUI 편집기로 위젯 배치, 테마 커스터마이징
+- **안정성**: 잘못된 입력에도 panic 없이 graceful fallback
 
 ## 설치
 
-### Go install (권장)
+### 바이너리 다운로드 (권장)
+
+Go 설치 없이 바로 사용할 수 있습니다.
+
+```bash
+# 1. 버전 설정 (https://github.com/namyoungkim/visor/releases 에서 최신 버전 확인)
+VERSION=0.9.0
+
+# 2. 플랫폼에 맞는 바이너리 다운로드
+curl -sL "https://github.com/namyoungkim/visor/releases/download/v${VERSION}/visor_${VERSION}_darwin_arm64.tar.gz" | tar xz   # macOS Apple Silicon
+curl -sL "https://github.com/namyoungkim/visor/releases/download/v${VERSION}/visor_${VERSION}_darwin_amd64.tar.gz" | tar xz   # macOS Intel
+curl -sL "https://github.com/namyoungkim/visor/releases/download/v${VERSION}/visor_${VERSION}_linux_amd64.tar.gz" | tar xz    # Linux x64
+curl -sL "https://github.com/namyoungkim/visor/releases/download/v${VERSION}/visor_${VERSION}_linux_arm64.tar.gz" | tar xz    # Linux ARM64
+
+# 3. PATH에 설치
+sudo mv visor /usr/local/bin/
+
+# sudo 권한이 없다면:
+mkdir -p ~/.local/bin && mv visor ~/.local/bin/
+# ~/.local/bin이 PATH에 없다면 쉘 설정에 추가: export PATH="$HOME/.local/bin:$PATH"
+```
+
+### Go install
+
+Go 1.22 이상이 설치되어 있다면:
 
 ```bash
 go install github.com/namyoungkim/visor@latest
@@ -29,9 +53,9 @@ cd visor
 go build -o visor ./cmd/visor
 ```
 
-## Claude Code 연동
+## 빠른 시작
 
-### 방법 1: settings.json
+### 1. Claude Code에 연결
 
 `~/.claude/settings.json`에 추가:
 
@@ -43,10 +67,24 @@ go build -o visor ./cmd/visor
 }
 ```
 
-### 방법 2: 환경 변수
+또는 환경 변수로:
 
 ```bash
 export CLAUDE_STATUSLINE_COMMAND="visor"
+```
+
+### 2. 설정 초기화
+
+```bash
+visor --init          # 기본 설정 생성
+visor --init minimal  # 최소 설정 (4개 위젯)
+visor --init help     # 프리셋 목록 보기
+```
+
+### 3. 설정 편집 (선택)
+
+```bash
+visor --tui  # 인터랙티브 설정 편집기
 ```
 
 ## 위젯
@@ -54,16 +92,16 @@ export CLAUDE_STATUSLINE_COMMAND="visor"
 | 위젯 | 식별자 | 설명 | 예시 |
 |------|--------|------|------|
 | 모델명 | `model` | 현재 사용 중인 모델 | `Opus` |
-| 컨텍스트 | `context` | 컨텍스트 윈도우 사용률 + 프로그레스 바 | `Ctx: 42% ████░░░░░░` |
+| 컨텍스트 | `context` | 컨텍스트 윈도우 사용률 | `Ctx: 42% ████░░░░░░` |
 | 캐시 히트율 | `cache_hit` | 캐시에서 읽은 토큰 비율 | `Cache: 80%` |
-| API 지연시간 | `api_latency` | 총 API 호출 시간 | `API: 2.5s` |
-| 비용 | `cost` | 세션 총 비용 | `$0.15` |
-| 코드 변경 | `code_changes` | 추가/삭제된 라인 수 | `+25/-10` |
-| Git | `git` | 브랜치, 상태 | `main ↑1` |
-| 번 레이트 | `burn_rate` | 분당 비용 소모율 | `64.0¢/min` |
-| Compact 예측 | `compact_eta` | 80% context 도달 예측 | `~18m` |
-| Context 스파크라인 | `context_spark` | 히스토리 기반 미니 그래프 | `▂▃▄▅▆` |
-| 도구 상태 | `tools` | 최근 도구 호출 상태 | `✓Read ✓Write ◐Bash` |
+| API 지연시간 | `api_latency` | API 호출 응답 시간 | `API: 2.5s` |
+| 비용 | `cost` | 세션 누적 비용 | `$0.15` |
+| 코드 변경량 | `code_changes` | 추가/삭제된 라인 수 | `+25/-10` |
+| Git | `git` | 브랜치와 상태 | `main ↑1` |
+| 비용 소모율 | `burn_rate` | 분당 비용 | `64.0¢/min` |
+| 컨텍스트 예측 | `compact_eta` | 80% 도달 예상 시간 | `~18m` |
+| 컨텍스트 추이 | `context_spark` | 사용률 변화 그래프 | `▂▃▄▅▆` |
+| 도구 상태 | `tools` | 최근 도구 호출 | `✓Read ✓Write ◐Bash` |
 | 에이전트 상태 | `agents` | 서브 에이전트 상태 | `✓Plan ◐Explore` |
 | 일별 비용 | `daily_cost` | 오늘 누적 비용 | `$2.34 today` |
 | 주별 비용 | `weekly_cost` | 이번 주 누적 비용 | `$15.67 week` |
@@ -71,53 +109,51 @@ export CLAUDE_STATUSLINE_COMMAND="visor"
 | 5시간 제한 | `block_limit` | 5시간 블록 사용률 | `5h: 42%` |
 | 7일 제한 | `week_limit` | 주간 사용률 | `7d: 69%` |
 
-### 고유 메트릭 상세
+### 핵심 메트릭 해석
 
-**Cache Hit Rate** - 캐시 효율성 지표
+**캐시 히트율** — 높을수록 비용 효율적
 ```
-rate = cache_read_tokens / (cache_read_tokens + input_tokens) × 100
+cache_read_tokens / (cache_read_tokens + input_tokens) × 100
 ```
-- 80% 이상: 초록색 (효율적)
-- 50-80%: 노란색 (보통)
-- 50% 미만: 빨간색 (비효율적)
+- 80% 이상: 🟢 효율적
+- 50~80%: 🟡 보통
+- 50% 미만: 🔴 비효율적
 
-**API Latency** - 응답 시간 모니터링
-- < 2초: 초록색
-- 2-5초: 노란색
-- > 5초: 빨간색
+**API 지연시간** — 응답 속도 지표
+- 2초 미만: 🟢 빠름
+- 2~5초: 🟡 보통
+- 5초 초과: 🔴 느림
 
-**Code Changes** - 세션 중 코드 변경량
-- 초록색: 추가된 라인 (+)
-- 빨간색: 삭제된 라인 (-)
+**코드 변경량** — 세션 중 변경된 코드
+- 🟢 추가된 라인 (+)
+- 🔴 삭제된 라인 (-)
 
-> 모든 위젯의 상세 설명, 색상 규칙, 임계값 가이드는 [위젯 레퍼런스](docs/08_WIDGET_REFERENCE.md)를 참조하세요.
+> 전체 위젯 설명은 [위젯 레퍼런스](docs/08_WIDGET_REFERENCE.md) 참조
 
 ## 설정
 
-### 기본 설정 생성
+설정 파일: `~/.config/visor/config.toml`
+
+### 프리셋
+
+| 프리셋 | 용도 | 위젯 수 |
+|--------|------|---------|
+| `minimal` | 필수 정보만 | 4개 |
+| `default` | 균형 잡힌 기본값 | 6개 |
+| `efficiency` | 비용 최적화 | 6개 |
+| `developer` | 도구/에이전트 모니터링 | 6개 |
+| `pro` | Claude Pro 사용량 추적 | 6개 |
+| `full` | 모든 위젯 (멀티라인) | 18개 |
 
 ```bash
-visor --init              # 'default' 프리셋 사용
-visor --init minimal      # 특정 프리셋 사용
-visor --init help         # 사용 가능한 프리셋 목록
+visor --init efficiency  # 원하는 프리셋으로 초기화
 ```
 
-#### 프리셋 종류
-
-| 프리셋 | 설명 | 위젯 |
-|--------|------|------|
-| `minimal` | 필수 정보만 (4개) | model, context, cost, git |
-| `default` | 균형 잡힌 기본값 (6개) | model, context, cache_hit, api_latency, cost, git |
-| `efficiency` | 비용 최적화 중심 (6개) | model, context, burn_rate, cache_hit, compact_eta, cost |
-| `developer` | 도구/에이전트 모니터링 (6개) | model, context, tools, agents, code_changes, git |
-| `pro` | Claude Pro 사용량 제한 (6개) | model, context, block_limit, week_limit, daily_cost, cost |
-| `full` | 모든 위젯, 멀티라인 (18개) | 카테고리별 5개 라인 |
-
-`~/.config/visor/config.toml` 생성:
+### 설정 예시
 
 ```toml
 [general]
-separator = " | "  # 위젯 간 구분자 (기본값)
+separator = " | "
 
 [[line]]
   [[line.widget]]
@@ -125,223 +161,78 @@ separator = " | "  # 위젯 간 구분자 (기본값)
 
   [[line.widget]]
   name = "context"
-
-  [[line.widget]]
-  name = "cache_hit"
-
-  [[line.widget]]
-  name = "api_latency"
+  [line.widget.extra]
+  show_bar = "true"
+  bar_width = "10"
 
   [[line.widget]]
   name = "cost"
-
-  [[line.widget]]
-  name = "code_changes"
-
-  [[line.widget]]
-  name = "git"
 ```
 
-### 위젯 순서 변경
-
-원하는 순서로 위젯 재배열:
-
-```toml
-[[line]]
-  [[line.widget]]
-  name = "model"
-
-  [[line.widget]]
-  name = "cost"
-
-  [[line.widget]]
-  name = "cache_hit"
-```
-
-### 멀티라인 설정
-
-```toml
-[[line]]
-  [[line.widget]]
-  name = "model"
-
-  [[line.widget]]
-  name = "context"
-
-[[line]]
-  [[line.widget]]
-  name = "cache_hit"
-
-  [[line.widget]]
-  name = "api_latency"
-```
-
-### 위젯 커스터마이징
-
-`format` 필드로 출력 포맷을 변경할 수 있습니다:
-
-```toml
-[[line.widget]]
-name = "context"
-format = "Context: {value}"  # "Ctx: 42%" 대신 "Context: 42%"
-```
-
-`extra` 필드로 위젯별 옵션을 설정할 수 있습니다:
-
-```toml
-[[line.widget]]
-name = "context"
-[line.widget.extra]
-show_label = "false"  # "Ctx:" 접두사 숨기기 → "42%"만 표시
-
-[[line.widget]]
-name = "cost"
-[line.widget.extra]
-show_label = "true"   # "Cost:" 접두사 표시 → "Cost: $0.15"
-```
-
-**지원되는 extra 옵션**:
+### 위젯 옵션
 
 | 위젯 | 옵션 | 기본값 | 설명 |
 |------|------|--------|------|
-| `context` | `show_label` | `true` | "Ctx:" 접두사 표시 |
 | `context` | `show_bar` | `true` | 프로그레스 바 표시 |
-| `context` | `bar_width` | `10` | 프로그레스 바 너비 |
-| `cache_hit` | `show_label` | `true` | "Cache:" 접두사 표시 |
-| `cost` | `show_label` | `false` | "Cost:" 접두사 표시 |
-| `block_limit` | `show_label` | `true` | "5h:" 접두사 표시 |
+| `context` | `bar_width` | `10` | 바 너비 |
+| `cache_hit` | `show_label` | `true` | "Cache:" 라벨 표시 |
+| `cost` | `show_label` | `false` | "Cost:" 라벨 표시 |
 | `block_limit` | `show_remaining` | `true` | 남은 시간 표시 |
-| `block_limit` | `show_bar` | `false` | 프로그레스 바 표시 |
-| `block_limit` | `bar_width` | `10` | 프로그레스 바 너비 |
-
-### 구분자 설정
-
-위젯 간 구분자를 변경할 수 있습니다:
-
-```toml
-[general]
-separator = " :: "  # 기본값: " | "
-```
-
-출력 예시:
-- `" | "` → `Opus | Ctx: 42% | $0.15`
-- `" :: "` → `Opus :: Ctx: 42% :: $0.15`
-- `" "` → `Opus Ctx: 42% $0.15`
 
 ## 테마
 
-visor는 여러 테마 프리셋을 지원합니다:
-
 | 테마 | 설명 |
 |------|------|
-| `default` | 기본 ASCII 구분자 |
-| `powerline` | Powerline 글리프 (, ) |
-| `gruvbox` | Gruvbox 색상 팔레트 |
-| `nord` | Nord 색상 팔레트 |
+| `default` | 기본 ASCII |
+| `powerline` | Powerline 글리프 |
+| `gruvbox` | Gruvbox 색상 |
+| `nord` | Nord 색상 |
 | `gruvbox-powerline` | Gruvbox + Powerline |
 | `nord-powerline` | Nord + Powerline |
 
-TUI에서 `t` 키로 테마를 변경할 수 있습니다.
-
-### 커스텀 테마 (v0.8)
-
-프리셋 테마를 기반으로 색상과 구분자를 커스터마이징할 수 있습니다:
-
 ```toml
 [theme]
-name = "gruvbox"       # 베이스 프리셋
-powerline = true       # Powerline 스타일 적용 (선택)
+name = "gruvbox"
+powerline = true
 
-# 색상 오버라이드 (선택)
+# 색상 커스터마이징 (선택)
 [theme.colors]
-warning = "#ff00ff"    # Hex 색상
-critical = "red"       # Named 색상
-backgrounds = ["#111111", "#222222", "#333333"]
-
-# 구분자 오버라이드 (선택)
-[theme.separators]
-left = " :: "
-right = " :: "
+warning = "#ff00ff"
+critical = "red"
 ```
 
-**지원 색상 형식:**
-- Hex: `#RGB`, `#RRGGBB`, `#RRGGBBAA`
-- Named: `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, `white`, `gray`
-- Bright: `brightred`, `brightgreen`, `brightyellow`, `brightblue`, `brightmagenta`, `brightcyan`, `brightwhite`
-
-**색상 필드:**
-| 필드 | 설명 |
-|------|------|
-| `normal` | 기본 텍스트 색상 |
-| `warning` | 경고 상태 (노란색 계열) |
-| `critical` | 위험 상태 (빨간색 계열) |
-| `good` | 양호 상태 (초록색 계열) |
-| `primary` | 주 강조색 |
-| `secondary` | 보조 강조색 |
-| `muted` | 흐린 텍스트 |
-| `backgrounds` | Powerline 배경색 (배열) |
-
-**구분자 필드:**
-| 필드 | 설명 |
-|------|------|
-| `left` | 좌측 구분자 |
-| `right` | 우측 구분자 |
-| `left_soft` | 좌측 소프트 구분자 |
-| `right_soft` | 우측 소프트 구분자 |
-| `left_hard` | 좌측 하드 구분자 (Powerline) |
-| `right_hard` | 우측 하드 구분자 (Powerline) |
-
-## TUI 설정 편집기
-
-인터랙티브 TUI로 설정을 편집할 수 있습니다:
+## TUI 편집기
 
 ```bash
 visor --tui
 ```
 
-**주요 키바인딩:**
-
 | 키 | 동작 |
 |----|------|
-| `j/k` | 커서 이동 |
-| `a` | 위젯 추가 |
-| `d` | 위젯 삭제 |
+| `j/k` | 이동 |
+| `a/d` | 위젯 추가/삭제 |
+| `J/K` | 순서 변경 |
 | `e` | 옵션 편집 |
-| `J/K` | 위젯 순서 변경 |
-| `L` | 레이아웃 변경 (single/split) |
 | `t` | 테마 변경 |
 | `s` | 저장 |
 | `q` | 종료 |
 
-**기능:**
-- 위젯 추가/삭제/순서변경
-- 위젯별 옵션 편집 (threshold 등)
-- 레이아웃 변경 (single/split)
-- 실시간 미리보기
-
 ## CLI 옵션
 
 ```bash
-visor --version         # 버전 출력
-visor --init            # 기본 설정 파일 생성 (default 프리셋)
-visor --init minimal    # 특정 프리셋으로 설정 생성
-visor --init help       # 프리셋 목록 보기
-visor --setup           # Claude Code 연동 가이드
-visor --check           # 설정 파일 유효성 검사
-visor --debug           # 디버그 정보 출력 (stderr)
-visor --tui             # 인터랙티브 설정 편집기
-```
-
-## 수동 테스트
-
-```bash
-echo '{"model":{"display_name":"Opus"},"context_window":{"used_percentage":42.5}}' | visor
+visor --version   # 버전 확인
+visor --init      # 설정 파일 생성
+visor --setup     # Claude Code 연동 가이드
+visor --check     # 설정 유효성 검사
+visor --tui       # 설정 편집기
+visor --debug     # 디버그 모드
 ```
 
 ## 요구사항
 
-- Go 1.22 이상 (빌드 시)
-- git (git 위젯 사용 시)
+- **실행**: 별도 의존성 없음 (바이너리 설치 시)
+- **빌드**: Go 1.22 이상
+- **Git 위젯**: git CLI
 
 ## 라이선스
 
