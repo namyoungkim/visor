@@ -6,11 +6,10 @@ import (
 )
 
 // maxLines limits the number of transcript lines to parse.
-// 100 lines is sufficient for typical sessions:
+// 500 lines covers longer sessions while keeping memory bounded:
 // - Average tool call produces ~2 lines (tool_use + tool_result)
-// - 100 lines ≈ 50 tool invocations worth of history
-// - Keeps memory usage bounded for long-running sessions
-const maxLines = 100
+// - 500 lines ≈ 250 tool invocations worth of history
+const maxLines = 500
 
 // transcriptEntry represents a single line in the JSONL transcript.
 type transcriptEntry struct {
