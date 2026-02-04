@@ -15,7 +15,34 @@ Opus | Ctx: 42% ████░░░░░░ | Cache: 80% | API: 2.5s | $0.15 
 
 ## 설치
 
-### Go install (권장)
+### 바이너리 다운로드 (Go 미설치 시)
+
+[GitHub Releases](https://github.com/namyoungkim/visor/releases)에서 플랫폼에 맞는 아카이브를 다운로드:
+
+```bash
+# macOS (Apple Silicon)
+curl -sL https://github.com/namyoungkim/visor/releases/latest/download/visor_$(curl -s https://api.github.com/repos/namyoungkim/visor/releases/latest | grep tag_name | cut -d '"' -f 4 | tr -d 'v')_darwin_arm64.tar.gz | tar xz
+sudo mv visor /usr/local/bin/
+
+# macOS (Intel)
+curl -sL https://github.com/namyoungkim/visor/releases/latest/download/visor_$(curl -s https://api.github.com/repos/namyoungkim/visor/releases/latest | grep tag_name | cut -d '"' -f 4 | tr -d 'v')_darwin_amd64.tar.gz | tar xz
+sudo mv visor /usr/local/bin/
+
+# Linux (x64)
+curl -sL https://github.com/namyoungkim/visor/releases/latest/download/visor_$(curl -s https://api.github.com/repos/namyoungkim/visor/releases/latest | grep tag_name | cut -d '"' -f 4 | tr -d 'v')_linux_amd64.tar.gz | tar xz
+sudo mv visor /usr/local/bin/
+
+# Linux (ARM64)
+curl -sL https://github.com/namyoungkim/visor/releases/latest/download/visor_$(curl -s https://api.github.com/repos/namyoungkim/visor/releases/latest | grep tag_name | cut -d '"' -f 4 | tr -d 'v')_linux_arm64.tar.gz | tar xz
+sudo mv visor /usr/local/bin/
+```
+
+또는 수동으로:
+1. [Releases 페이지](https://github.com/namyoungkim/visor/releases)에서 플랫폼에 맞는 `.tar.gz` 다운로드
+2. `tar -xzf visor_*.tar.gz`로 압축 해제
+3. `visor` 바이너리를 PATH에 복사 (예: `/usr/local/bin/`)
+
+### Go install
 
 ```bash
 go install github.com/namyoungkim/visor@latest
