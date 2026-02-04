@@ -93,7 +93,11 @@ type contentBlock struct {
 	IsError   *bool  `json:"is_error"`
 	Input     struct {
 		SubagentType string `json:"subagent_type"`
-		Description  string `json:"description"` // Task description
+		Description  string `json:"description"` // Task description (also used by TaskCreate)
+		// TaskCreate/TaskUpdate fields
+		Subject string `json:"subject"`
+		TaskID  string `json:"taskId"`
+		Status  string `json:"status"`
 	} `json:"input"`
 }
 
@@ -236,14 +240,17 @@ func parseLinesWithDebug(lines []string, debug bool) *Data {
 	data := &Data{
 		Tools:  make([]Tool, 0),
 		Agents: make([]Agent, 0),
+		Todos:  make([]Todo, 0),
 	}
 
 	// toolMap groups tools by Name (not ID) to count invocations
 	toolMap := make(map[string]*Tool)    // key: tool Name
 	toolIDMap := make(map[string]string) // key: tool ID -> tool Name (for result lookup)
 	agentMap := make(map[string]*Agent)  // key: tool ID
+	todoMap := make(map[string]*Todo)    // key: task ID
 	var toolOrder []string               // Maintain insertion order by Name
 	var agentOrder []string              // Maintain insertion order by ID
+	var todoOrder []string               // Maintain insertion order by task ID
 
 	parseErrors := 0
 	for _, line := range lines {
@@ -255,7 +262,7 @@ func parseLinesWithDebug(lines []string, debug bool) *Data {
 
 		switch entry.Type {
 		case "assistant":
-			processAssistant(&entry, toolMap, toolIDMap, agentMap, &toolOrder, &agentOrder)
+			processAssistant(&entry, toolMap, toolIDMap, agentMap, todoMap, &toolOrder, &agentOrder, &todoOrder)
 		case "user":
 			processToolResult(&entry, toolMap, toolIDMap, agentMap)
 		}
@@ -272,6 +279,11 @@ func parseLinesWithDebug(lines []string, debug bool) *Data {
 			data.Agents = append(data.Agents, *agent)
 		}
 	}
+	for _, id := range todoOrder {
+		if todo, ok := todoMap[id]; ok {
+			data.Todos = append(data.Todos, *todo)
+		}
+	}
 
 	if debug {
 		fmt.Fprintf(os.Stderr, "[transcript] tools=%d, agents=%d, parseErrors=%d\n",
@@ -282,7 +294,7 @@ func parseLinesWithDebug(lines []string, debug bool) *Data {
 }
 
 // processAssistant handles assistant messages containing tool_use.
-func processAssistant(entry *transcriptEntry, toolMap map[string]*Tool, toolIDMap map[string]string, agentMap map[string]*Agent, toolOrder, agentOrder *[]string) {
+func processAssistant(entry *transcriptEntry, toolMap map[string]*Tool, toolIDMap map[string]string, agentMap map[string]*Agent, todoMap map[string]*Todo, toolOrder, agentOrder, todoOrder *[]string) {
 	blocks := parseContentBlocks(entry.Message.Content)
 	for _, block := range blocks {
 		if block.Type != "tool_use" {
@@ -323,7 +335,56 @@ func processAssistant(entry *transcriptEntry, toolMap map[string]*Tool, toolIDMa
 				*agentOrder = append(*agentOrder, block.ID)
 			}
 		}
+
+		// Handle TaskCreate - creates a new todo
+		if block.Name == "TaskCreate" && block.Input.Subject != "" {
+			// TaskCreate uses tool_use ID as the todo ID (we'll get real ID from result)
+			// For now, track by tool_use ID and update later
+			todo := &Todo{
+				ID:      block.ID, // Temporary, will be updated from tool_result
+				Subject: block.Input.Subject,
+				Status:  TodoPending,
+			}
+			todoMap[block.ID] = todo
+			*todoOrder = append(*todoOrder, block.ID)
+		}
+
+		// Handle TaskUpdate - updates existing todo status
+		if block.Name == "TaskUpdate" && block.Input.TaskID != "" {
+			// Find the todo by its real task ID and update status
+			for _, todo := range todoMap {
+				if todo.ID == block.Input.TaskID {
+					if block.Input.Status != "" {
+						todo.Status = TodoStatus(block.Input.Status)
+					}
+					break
+				}
+			}
+		}
 	}
+}
+
+// toolResultBlock extends contentBlock with result content for parsing TaskCreate results.
+type toolResultBlock struct {
+	Type      string `json:"type"`
+	ToolUseID string `json:"tool_use_id"`
+	IsError   *bool  `json:"is_error"`
+	Content   string `json:"content"` // Contains the result text
+}
+
+// parseToolResultBlocks parses tool_result blocks with content.
+func parseToolResultBlocks(raw json.RawMessage) []toolResultBlock {
+	if len(raw) == 0 {
+		return nil
+	}
+	if raw[0] != '[' {
+		return nil
+	}
+	var blocks []toolResultBlock
+	if err := json.Unmarshal(raw, &blocks); err != nil {
+		return nil
+	}
+	return blocks
 }
 
 // processToolResult handles tool_result messages to update tool and agent status.

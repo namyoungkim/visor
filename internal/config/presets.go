@@ -55,9 +55,9 @@ var Presets = map[string]Preset{
 	},
 	"developer": {
 		Name:        "developer",
-		Description: "Tool/agent monitoring (6 widgets)",
+		Description: "Tool/agent monitoring (7 widgets)",
 		Lines: [][]WidgetDef{
-			{W("model"), W("context"), W("tools"), W("agents"), W("code_changes"), W("git")},
+			{W("model"), W("context"), W("tools"), W("agents"), W("todos"), W("code_changes"), W("git")},
 		},
 	},
 	"pro": {
@@ -69,12 +69,12 @@ var Presets = map[string]Preset{
 	},
 	"full": {
 		Name:        "full",
-		Description: "All widgets, multi-line layout (16 widgets)",
+		Description: "All widgets, multi-line layout (21 widgets)",
 		Lines: [][]WidgetDef{
-			{W("model"), W("context"), W("cost"), W("git")},
-			{WL("cache_hit"), WL("api_latency"), WL("burn_rate"), WL("compact_eta"), W("context_spark")},
-			{W("tools"), W("code_changes")},
-			{W("agents")},
+			{W("model"), W("plan"), W("context"), W("duration"), W("cost"), W("git")},
+			{WL("cache_hit"), WL("api_latency"), W("token_speed"), WL("burn_rate"), WL("compact_eta"), W("context_spark")},
+			{W("tools"), W("code_changes"), W("config_counts")},
+			{W("agents"), W("todos")},
 			{WL("block_timer"), WL("daily_cost"), WL("weekly_cost"), WL("block_cost")},
 		},
 	},

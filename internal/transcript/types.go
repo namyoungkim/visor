@@ -28,8 +28,25 @@ type Agent struct {
 	EndTime     int64  // Timestamp when tool_result was received (ms)
 }
 
+// TodoStatus represents the execution state of a todo task.
+type TodoStatus string
+
+const (
+	TodoPending    TodoStatus = "pending"
+	TodoInProgress TodoStatus = "in_progress"
+	TodoCompleted  TodoStatus = "completed"
+)
+
+// Todo represents a task created via TaskCreate/TaskUpdate tools.
+type Todo struct {
+	ID      string
+	Subject string
+	Status  TodoStatus
+}
+
 // Data holds the parsed transcript information for widgets.
 type Data struct {
 	Tools  []Tool
 	Agents []Agent
+	Todos  []Todo
 }
