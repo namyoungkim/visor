@@ -69,9 +69,9 @@ var Presets = map[string]Preset{
 	},
 	"full": {
 		Name:        "full",
-		Description: "All widgets, multi-line layout (21 widgets)",
+		Description: "All widgets, multi-line layout (22 widgets)",
 		Lines: [][]WidgetDef{
-			{W("model"), W("plan"), W("context"), W("duration"), W("cost"), W("git")},
+			{W("model"), W("plan"), W("session_id"), W("context"), W("duration"), W("cost"), W("git")},
 			{WL("cache_hit"), WL("api_latency"), W("token_speed"), WL("burn_rate"), WL("compact_eta"), W("context_spark")},
 			{W("tools"), W("code_changes"), W("config_counts")},
 			{W("agents"), W("todos")},

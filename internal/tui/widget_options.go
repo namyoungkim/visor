@@ -224,6 +224,14 @@ func AllWidgets() []WidgetMeta {
 				{Key: "show_hooks", Type: OptionTypeBool, DefaultValue: "true", Description: "Show hooks count"},
 			},
 		},
+		{
+			Name:        "session_id",
+			Description: "Current session ID",
+			Options: []OptionDef{
+				{Key: "show_label", Type: OptionTypeBool, DefaultValue: "false", Description: "Show 'Session:' prefix"},
+				{Key: "max_length", Type: OptionTypeInt, DefaultValue: "8", Description: "Max ID length (0 = full)"},
+			},
+		},
 	}
 }
 

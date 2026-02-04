@@ -294,4 +294,5 @@ func init() {
 	Register(&PlanWidget{})
 	Register(todosWidget)
 	Register(configCountsWidget)
+	Register(&SessionIDWidget{})
 }
