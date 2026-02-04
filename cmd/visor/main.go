@@ -38,11 +38,30 @@ func main() {
 	}
 
 	if *initFlag {
-		if err := config.Init(""); err != nil {
+		// Get preset name from positional argument
+		presetName := "default"
+		if len(flag.Args()) > 0 {
+			presetName = flag.Args()[0]
+		}
+
+		// Handle help command
+		if presetName == "help" {
+			fmt.Print(config.ListPresets())
+			return
+		}
+
+		// Validate preset exists
+		if _, ok := config.GetPreset(presetName); !ok {
+			fmt.Fprintf(os.Stderr, "Unknown preset: %s\n\n", presetName)
+			fmt.Print(config.ListPresets())
+			os.Exit(1)
+		}
+
+		if err := config.InitWithPreset(presetName, ""); err != nil {
 			fmt.Fprintf(os.Stderr, "Error creating config: %v\n", err)
 			os.Exit(1)
 		}
-		fmt.Printf("Created config at %s\n", config.DefaultConfigPath())
+		fmt.Printf("Created config at %s (preset: %s)\n", config.DefaultConfigPath(), presetName)
 		return
 	}
 

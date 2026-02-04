@@ -137,15 +137,7 @@ func validateColors(colors *ColorOverrides) error {
 }
 
 // Init creates a default configuration file at the given path.
+// Deprecated: Use InitWithPreset for preset selection support.
 func Init(path string) error {
-	if path == "" {
-		path = DefaultConfigPath()
-	}
-
-	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return err
-	}
-
-	return os.WriteFile(path, []byte(DefaultConfigTOML()), 0644)
+	return InitWithPreset("default", path)
 }

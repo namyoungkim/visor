@@ -393,7 +393,7 @@ Claude Pro 요금제의 사용량 제한을 모니터링하는 위젯들입니�
 
 | 항목 | 값 |
 |------|-----|
-| **출력 예시** | `5h: 42%`, `5h: 42% (4h18m)` |
+| **출력 예시** | `5h: 42%`, `5h: 42% (4h18m)`, `5h: 42% ████░░░░░░ (4h18m)` |
 | **색상** | <70% Green, 70-90% Yellow, >90% Red |
 | **기본 임계값** | warn=70%, critical=90% |
 | **표시 조건** | 사용량 데이터가 있을 때 |
@@ -406,8 +406,19 @@ Claude Pro 요금제의 사용량 제한을 모니터링하는 위젯들입니�
 |------|--------|------|
 | `show_label` | `true` | "5h:" 접두사 표시 |
 | `show_remaining` | `true` | 남은 시간 표시 |
+| `show_bar` | `false` | 프로그레스 바 표시 |
+| `bar_width` | `10` | 프로그레스 바 너비 (문자 수) |
 | `warn_threshold` | `70` | 경고 색상 임계값 (%) |
 | `critical_threshold` | `90` | 위험 색상 임계값 (%) |
+
+**설정 예시 (프로그레스 바 활성화)**:
+```toml
+[[line.widget]]
+name = "block_limit"
+[line.widget.extra]
+show_bar = "true"
+bar_width = "10"
+```
 
 ---
 

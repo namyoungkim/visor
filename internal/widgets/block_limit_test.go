@@ -49,6 +49,19 @@ func TestBlockLimitWidget_Render(t *testing.T) {
 			want: "5h: 75%",
 		},
 		{
+			name: "with progress bar",
+			limits: &usage.Limits{
+				FiveHour: usage.FiveHourLimit{
+					Utilization: 50.0,
+					ResetsAt:    time.Now().Add(2 * time.Hour),
+				},
+			},
+			cfg: &config.WidgetConfig{
+				Extra: map[string]string{"show_bar": "true", "show_remaining": "false"},
+			},
+			want: "5h: 50% █████░░░░░",
+		},
+		{
 			name:   "no data returns dash",
 			limits: nil,
 			cfg:    &config.WidgetConfig{},

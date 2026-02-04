@@ -33,12 +33,14 @@ CGO_ENABLED=0 go test ./...
 echo '{"session_id":"test","model":{"display_name":"Opus"},"context_window":{"used_percentage":42.5},"cost":{"total_cost_usd":0.48,"total_duration_ms":45000}}' | ./visor
 
 # CLI flags
-./visor --version   # Version info
-./visor --init      # Generate ~/.config/visor/config.toml
-./visor --setup     # Configure Claude Code statusline
-./visor --check     # Validate config file
-./visor --debug     # Debug output to stderr
-./visor --tui       # Interactive TUI config editor
+./visor --version         # Version info
+./visor --init            # Generate config with 'default' preset
+./visor --init minimal    # Generate config with specific preset
+./visor --init help       # Show available presets
+./visor --setup           # Configure Claude Code statusline
+./visor --check           # Validate config file
+./visor --debug           # Debug output to stderr
+./visor --tui             # Interactive TUI config editor
 
 # Install globally
 go install github.com/namyoungkim/visor@latest
@@ -278,8 +280,32 @@ right = " :: "
 - `cache_hit`: `show_label`, `good_threshold` (80), `warn_threshold` (50)
 - `api_latency`: `warn_threshold` (2000), `critical_threshold` (5000) (ms)
 - `block_timer`: `show_label`, `warn_threshold` (80), `critical_threshold` (95) (% elapsed)
+- `block_limit`: `show_label`, `show_remaining`, `show_bar` (false), `bar_width` (10), `warn_threshold` (70), `critical_threshold` (90)
 - `tools`: `max_display` (default: 3), `show_label`, `show_count` (default: true)
 - `agents`: `max_display` (default: 3), `show_label`, `show_description` (default: true), `show_duration` (default: true), `max_description_len` (default: 20)
+
+## Configuration Presets (v0.9)
+
+Initialize config with presets for different use cases:
+
+```bash
+./visor --init            # 'default' preset
+./visor --init minimal    # Essential 4 widgets
+./visor --init efficiency # Cost optimization focus
+./visor --init developer  # Tool/agent monitoring
+./visor --init pro        # Claude Pro rate limits
+./visor --init full       # All 18 widgets, multi-line
+./visor --init help       # List available presets
+```
+
+| Preset | Widgets | Description |
+|--------|---------|-------------|
+| `minimal` | 4 | model, context, cost, git |
+| `default` | 6 | model, context, cache_hit, api_latency, cost, git |
+| `efficiency` | 6 | model, context, burn_rate, cache_hit, compact_eta, cost |
+| `developer` | 6 | model, context, tools, agents, code_changes, git |
+| `pro` | 6 | model, context, block_limit, week_limit, daily_cost, cost |
+| `full` | 18 | All widgets in 5 lines by category |
 
 ## Performance Requirements
 

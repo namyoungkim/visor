@@ -2,6 +2,7 @@ package widgets
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/namyoungkim/visor/internal/config"
@@ -22,6 +23,8 @@ const (
 // Supported Extra options:
 //   - show_label: "true"/"false" - whether to show "5h:" prefix (default: true)
 //   - show_remaining: "true"/"false" - show remaining time (default: true)
+//   - show_bar: "true"/"false" - show progress bar (default: false)
+//   - bar_width: "10" - progress bar width in characters (default: 10)
 //   - warn_threshold: "70" - % utilization for warning color (default: 70)
 //   - critical_threshold: "90" - % utilization for critical color (default: 90)
 type BlockLimitWidget struct {
@@ -43,18 +46,26 @@ func (w *BlockLimitWidget) Render(session *input.Session, cfg *config.WidgetConf
 	}
 
 	pct := w.limits.FiveHour.Utilization
+	pctStr := fmt.Sprintf("%.0f%%", pct)
 
-	var value string
+	// Build value with optional progress bar
+	var valueParts []string
+	valueParts = append(valueParts, pctStr)
+
+	if GetExtraBool(cfg, "show_bar", false) {
+		barWidth := GetExtraInt(cfg, "bar_width", DefaultBarWidth)
+		bar := ProgressBar(pct, barWidth)
+		valueParts = append(valueParts, bar)
+	}
+
 	if GetExtraBool(cfg, "show_remaining", true) {
 		remaining := w.limits.FiveHourRemaining()
 		if remaining > 0 {
-			value = fmt.Sprintf("%.0f%% (%s)", pct, formatDuration(remaining))
-		} else {
-			value = fmt.Sprintf("%.0f%%", pct)
+			valueParts = append(valueParts, fmt.Sprintf("(%s)", formatDuration(remaining)))
 		}
-	} else {
-		value = fmt.Sprintf("%.0f%%", pct)
 	}
+
+	value := strings.Join(valueParts, " ")
 
 	var text string
 	if cfg.Format != "" {
