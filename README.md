@@ -90,6 +90,8 @@ rate = cache_read_tokens / (cache_read_tokens + input_tokens) × 100
 - 초록색: 추가된 라인 (+)
 - 빨간색: 삭제된 라인 (-)
 
+> 모든 위젯의 상세 설명, 색상 규칙, 임계값 가이드는 [위젯 레퍼런스](docs/08_WIDGET_REFERENCE.md)를 참조하세요.
+
 ## 설정
 
 ### 기본 설정 생성
