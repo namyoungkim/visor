@@ -256,6 +256,80 @@ func TestParse_AgentRunning(t *testing.T) {
 	}
 }
 
+func TestParseTimestamp_Int64(t *testing.T) {
+	raw := []byte(`1738750823478`)
+	ts := parseTimestamp(raw)
+	if ts != 1738750823478 {
+		t.Errorf("expected 1738750823478, got %d", ts)
+	}
+}
+
+func TestParseTimestamp_ISO8601(t *testing.T) {
+	raw := []byte(`"2026-02-05T13:40:23.478Z"`)
+	ts := parseTimestamp(raw)
+	// Should be non-zero
+	if ts == 0 {
+		t.Error("expected non-zero timestamp for ISO 8601")
+	}
+	// Should be in reasonable range (year 2026)
+	if ts < 1700000000000 || ts > 2000000000000 {
+		t.Errorf("timestamp %d seems out of range", ts)
+	}
+}
+
+func TestParseTimestamp_Empty(t *testing.T) {
+	ts := parseTimestamp(nil)
+	if ts != 0 {
+		t.Errorf("expected 0 for nil, got %d", ts)
+	}
+	ts = parseTimestamp([]byte{})
+	if ts != 0 {
+		t.Errorf("expected 0 for empty, got %d", ts)
+	}
+}
+
+func TestGetMaxLines_Default(t *testing.T) {
+	os.Unsetenv("VISOR_TRANSCRIPT_MAX_LINES")
+	n := getMaxLines()
+	if n != defaultMaxLines {
+		t.Errorf("expected %d, got %d", defaultMaxLines, n)
+	}
+}
+
+func TestGetMaxLines_EnvOverride(t *testing.T) {
+	os.Setenv("VISOR_TRANSCRIPT_MAX_LINES", "1000")
+	defer os.Unsetenv("VISOR_TRANSCRIPT_MAX_LINES")
+
+	n := getMaxLines()
+	if n != 1000 {
+		t.Errorf("expected 1000, got %d", n)
+	}
+}
+
+func TestGetMaxLines_InvalidEnv(t *testing.T) {
+	os.Setenv("VISOR_TRANSCRIPT_MAX_LINES", "invalid")
+	defer os.Unsetenv("VISOR_TRANSCRIPT_MAX_LINES")
+
+	n := getMaxLines()
+	if n != defaultMaxLines {
+		t.Errorf("expected default %d for invalid env, got %d", defaultMaxLines, n)
+	}
+}
+
+func TestParse_StringContent(t *testing.T) {
+	// Content can be a string (e.g., text responses) - should not crash
+	content := `{"type":"assistant","message":{"content":"Just a text response"}}
+{"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_001","name":"Read"}]}}
+`
+	path := writeTempFile(t, content)
+	defer os.Remove(path)
+
+	data := Parse(path)
+	if len(data.Tools) != 1 {
+		t.Fatalf("expected 1 tool, got %d", len(data.Tools))
+	}
+}
+
 func writeTempFile(t *testing.T, content string) string {
 	t.Helper()
 	dir := t.TempDir()

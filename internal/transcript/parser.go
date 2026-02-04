@@ -2,14 +2,28 @@ package transcript
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"strconv"
+	"time"
 )
 
-// maxLines limits the number of transcript lines to parse.
+// defaultMaxLines is the default number of transcript lines to parse.
 // 500 lines covers longer sessions while keeping memory bounded:
 // - Average tool call produces ~2 lines (tool_use + tool_result)
 // - 500 lines ≈ 250 tool invocations worth of history
-const maxLines = 500
+const defaultMaxLines = 500
+
+// getMaxLines returns the maximum lines to parse.
+// Can be overridden via VISOR_TRANSCRIPT_MAX_LINES environment variable.
+func getMaxLines() int {
+	if env := os.Getenv("VISOR_TRANSCRIPT_MAX_LINES"); env != "" {
+		if n, err := strconv.Atoi(env); err == nil && n > 0 {
+			return n
+		}
+	}
+	return defaultMaxLines
+}
 
 // transcriptEntry represents a single line in the JSONL transcript.
 type transcriptEntry struct {
@@ -31,7 +45,7 @@ func parseTimestamp(raw json.RawMessage) int64 {
 		return 0
 	}
 
-	// Try int64 first
+	// Try int64 first (Unix milliseconds)
 	var ts int64
 	if err := json.Unmarshal(raw, &ts); err == nil {
 		return ts
@@ -41,9 +55,13 @@ func parseTimestamp(raw json.RawMessage) int64 {
 	var s string
 	if err := json.Unmarshal(raw, &s); err == nil {
 		// Parse ISO 8601: "2026-02-02T13:40:23.478Z"
-		// Simple approach: just return 0 for now, we don't need precise timing
-		// Agent duration tracking can use other methods
-		return 0
+		if t, err := time.Parse(time.RFC3339Nano, s); err == nil {
+			return t.UnixMilli()
+		}
+		// Try without nanoseconds: "2026-02-02T13:40:23Z"
+		if t, err := time.Parse(time.RFC3339, s); err == nil {
+			return t.UnixMilli()
+		}
 	}
 
 	return 0
@@ -91,9 +109,17 @@ func ParseWithDebug(path string, debug bool) *Data {
 		return &Data{}
 	}
 
+	maxLines := getMaxLines()
 	lines, err := tailLines(path, maxLines)
 	if err != nil {
+		if debug {
+			fmt.Fprintf(os.Stderr, "[transcript] error reading file: %v\n", err)
+		}
 		return &Data{}
+	}
+
+	if debug {
+		fmt.Fprintf(os.Stderr, "[transcript] parsed %d lines (max: %d)\n", len(lines), maxLines)
 	}
 
 	return parseLinesWithDebug(lines, debug)
@@ -206,7 +232,7 @@ func parseLines(lines []string) *Data {
 }
 
 // parseLinesWithDebug processes JSONL lines.
-func parseLinesWithDebug(lines []string, _ bool) *Data {
+func parseLinesWithDebug(lines []string, debug bool) *Data {
 	data := &Data{
 		Tools:  make([]Tool, 0),
 		Agents: make([]Agent, 0),
@@ -219,9 +245,11 @@ func parseLinesWithDebug(lines []string, _ bool) *Data {
 	var toolOrder []string               // Maintain insertion order by Name
 	var agentOrder []string              // Maintain insertion order by ID
 
+	parseErrors := 0
 	for _, line := range lines {
 		var entry transcriptEntry
 		if err := json.Unmarshal([]byte(line), &entry); err != nil {
+			parseErrors++
 			continue
 		}
 
@@ -243,6 +271,11 @@ func parseLinesWithDebug(lines []string, _ bool) *Data {
 		if agent, ok := agentMap[id]; ok {
 			data.Agents = append(data.Agents, *agent)
 		}
+	}
+
+	if debug {
+		fmt.Fprintf(os.Stderr, "[transcript] tools=%d, agents=%d, parseErrors=%d\n",
+			len(data.Tools), len(data.Agents), parseErrors)
 	}
 
 	return data
