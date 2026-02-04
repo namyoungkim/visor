@@ -184,6 +184,46 @@ func AllWidgets() []WidgetMeta {
 				{Key: "critical_threshold", Type: OptionTypeInt, DefaultValue: "90", Description: "Critical threshold %"},
 			},
 		},
+		// v0.10 New widgets
+		{
+			Name:        "duration",
+			Description: "Session duration (e.g., 5m, 1h23m)",
+			Options: []OptionDef{
+				{Key: "show_icon", Type: OptionTypeBool, DefaultValue: "true", Description: "Show ⏱️ icon prefix"},
+			},
+		},
+		{
+			Name:        "token_speed",
+			Description: "Output token generation speed",
+			Options: []OptionDef{
+				{Key: "show_label", Type: OptionTypeBool, DefaultValue: "false", Description: "Show 'out:' prefix"},
+				{Key: "warn_threshold", Type: OptionTypeInt, DefaultValue: "20", Description: "Warning below tok/s"},
+				{Key: "critical_threshold", Type: OptionTypeInt, DefaultValue: "10", Description: "Critical below tok/s"},
+			},
+		},
+		{
+			Name:        "plan",
+			Description: "Detected plan type (Pro, API, Bedrock)",
+			Options:     nil,
+		},
+		{
+			Name:        "todos",
+			Description: "Task progress from TaskCreate/TaskUpdate",
+			Options: []OptionDef{
+				{Key: "show_label", Type: OptionTypeBool, DefaultValue: "false", Description: "Show 'Tasks:' prefix"},
+				{Key: "max_subject_len", Type: OptionTypeInt, DefaultValue: "30", Description: "Max task subject length"},
+			},
+		},
+		{
+			Name:        "config_counts",
+			Description: "Claude config counts (CLAUDE.md, rules, MCPs, hooks)",
+			Options: []OptionDef{
+				{Key: "show_claude_md", Type: OptionTypeBool, DefaultValue: "true", Description: "Show CLAUDE.md count"},
+				{Key: "show_rules", Type: OptionTypeBool, DefaultValue: "true", Description: "Show permission rules count"},
+				{Key: "show_mcps", Type: OptionTypeBool, DefaultValue: "true", Description: "Show MCP plugins count"},
+				{Key: "show_hooks", Type: OptionTypeBool, DefaultValue: "true", Description: "Show hooks count"},
+			},
+		},
 	}
 }
 

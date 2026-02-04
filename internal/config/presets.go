@@ -7,11 +7,27 @@ import (
 	"strings"
 )
 
+// WidgetDef represents a widget definition with optional extra settings.
+type WidgetDef struct {
+	Name  string
+	Extra map[string]string
+}
+
+// W is a helper to create a WidgetDef with just a name.
+func W(name string) WidgetDef {
+	return WidgetDef{Name: name}
+}
+
+// WL is a helper to create a WidgetDef with show_label=true.
+func WL(name string) WidgetDef {
+	return WidgetDef{Name: name, Extra: map[string]string{"show_label": "true"}}
+}
+
 // Preset represents a configuration preset.
 type Preset struct {
 	Name        string
 	Description string
-	Lines       [][]string // Each inner slice is a line of widgets
+	Lines       [][]WidgetDef // Each inner slice is a line of widgets
 }
 
 // Presets contains all available presets.
@@ -19,47 +35,47 @@ var Presets = map[string]Preset{
 	"minimal": {
 		Name:        "minimal",
 		Description: "Essential widgets only (4 widgets)",
-		Lines: [][]string{
-			{"model", "context", "cost", "git"},
+		Lines: [][]WidgetDef{
+			{W("model"), W("context"), W("cost"), W("git")},
 		},
 	},
 	"default": {
 		Name:        "default",
 		Description: "Balanced default with visor metrics (6 widgets)",
-		Lines: [][]string{
-			{"model", "context", "cache_hit", "api_latency", "cost", "git"},
+		Lines: [][]WidgetDef{
+			{W("model"), W("context"), W("cache_hit"), W("api_latency"), W("cost"), W("git")},
 		},
 	},
 	"efficiency": {
 		Name:        "efficiency",
 		Description: "Cost optimization focus (6 widgets)",
-		Lines: [][]string{
-			{"model", "context", "burn_rate", "cache_hit", "compact_eta", "cost"},
+		Lines: [][]WidgetDef{
+			{W("model"), W("context"), W("burn_rate"), W("cache_hit"), W("compact_eta"), W("cost")},
 		},
 	},
 	"developer": {
 		Name:        "developer",
-		Description: "Tool/agent monitoring (6 widgets)",
-		Lines: [][]string{
-			{"model", "context", "tools", "agents", "code_changes", "git"},
+		Description: "Tool/agent monitoring (7 widgets)",
+		Lines: [][]WidgetDef{
+			{W("model"), W("context"), W("tools"), W("agents"), W("todos"), W("code_changes"), W("git")},
 		},
 	},
 	"pro": {
 		Name:        "pro",
 		Description: "Claude Pro rate limits (6 widgets)",
-		Lines: [][]string{
-			{"model", "context", "block_limit", "week_limit", "daily_cost", "cost"},
+		Lines: [][]WidgetDef{
+			{W("model"), W("context"), W("block_limit"), W("week_limit"), W("daily_cost"), W("cost")},
 		},
 	},
 	"full": {
 		Name:        "full",
-		Description: "All widgets, multi-line layout (18 widgets)",
-		Lines: [][]string{
-			{"model", "context", "cost", "git"},
-			{"cache_hit", "api_latency", "burn_rate", "compact_eta", "context_spark"},
-			{"tools", "code_changes"},
-			{"agents"},
-			{"block_timer", "block_limit", "week_limit", "daily_cost", "weekly_cost", "block_cost"},
+		Description: "All widgets, multi-line layout (21 widgets)",
+		Lines: [][]WidgetDef{
+			{W("model"), W("plan"), W("context"), W("duration"), W("cost"), W("git")},
+			{WL("cache_hit"), WL("api_latency"), W("token_speed"), WL("burn_rate"), WL("compact_eta"), W("context_spark")},
+			{W("tools"), W("code_changes"), W("config_counts")},
+			{W("agents"), W("todos")},
+			{WL("block_timer"), WL("daily_cost"), WL("weekly_cost"), WL("block_cost")},
 		},
 	},
 }
@@ -123,7 +139,13 @@ enabled = true     # Enable usage tracking (daily/weekly cost, rate limits)
 		}
 		sb.WriteString("[[line]]\n")
 		for _, widget := range widgets {
-			sb.WriteString(fmt.Sprintf("  [[line.widget]]\n  name = %q\n", widget))
+			sb.WriteString(fmt.Sprintf("  [[line.widget]]\n  name = %q\n", widget.Name))
+			if len(widget.Extra) > 0 {
+				sb.WriteString("  [line.widget.extra]\n")
+				for k, v := range widget.Extra {
+					sb.WriteString(fmt.Sprintf("  %s = %q\n", k, v))
+				}
+			}
 		}
 	}
 
