@@ -56,12 +56,12 @@ fi
 
 | Preset | 용도 | Widgets |
 |--------|------|---------|
+| `full` | **전체 위젯, 5줄 멀티라인 (권장)** | 18 |
 | `minimal` | 필수 정보만 | 4 |
-| `default` | 기본 권장 | 6 |
+| `default` | 기본 | 6 |
 | `efficiency` | 비용 최적화 | 6 |
 | `developer` | Tool/agent 모니터링 | 6 |
 | `pro` | Claude Pro 한도 | 6 |
-| `full` | 전체 (멀티라인) | 18 |
 
 ```bash
 visor --init <selected-preset>
