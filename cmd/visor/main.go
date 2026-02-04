@@ -211,8 +211,8 @@ export CLAUDE_STATUSLINE_COMMAND="visor"
 
 // loadCostData loads aggregated cost data from JSONL transcripts.
 func loadCostData(session *input.Session, hist *history.History, cfg *config.Config, debug bool) *cost.CostData {
-	// Parse cost entries from the current session's transcript
-	entries, err := cost.ParseSession(session.TranscriptPath)
+	// Parse cost entries from ALL sessions for accurate daily/weekly aggregation
+	entries, err := cost.ParseAllSessions("")
 	if err != nil && debug {
 		fmt.Fprintf(os.Stderr, "[visor] cost parsing error: %v\n", err)
 	}
