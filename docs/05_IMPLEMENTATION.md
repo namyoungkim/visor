@@ -669,6 +669,17 @@ name = "block_timer"
 show_label = "true"        # "Block:" 접두사 표시 (기본: true)
 warn_threshold = "80"      # 노란색 전환 (기본: 80% 경과)
 critical_threshold = "95"  # 빨간색 전환 (기본: 95% 경과)
+
+# Block Limit 위젯 - 5시간 블록 사용률 임계값 (%)
+[[line.widget]]
+name = "block_limit"
+[line.widget.extra]
+show_label = "true"        # "5h:" 접두사 표시 (기본: true)
+show_remaining = "true"    # 남은 시간 표시 (기본: true)
+show_bar = "false"         # 프로그레스 바 표시 (기본: false)
+bar_width = "10"           # 프로그레스 바 너비 (기본: 10)
+warn_threshold = "70"      # 노란색 전환 (기본: 70%)
+critical_threshold = "90"  # 빨간색 전환 (기본: 90%)
 ```
 
 ### 스타일 옵션

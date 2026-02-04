@@ -209,6 +209,10 @@ show_label = "true"   # "Cost:" 접두사 표시 → "Cost: $0.15"
 | `context` | `bar_width` | `10` | 프로그레스 바 너비 |
 | `cache_hit` | `show_label` | `true` | "Cache:" 접두사 표시 |
 | `cost` | `show_label` | `false` | "Cost:" 접두사 표시 |
+| `block_limit` | `show_label` | `true` | "5h:" 접두사 표시 |
+| `block_limit` | `show_remaining` | `true` | 남은 시간 표시 |
+| `block_limit` | `show_bar` | `false` | 프로그레스 바 표시 |
+| `block_limit` | `bar_width` | `10` | 프로그레스 바 너비 |
 
 ### 구분자 설정
 
