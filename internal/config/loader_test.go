@@ -328,3 +328,78 @@ name = "nord"
 		t.Error("Expected separators to be nil when not specified")
 	}
 }
+
+func TestValidate_InvalidColor(t *testing.T) {
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.toml")
+
+	content := `[theme]
+name = "gruvbox"
+
+[theme.colors]
+warning = "not-a-color"
+
+[[line]]
+  [[line.widget]]
+  name = "model"
+`
+	if err := os.WriteFile(configPath, []byte(content), 0644); err != nil {
+		t.Fatalf("Failed to write temp config: %v", err)
+	}
+
+	err := Validate(configPath)
+	if err == nil {
+		t.Error("Expected error for invalid color")
+	}
+}
+
+func TestValidate_InvalidBackgroundColor(t *testing.T) {
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.toml")
+
+	content := `[theme]
+name = "gruvbox"
+
+[theme.colors]
+backgrounds = ["#111111", "invalid"]
+
+[[line]]
+  [[line.widget]]
+  name = "model"
+`
+	if err := os.WriteFile(configPath, []byte(content), 0644); err != nil {
+		t.Fatalf("Failed to write temp config: %v", err)
+	}
+
+	err := Validate(configPath)
+	if err == nil {
+		t.Error("Expected error for invalid background color")
+	}
+}
+
+func TestValidate_ValidColors(t *testing.T) {
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.toml")
+
+	content := `[theme]
+name = "gruvbox"
+
+[theme.colors]
+warning = "#ff00ff"
+critical = "red"
+normal = "#abc"
+backgrounds = ["#111111", "#222222"]
+
+[[line]]
+  [[line.widget]]
+  name = "model"
+`
+	if err := os.WriteFile(configPath, []byte(content), 0644); err != nil {
+		t.Fatalf("Failed to write temp config: %v", err)
+	}
+
+	err := Validate(configPath)
+	if err != nil {
+		t.Errorf("Expected no error for valid colors, got: %v", err)
+	}
+}

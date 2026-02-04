@@ -162,3 +162,16 @@ func TestClone_Nil(t *testing.T) {
 		t.Error("clone of nil should return nil")
 	}
 }
+
+func TestResolve_InvalidPreset(t *testing.T) {
+	cfg := &config.ThemeConfig{Name: "nonexistent"}
+	resolved := Resolve(cfg)
+
+	// Invalid preset should fallback to default theme
+	if resolved == nil {
+		t.Fatal("expected non-nil theme")
+	}
+	if resolved.Name != "default" {
+		t.Errorf("expected fallback to default, got %s", resolved.Name)
+	}
+}
