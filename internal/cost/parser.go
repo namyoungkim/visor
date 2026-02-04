@@ -37,14 +37,10 @@ type assistantMessage struct {
 }
 
 type usage struct {
-	InputTokens  int `json:"input_tokens"`
-	OutputTokens int `json:"output_tokens"`
-	CacheCreation struct {
-		InputTokens int `json:"input_tokens"`
-	} `json:"cache_creation_input_tokens,omitempty"`
-	CacheRead struct {
-		InputTokens int `json:"input_tokens"`
-	} `json:"cache_read_input_tokens,omitempty"`
+	InputTokens                int `json:"input_tokens"`
+	OutputTokens               int `json:"output_tokens"`
+	CacheCreationInputTokens   int `json:"cache_creation_input_tokens,omitempty"`
+	CacheReadInputTokens       int `json:"cache_read_input_tokens,omitempty"`
 }
 
 // ParseJSONL parses a Claude transcript JSONL file and extracts cost entries.
@@ -97,6 +93,8 @@ func parseJSONLLine(line string) (Entry, bool) {
 		ModelID:      msg.Message.Model,
 		InputTokens:  u.InputTokens,
 		OutputTokens: u.OutputTokens,
+		CacheRead:    u.CacheReadInputTokens,
+		CacheWrite:   u.CacheCreationInputTokens,
 		SessionID:    msg.SessionID,
 	}
 
