@@ -13,7 +13,7 @@ import (
 // AgentsWidget displays the status of spawned sub-agents with details.
 //
 // Supported Extra options:
-//   - max_display: maximum number of agents to show (default: "3")
+//   - max_display: maximum number of agents to show, 0 = unlimited (default: "0")
 //   - show_label: "true"/"false" - show prefix (default: false)
 //   - show_description: "true"/"false" - show task description (default: true)
 //   - show_duration: "true"/"false" - show elapsed time (default: true)
@@ -39,15 +39,15 @@ func (w *AgentsWidget) Render(session *input.Session, cfg *config.WidgetConfig) 
 		return ""
 	}
 
-	maxDisplay := GetExtraInt(cfg, "max_display", 3)
+	maxDisplay := GetExtraInt(cfg, "max_display", 0) // 0 = unlimited
 	showDescription := GetExtraBool(cfg, "show_description", true)
 	showDuration := GetExtraBool(cfg, "show_duration", true)
 	maxDescLen := GetExtraInt(cfg, "max_description_len", 20)
 	agents := w.transcript.Agents
 
-	// Show only the last N agents
+	// Show only the last N agents (0 = show all)
 	start := 0
-	if len(agents) > maxDisplay {
+	if maxDisplay > 0 && len(agents) > maxDisplay {
 		start = len(agents) - maxDisplay
 	}
 

@@ -12,7 +12,7 @@ import (
 // ToolsWidget displays recent tool invocations with their status and count.
 //
 // Supported Extra options:
-//   - max_display: maximum number of tools to show (default: "3")
+//   - max_display: maximum number of tools to show, 0 = unlimited (default: "0")
 //   - show_label: "true"/"false" - show prefix (default: false)
 //   - show_count: "true"/"false" - show invocation count (default: true)
 //
@@ -36,13 +36,13 @@ func (w *ToolsWidget) Render(session *input.Session, cfg *config.WidgetConfig) s
 		return ""
 	}
 
-	maxDisplay := GetExtraInt(cfg, "max_display", 3)
+	maxDisplay := GetExtraInt(cfg, "max_display", 0) // 0 = unlimited
 	showCount := GetExtraBool(cfg, "show_count", true)
 	tools := w.transcript.Tools
 
-	// Show only the last N tools
+	// Show only the last N tools (0 = show all)
 	start := 0
-	if len(tools) > maxDisplay {
+	if maxDisplay > 0 && len(tools) > maxDisplay {
 		start = len(tools) - maxDisplay
 	}
 
