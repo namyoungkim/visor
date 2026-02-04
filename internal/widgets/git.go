@@ -25,14 +25,14 @@ func (w *GitWidget) Render(session *input.Session, cfg *config.WidgetConfig) str
 
 	var parts []string
 
-	// Branch name
+	// Branch name with icon
 	branch := status.Branch
 	if branch == "" {
 		branch = "HEAD"
 	}
-	parts = append(parts, render.Colorize(branch, "magenta"))
+	parts = append(parts, render.Colorize("", "magenta")+render.Colorize(branch, "magenta"))
 
-	// Status indicators
+	// Status indicators (with spaces between)
 	var indicators []string
 
 	if status.Staged > 0 {
@@ -41,15 +41,26 @@ func (w *GitWidget) Render(session *input.Session, cfg *config.WidgetConfig) str
 	if status.Modified > 0 {
 		indicators = append(indicators, render.Colorize(fmt.Sprintf("~%d", status.Modified), "yellow"))
 	}
+	if status.Untracked > 0 {
+		indicators = append(indicators, render.Colorize(fmt.Sprintf("?%d", status.Untracked), "gray"))
+	}
 	if status.Ahead > 0 {
 		indicators = append(indicators, render.Colorize(fmt.Sprintf("↑%d", status.Ahead), "cyan"))
 	}
 	if status.Behind > 0 {
 		indicators = append(indicators, render.Colorize(fmt.Sprintf("↓%d", status.Behind), "red"))
 	}
+	if status.Stash > 0 {
+		indicators = append(indicators, render.Colorize(fmt.Sprintf("⚑%d", status.Stash), "blue"))
+	}
+
+	// Show clean indicator if no changes
+	if len(indicators) == 0 && !status.IsDirty {
+		indicators = append(indicators, render.Colorize("✓", "green"))
+	}
 
 	if len(indicators) > 0 {
-		parts = append(parts, strings.Join(indicators, ""))
+		parts = append(parts, strings.Join(indicators, " "))
 	}
 
 	return strings.Join(parts, " ")
