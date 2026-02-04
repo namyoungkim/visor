@@ -301,7 +301,7 @@ right = " :: "
 - `token_speed`: `show_label`, `warn_threshold` (20), `critical_threshold` (10) (tokens/sec, lower is worse)
 - `todos`: `show_label`, `max_subject_len` (default: 30)
 - `config_counts`: `show_claude_md` (default: true), `show_rules` (default: true), `show_mcps` (default: true), `show_hooks` (default: true)
-- `session_id`: `show_label`, `max_length` (default: 8, 0 = full)
+- `session_id`: `show_label`, `max_length` (default: 0, 0 = full)
 
 ## Configuration Presets (v0.10)
 
@@ -324,7 +324,7 @@ Initialize config with presets for different use cases:
 | `efficiency` | 6 | model, context, burn_rate, cache_hit, compact_eta, cost |
 | `developer` | 7 | model, context, tools, agents, todos, code_changes, git |
 | `pro` | 6 | model, context, block_limit, week_limit, daily_cost, cost |
-| `full` | 22 | All widgets in 5 lines by category |
+| `full` | 22 | All widgets in 6 lines by category |
 
 ## Performance Requirements
 
