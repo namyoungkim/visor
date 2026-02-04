@@ -8,6 +8,7 @@ import (
 	"github.com/namyoungkim/visor/internal/auth"
 	"github.com/namyoungkim/visor/internal/config"
 	"github.com/namyoungkim/visor/internal/cost"
+	"github.com/namyoungkim/visor/internal/git"
 	"github.com/namyoungkim/visor/internal/history"
 	"github.com/namyoungkim/visor/internal/input"
 	"github.com/namyoungkim/visor/internal/render"
@@ -89,6 +90,12 @@ func main() {
 
 	// Main pipeline: stdin → parse → render → stdout
 	session := input.Parse(os.Stdin)
+
+	// Set git working directory from session CWD
+	if session.CWD != "" {
+		git.SetWorkDir(session.CWD)
+	}
+
 	cfg, err := config.Load("")
 	if err != nil {
 		if *debugFlag {

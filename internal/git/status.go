@@ -24,6 +24,15 @@ type Status struct {
 	Stash     int
 }
 
+// workDir is the directory to run git commands in.
+// If empty, uses the current working directory.
+var workDir string
+
+// SetWorkDir sets the directory for git commands.
+func SetWorkDir(dir string) {
+	workDir = dir
+}
+
 // GetStatus returns the current git status.
 // Returns empty Status if not in a git repository.
 func GetStatus() Status {
@@ -56,6 +65,9 @@ func gitCommand(args ...string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "git", args...)
+	if workDir != "" {
+		cmd.Dir = workDir
+	}
 	return cmd.Output()
 }
 
@@ -64,6 +76,9 @@ func gitCommandRun(args ...string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "git", args...)
+	if workDir != "" {
+		cmd.Dir = workDir
+	}
 	return cmd.Run()
 }
 

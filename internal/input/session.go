@@ -9,6 +9,7 @@ type Session struct {
 	Workspace      Workspace     `json:"workspace"`
 	CurrentUsage   *CurrentUsage `json:"current_usage"`
 	TranscriptPath string        `json:"transcript_path"`
+	CWD            string        `json:"cwd"`
 }
 
 // Model contains model information.
