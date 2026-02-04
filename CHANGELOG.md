@@ -7,6 +7,54 @@
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-02-05
+
+### Added
+
+- **세션 정보 위젯 6종**
+  - `session_id` - 현재 세션 ID (truncated, 기본 8자)
+  - `duration` - 세션 경과 시간 (`⏱️ 5m`, `1h23m`)
+  - `token_speed` - 출력 토큰 생성 속도 (`42.1 tok/s`)
+  - `plan` - 요금제 타입 (`Pro`, `API`, `Bedrock`)
+  - `todos` - TaskCreate/TaskUpdate 작업 진행 (`⊙ Task (3/5)`)
+  - `config_counts` - Claude 설정 현황 (`2📄 3🔒 2🔌 1🪝`)
+- **Transcript 파서 개선**
+  - TaskCreate/TaskUpdate 파싱으로 Todo 추적
+  - ISO 8601 타임스탬프 파싱 (time.RFC3339Nano)
+  - 디버그 출력 (`config.Debug` 연동)
+  - `VISOR_TRANSCRIPT_MAX_LINES` 환경변수로 파싱 라인 수 오버라이드
+- **internal/claudeconfig/** - Claude 설정 파일 파싱 패키지
+  - CLAUDE.md 파일 카운트 (cwd → root)
+  - ~/.claude/settings.json 파싱 (rules, MCPs, hooks)
+
+### Changed
+
+- `developer` 프리셋: 6 → 7 위젯 (`todos` 추가)
+- `full` 프리셋: 18 → 22 위젯 (모든 새 위젯 추가)
+- `tools`/`agents` 위젯 `max_display` 기본값: 3 → 0 (무제한)
+- Transcript 파싱 라인 수: 100 → 500
+
+## [0.9.0] - 2026-02-04
+
+### Added
+
+- **설정 프리셋 시스템** - `visor --init <preset>` 명령으로 용도별 설정 생성
+  - `minimal`: 필수 4개 위젯 (model, context, cost, git)
+  - `default`: 균형 잡힌 6개 위젯 (visor 고유 메트릭 포함)
+  - `efficiency`: 비용 최적화 6개 위젯
+  - `developer`: 도구/에이전트 모니터링 6개 위젯
+  - `pro`: Claude Pro 사용량 제한 6개 위젯
+  - `full`: 모든 18개 위젯 (5개 라인)
+- **`visor --init help`** - 사용 가능한 프리셋 목록 표시
+- **`block_limit` 위젯 프로그레스 바 옵션**
+  - `show_bar`: 프로그레스 바 표시 (기본: false)
+  - `bar_width`: 프로그레스 바 너비 (기본: 10)
+
+### Changed
+
+- `Init()` 함수가 `InitWithPreset("default", path)` 위임으로 변경 (deprecated)
+- `InitWithPreset()` 함수 추가 - 프리셋 기반 설정 생성
+
 ## [0.8.0] - 2026-02-04
 
 ### Added
@@ -263,7 +311,9 @@
 
 ## 링크
 
-[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/namyoungkim/visor/compare/v0.9.0...v0.10.0
+[0.9.0]: https://github.com/namyoungkim/visor/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/namyoungkim/visor/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/namyoungkim/visor/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/namyoungkim/visor/compare/v0.5.0...v0.6.0

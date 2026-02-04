@@ -11,7 +11,8 @@
 5. [Tool/Agent Widgets](#toolagent-widgets)
 6. [Rate Limit Widgets](#rate-limit-widgets)
 7. [Cost Tracking Widgets](#cost-tracking-widgets)
-8. [추천 레이아웃](#추천-레이아웃)
+8. [Session Info Widgets](#session-info-widgets)
+9. [추천 레이아웃](#추천-레이아웃)
 
 ---
 
@@ -329,7 +330,7 @@ eta_minutes = (80 - current_pct) / burn_rate_pct_per_min
 | 옵션 | 기본값 | 설명 |
 |------|--------|------|
 | `show_label` | `false` | "Tools:" 접두사 표시 |
-| `max_display` | `3` | 표시할 최대 도구 수 |
+| `max_display` | `0` | 표시할 최대 도구 수 (0=무제한) |
 | `show_count` | `true` | 호출 횟수 표시 (×N) |
 
 ---
@@ -353,7 +354,7 @@ eta_minutes = (80 - current_pct) / burn_rate_pct_per_min
 | 옵션 | 기본값 | 설명 |
 |------|--------|------|
 | `show_label` | `false` | "Agents:" 접두사 표시 |
-| `max_display` | `3` | 표시할 최대 에이전트 수 |
+| `max_display` | `0` | 표시할 최대 에이전트 수 (0=무제한) |
 | `show_description` | `true` | 작업 설명 표시 |
 | `show_duration` | `true` | 소요/경과 시간 표시 |
 | `max_description_len` | `20` | 설명 최대 길이 (초과시 `...` 처리) |
@@ -517,6 +518,153 @@ bar_width = "10"
 
 ---
 
+## Session Info Widgets
+
+세션 정보 및 메타데이터를 표시하는 위젯들입니다.
+
+### `session_id`
+
+현재 세션 ID를 표시합니다.
+
+| 항목 | 값 |
+|------|-----|
+| **출력 예시** | `a1b2c3d4`, `Session: a1b2c3d4` |
+| **색상** | Gray (고정) |
+| **표시 조건** | 세션 ID가 있을 때 |
+
+**설정 옵션**:
+
+| 옵션 | 기본값 | 설명 |
+|------|--------|------|
+| `show_label` | `false` | "Session:" 접두사 표시 |
+| `max_length` | `8` | 최대 표시 길이 (0=전체) |
+
+---
+
+### `duration`
+
+현재 세션의 경과 시간을 표시합니다.
+
+| 항목 | 값 |
+|------|-----|
+| **출력 예시** | `⏱️ 5m`, `⏱️ 1h23m`, `⏱️ 45s` |
+| **색상** | Gray (고정) |
+| **표시 조건** | duration 데이터가 있을 때 |
+
+**출력 포맷**:
+- `< 1분`: 초 단위 (`Xs`)
+- `1분 ~ 1시간`: 분 단위 (`Xm`)
+- `>= 1시간`: 시+분 단위 (`XhYm`)
+
+**설정 옵션**:
+
+| 옵션 | 기본값 | 설명 |
+|------|--------|------|
+| `show_icon` | `true` | "⏱️" 아이콘 접두사 표시 |
+
+---
+
+### `token_speed`
+
+출력 토큰 생성 속도를 표시합니다. **visor 고유 메트릭**입니다.
+
+| 항목 | 값 |
+|------|-----|
+| **출력 예시** | `42.1 tok/s`, `85.3 tok/s`, `—` |
+| **색상** | >20 tok/s Green, 10-20 Yellow, <10 Red |
+| **기본 임계값** | warn=20 tok/s, critical=10 tok/s |
+| **데이터 없음** | `—` (Gray) |
+
+**계산 공식**:
+```
+speed = total_output_tokens / (total_api_duration_ms / 1000)
+```
+
+**의미**: API가 초당 생성하는 출력 토큰 수입니다. 높을수록 빠른 응답을 의미합니다.
+
+**설정 옵션**:
+
+| 옵션 | 기본값 | 설명 |
+|------|--------|------|
+| `show_label` | `false` | "out:" 접두사 표시 |
+| `warn_threshold` | `20` | 경고 색상 임계값 (tok/s 미만) |
+| `critical_threshold` | `10` | 위험 색상 임계값 (tok/s 미만) |
+
+---
+
+### `plan`
+
+현재 Claude 요금제 타입을 표시합니다.
+
+| 항목 | 값 |
+|------|-----|
+| **출력 예시** | `Pro`, `API`, `Bedrock` |
+| **색상** | Pro/Max/Team=Cyan, API=Magenta, Bedrock=Yellow |
+| **표시 조건** | 항상 표시 |
+
+**감지 로직**:
+1. 모델 ID에 "bedrock" 포함 → `Bedrock`
+2. OAuth 자격 증명 존재 (`~/.claude/auth.json`) → `Pro`
+3. 그 외 → `API`
+
+**참고**: Pro/Max/Team은 현재 구분할 수 없어 모두 `Pro`로 표시됩니다.
+
+**설정 옵션**: 없음
+
+---
+
+### `todos`
+
+TaskCreate/TaskUpdate 도구로 생성된 작업 진행 상황을 표시합니다. **visor 고유 메트릭**입니다.
+
+| 항목 | 값 |
+|------|-----|
+| **출력 예시** | `✓ All complete (5/5)`, `⊙ Implement feature (3/5)` |
+| **아이콘** | ✓완료(Green), ⊙진행중(Yellow) |
+| **표시 조건** | 작업이 있을 때 |
+
+**출력 포맷**:
+- 모든 작업 완료: `✓ All complete (N/N)`
+- 진행 중: `⊙ {현재 작업 제목} (완료/전체)`
+
+**설정 옵션**:
+
+| 옵션 | 기본값 | 설명 |
+|------|--------|------|
+| `show_label` | `false` | "Tasks:" 접두사 표시 |
+| `max_subject_len` | `30` | 작업 제목 최대 길이 |
+
+---
+
+### `config_counts`
+
+Claude 설정 파일들의 구성 항목 수를 표시합니다. **visor 고유 메트릭**입니다.
+
+| 항목 | 값 |
+|------|-----|
+| **출력 예시** | `2📄 3🔒 2🔌 1🪝`, `1📄 0🔒 0🔌 0🪝` |
+| **색상** | Gray (고정) |
+| **표시 조건** | 설정 데이터가 있을 때 |
+
+**표시 항목**:
+| 기호 | 의미 | 소스 |
+|------|------|------|
+| 📄 | CLAUDE.md 파일 수 | cwd부터 루트까지 |
+| 🔒 | 권한 규칙 수 | `~/.claude/settings.json` permissions |
+| 🔌 | MCP 플러그인 수 | `~/.claude/settings.json` mcpServers |
+| 🪝 | 훅 수 | `~/.claude/settings.json` hooks |
+
+**설정 옵션**:
+
+| 옵션 | 기본값 | 설명 |
+|------|--------|------|
+| `show_claude_md` | `true` | CLAUDE.md 수 표시 |
+| `show_rules` | `true` | 권한 규칙 수 표시 |
+| `show_mcps` | `true` | MCP 플러그인 수 표시 |
+| `show_hooks` | `true` | 훅 수 표시 |
+
+---
+
 ## 추천 레이아웃
 
 용도별 추천 위젯 구성입니다.
@@ -613,6 +761,58 @@ bar_width = "10"
 
 **출력 예시**: `Opus | Ctx: 65% ██████░░░░ | ▂▃▄▅▆ | ~18m | 15.2¢/min`
 
+### 세션 정보 중심
+
+```toml
+[[line]]
+  [[line.widget]]
+  name = "model"
+  [[line.widget]]
+  name = "plan"
+  [[line.widget]]
+  name = "session_id"
+  [[line.widget]]
+  name = "duration"
+  [[line.widget]]
+  name = "token_speed"
+  [[line.widget]]
+  name = "todos"
+```
+
+**출력 예시**: `Opus | Pro | a1b2c3d4 | ⏱️ 5m | 42.1 tok/s | ⊙ Implement feature (3/5)`
+
+### 풀 모니터링 (멀티라인)
+
+```toml
+[[line]]
+  [[line.widget]]
+  name = "model"
+  [[line.widget]]
+  name = "plan"
+  [[line.widget]]
+  name = "context"
+  [[line.widget]]
+  name = "duration"
+  [[line.widget]]
+  name = "cost"
+  [[line.widget]]
+  name = "git"
+
+[[line]]
+  [[line.widget]]
+  name = "tools"
+  [[line.widget]]
+  name = "agents"
+  [[line.widget]]
+  name = "todos"
+  [[line.widget]]
+  name = "config_counts"
+```
+
+**출력 예시**:
+- Line 1: `Opus | Pro | Ctx: 42% ████░░░░░░ | ⏱️ 15m | $0.45 | main +2~1`
+- Line 2: `✓Bash ×7 | ✓Edit ×4 | ◐Explore: Analyzing (5s...) | ⊙ Task (3/5) | 2📄 3🔒 2🔌`
+
 ---
 
 ## 위젯 요약표
@@ -637,5 +837,24 @@ bar_width = "10"
 | 일별 비용 | `daily_cost` | | Cost Tracking |
 | 주별 비용 | `weekly_cost` | | Cost Tracking |
 | 블록 비용 | `block_cost` | | Cost Tracking |
+| 세션 ID | `session_id` | | Session Info |
+| 세션 시간 | `duration` | | Session Info |
+| 토큰 속도 | `token_speed` | ✓ | Session Info |
+| 요금제 | `plan` | | Session Info |
+| 작업 진행 | `todos` | ✓ | Session Info |
+| 설정 현황 | `config_counts` | ✓ | Session Info |
 
 **고유(✓)**: visor만의 고유 메트릭으로, 다른 statusline에서는 제공하지 않는 정보입니다.
+
+---
+
+## 버전 히스토리
+
+| 버전 | 추가된 위젯 |
+|------|-------------|
+| v0.1 | `model`, `context`, `git`, `cost`, `cache_hit`, `api_latency`, `code_changes` |
+| v0.2 | `burn_rate`, `compact_eta`, `context_spark` |
+| v0.3 | `tools`, `agents` |
+| v0.4 | `block_timer` |
+| v0.6 | `daily_cost`, `weekly_cost`, `block_cost`, `block_limit`, `week_limit` |
+| v0.10 | `session_id`, `duration`, `token_speed`, `plan`, `todos`, `config_counts` |

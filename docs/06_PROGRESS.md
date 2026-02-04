@@ -2,7 +2,7 @@
 
 visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
-**최종 업데이트**: 2026-02-04 (v0.9.0 완료)
+**최종 업데이트**: 2026-02-05 (v0.10.0 완료)
 
 ---
 
@@ -19,6 +19,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 | **v0.7 도구/에이전트 상세** | ✅ 완료 | 100% |
 | **v0.8 커스텀 테마** | ✅ 완료 | 100% |
 | **v0.9 설정 프리셋** | ✅ 완료 | 100% |
+| **v0.10 세션 정보 위젯** | ✅ 완료 | 100% |
 
 ---
 
@@ -243,9 +244,9 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 | `minimal` | 4 | 처음 시작하는 사용자 |
 | `default` | 6 | 일반 사용자 (visor 고유 메트릭 포함) |
 | `efficiency` | 6 | 비용 최적화 관심 |
-| `developer` | 6 | 도구/에이전트 모니터링 |
+| `developer` | 7 | 도구/에이전트 모니터링 |
 | `pro` | 6 | Claude Pro 사용자 |
-| `full` | 18 | 모든 위젯, 5개 라인 |
+| `full` | 22 | 모든 위젯, 5개 라인 |
 
 ### block_limit 위젯 확장
 
@@ -256,7 +257,44 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
 ---
 
-## 향후 계획 (v0.10+)
+## v0.10 세션 정보 위젯 (완료)
+
+### 새 위젯
+
+| 위젯 | 식별자 | 출력 예시 | 상태 |
+|------|--------|----------|------|
+| 세션 ID | `session_id` | `abc123de` | ✅ 완료 |
+| 세션 시간 | `duration` | `⏱️ 5m`, `1h23m` | ✅ 완료 |
+| 토큰 속도 | `token_speed` | `42.1 tok/s` | ✅ 완료 |
+| 요금제 | `plan` | `Pro`, `API`, `Bedrock` | ✅ 완료 |
+| 작업 진행 | `todos` | `⊙ Task (3/5)` | ✅ 완료 |
+| 설정 현황 | `config_counts` | `2📄 3🔒 2🔌` | ✅ 완료 |
+
+### Transcript 파서 개선
+
+| 기능 | 설명 | 상태 |
+|------|------|------|
+| TaskCreate/TaskUpdate 파싱 | Todo 추적 | ✅ 완료 |
+| ISO 8601 타임스탬프 | RFC3339Nano 파싱 | ✅ 완료 |
+| 디버그 출력 | `config.Debug` 연동 | ✅ 완료 |
+| 파싱 라인 수 제한 | `VISOR_TRANSCRIPT_MAX_LINES` 환경변수 | ✅ 완료 |
+
+### 새 패키지
+
+| 패키지 | 설명 | 상태 |
+|--------|------|------|
+| `internal/claudeconfig/` | Claude 설정 파싱 | ✅ 완료 |
+
+### 프리셋 업데이트
+
+| 프리셋 | 변경 | 상태 |
+|--------|------|------|
+| `developer` | 7 위젯 (todos 추가) | ✅ 완료 |
+| `full` | 22 위젯 (모든 새 위젯 추가) | ✅ 완료 |
+
+---
+
+## 향후 계획 (v0.11+)
 
 | 기능 | 설명 | 상태 |
 |------|------|------|
@@ -266,6 +304,28 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 ---
 
 ## 릴리즈 히스토리
+
+### v0.10.0 (2026-02-05)
+
+**Added**:
+- 세션 정보 위젯 6개
+  - `session_id`: 현재 세션 ID (truncated)
+  - `duration`: 세션 경과 시간 (⏱️ 5m, 1h23m)
+  - `token_speed`: 출력 토큰 속도 (42.1 tok/s)
+  - `plan`: 요금제 타입 (Pro, API, Bedrock)
+  - `todos`: 작업 진행 상황 (⊙ Task (3/5))
+  - `config_counts`: Claude 설정 현황 (2📄 3🔒 2🔌 1🪝)
+- Transcript 파서 개선
+  - TaskCreate/TaskUpdate 파싱으로 Todo 추적
+  - ISO 8601 타임스탬프 파싱 (RFC3339Nano)
+  - 디버그 출력 (`config.Debug` 연동)
+  - `VISOR_TRANSCRIPT_MAX_LINES` 환경변수 오버라이드
+- `internal/claudeconfig/` 패키지 - Claude 설정 파일 파싱
+
+**Changed**:
+- `developer` 프리셋: 6 → 7 위젯 (todos 추가)
+- `full` 프리셋: 18 → 22 위젯 (모든 새 위젯 추가)
+- `tools`/`agents` 위젯 `max_display` 기본값: 3 → 0 (무제한)
 
 ### v0.9.0 (2026-02-04)
 
@@ -495,7 +555,12 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 2. ~~프리셋 도움말~~ ✅ - `visor --init help`
 3. ~~block_limit 프로그레스 바~~ ✅ - `show_bar`, `bar_width` 옵션
 
-### 다음 (v0.10.0)
+### 완료 (v0.10.0)
+1. ~~세션 정보 위젯~~ ✅ - session_id, duration, token_speed, plan, todos, config_counts
+2. ~~Transcript 파서 개선~~ ✅ - TaskCreate/TaskUpdate 파싱, ISO 8601 파싱, 디버그 출력
+3. ~~claudeconfig 패키지~~ ✅ - Claude 설정 파일 파싱
+
+### 다음 (v0.11.0)
 1. **TUI 테마 편집** - TUI에서 색상/구분자 직접 편집
 2. **테마 프리셋 추가** - 더 다양한 테마 프리셋
 
