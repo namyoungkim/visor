@@ -180,7 +180,8 @@ type Widget interface {
 | Config counts | `config_counts` | `2📄 3🔒 2🔌 1🪝` | **Yes** |
 
 ### Widget Formulas
-- Cache hit rate: `cache_read_tokens / (cache_read + input_tokens) × 100`
+- Cache hit rate: `cache_read_input_tokens / (cache_read_input_tokens + input_tokens) × 100`
+- API latency (per-call): `total_api_duration_ms / total_api_calls`
 - Burn rate: `total_cost_usd / (total_duration_ms / 60000)`
 - Compact ETA: `(80 - current%) / context_burn_rate_per_min`
 - Block timer: Remaining time in 5-hour Claude Pro rate limit block
@@ -292,7 +293,7 @@ right = " :: "
 - `burn_rate`: `show_label`, `warn_threshold` (10), `critical_threshold` (25) (cents/min)
 - `cost`: `show_label`, `warn_threshold` (0.5), `critical_threshold` (1.0) (USD)
 - `cache_hit`: `show_label`, `good_threshold` (80), `warn_threshold` (50)
-- `api_latency`: `warn_threshold` (2000), `critical_threshold` (5000) (ms)
+- `api_latency`: `warn_threshold` (2000), `critical_threshold` (5000) (ms, per-call average)
 - `block_timer`: `show_label`, `warn_threshold` (80), `critical_threshold` (95) (% elapsed)
 - `block_limit`: `show_label`, `show_remaining`, `show_bar` (false), `bar_width` (10), `warn_threshold` (70), `critical_threshold` (90)
 - `tools`: `max_display` (default: 0, unlimited), `show_label`, `show_count` (default: true)
@@ -301,6 +302,7 @@ right = " :: "
 - `token_speed`: `show_label`, `warn_threshold` (20), `critical_threshold` (10) (tokens/sec, lower is worse)
 - `todos`: `show_label`, `max_subject_len` (default: 30)
 - `config_counts`: `show_claude_md` (default: true), `show_rules` (default: true), `show_mcps` (default: true), `show_hooks` (default: true)
+- `plan`: `show_label` (default: false) - show "Plan:" prefix
 - `session_id`: `show_label`, `max_length` (default: 0, 0 = full)
 
 ## Configuration Presets (v0.10)
@@ -313,7 +315,7 @@ Initialize config with presets for different use cases:
 ./visor --init efficiency # Cost optimization focus
 ./visor --init developer  # Tool/agent monitoring
 ./visor --init pro        # Claude Pro rate limits
-./visor --init full       # All 22 widgets, multi-line
+./visor --init full       # All 24 widgets, multi-line
 ./visor --init help       # List available presets
 ```
 
@@ -324,7 +326,7 @@ Initialize config with presets for different use cases:
 | `efficiency` | 6 | model, context, burn_rate, cache_hit, compact_eta, cost |
 | `developer` | 7 | model, context, tools, agents, todos, code_changes, git |
 | `pro` | 6 | model, context, block_limit, week_limit, daily_cost, cost |
-| `full` | 22 | All widgets in 6 lines by category |
+| `full` | 24 | All widgets in 7 lines by category |
 
 ## Performance Requirements
 

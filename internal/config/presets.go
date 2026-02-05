@@ -69,14 +69,22 @@ var Presets = map[string]Preset{
 	},
 	"full": {
 		Name:        "full",
-		Description: "All widgets, multi-line layout (22 widgets)",
+		Description: "All widgets, multi-line layout (24 widgets)",
 		Lines: [][]WidgetDef{
-			{W("model"), W("session_id"), W("context"), W("duration"), W("cost"), W("git")},
+			// Line 1: Session identity
+			{W("model"), WL("plan"), W("session_id")},
+			// Line 2: Core metrics
+			{W("context"), W("duration"), W("cost"), W("git")},
+			// Line 3: Tools (dynamic width)
 			{W("tools")},
+			// Line 4: Agents (dynamic width)
 			{W("agents")},
-			{WL("cache_hit"), WL("api_latency"), W("token_speed"), WL("burn_rate"), WL("compact_eta"), W("context_spark")},
-			{W("plan"), W("todos"), W("code_changes"), W("config_counts")},
-			{WL("block_timer"), WL("daily_cost"), WL("weekly_cost"), WL("block_cost")},
+			// Line 5: Efficiency metrics
+			{WL("cache_hit"), W("api_latency"), W("token_speed"), WL("burn_rate")},
+			// Line 6: Tracking
+			{W("context_spark"), WL("compact_eta"), W("todos"), W("code_changes"), W("config_counts")},
+			// Line 7: Cost & rate limits
+			{WL("block_timer"), WL("block_limit"), WL("week_limit"), WL("daily_cost"), WL("weekly_cost"), WL("block_cost")},
 		},
 	},
 }
@@ -130,6 +138,8 @@ name = "default"   # Theme: default, powerline, gruvbox, nord, gruvbox-powerline
 
 [usage]
 enabled = true     # Enable usage tracking (daily/weekly cost, rate limits)
+# five_hour_limit = 0   # 0 = auto-detect from subscription tier (Pro: 45, Max 5x: 225, Max 20x: 900)
+# seven_day_limit = 0   # 0 = auto-detect from subscription tier
 
 `, p.Name, p.Description))
 
