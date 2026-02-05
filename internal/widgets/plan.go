@@ -2,9 +2,9 @@ package widgets
 
 import (
 	"os"
-	"path/filepath"
 	"strings"
 
+	"github.com/namyoungkim/visor/internal/auth"
 	"github.com/namyoungkim/visor/internal/config"
 	"github.com/namyoungkim/visor/internal/input"
 	"github.com/namyoungkim/visor/internal/render"
@@ -15,10 +15,14 @@ import (
 // Detection logic:
 //  1. Model ID contains "bedrock" → "Bedrock"
 //  2. Model ID contains "vertex" → "Vertex"
-//  3. OAuth credentials exist at ~/.claude/auth.json → "Pro" (cannot distinguish Max/Team)
-//  4. No OAuth → "API"
+//  3. ANTHROPIC_API_KEY is set → "API"
+//  4. OAuth credentials available (DefaultProvider) → "Pro"
+//  5. No API key and no bedrock/vertex → "Pro" (subscription assumed)
 //
-// Output format: "Pro" or "API" or "Bedrock" or "Vertex"
+// Supported Extra options:
+//   - show_label: "true"/"false" - whether to show "Plan:" prefix (default: false)
+//
+// Output format: "Pro" or "API" or "Bedrock" or "Vertex" (or "Plan: Pro" with show_label)
 type PlanWidget struct{}
 
 func (w *PlanWidget) Name() string {
@@ -27,41 +31,54 @@ func (w *PlanWidget) Name() string {
 
 func (w *PlanWidget) Render(session *input.Session, cfg *config.WidgetConfig) string {
 	modelID := strings.ToLower(session.Model.ID)
+	showLabel := GetExtraBool(cfg, "show_label", false)
 
-	// Check for cloud providers first
-	if strings.Contains(modelID, "bedrock") {
-		return render.Colorize("Bedrock", "magenta")
-	}
-	if strings.Contains(modelID, "vertex") {
-		return render.Colorize("Vertex", "blue")
+	var text, color string
+	switch {
+	case strings.Contains(modelID, "bedrock"):
+		text, color = "Bedrock", "magenta"
+	case strings.Contains(modelID, "vertex"):
+		text, color = "Vertex", "blue"
+	case isAPIKeyUser():
+		text, color = "API", "yellow"
+	default:
+		// No API key + no cloud provider = subscription user
+		text, color = detectSubscriptionType()
 	}
 
-	// Check for OAuth credentials (Pro/Max/Team users)
-	if hasOAuthCredentials() {
-		return render.Colorize("Pro", "cyan")
+	if showLabel {
+		text = "Plan: " + text
 	}
 
-	// Default to API
-	return render.Colorize("API", "yellow")
+	return render.Colorize(text, color)
 }
 
 func (w *PlanWidget) ShouldRender(session *input.Session, cfg *config.WidgetConfig) bool {
 	return true
 }
 
-// hasOAuthCredentials checks if OAuth credentials exist at ~/.claude/auth.json
-func hasOAuthCredentials() bool {
-	home, err := os.UserHomeDir()
+// isAPIKeyUser checks if the user is using an API key.
+func isAPIKeyUser() bool {
+	return os.Getenv("ANTHROPIC_API_KEY") != ""
+}
+
+// detectSubscriptionType returns the subscription display name and color.
+// Checks OAuth credentials for subscriptionType field.
+func detectSubscriptionType() (string, string) {
+	provider := auth.DefaultProvider()
+	creds, err := provider.Get()
 	if err != nil {
-		return false
+		return "Pro", "cyan" // Default assumption for non-API users
 	}
 
-	authPath := filepath.Join(home, ".claude", "auth.json")
-	info, err := os.Stat(authPath)
-	if err != nil {
-		return false
+	switch strings.ToLower(creds.SubscriptionType) {
+	case "max":
+		return "Max", "cyan"
+	case "team":
+		return "Team", "cyan"
+	case "pro":
+		return "Pro", "cyan"
+	default:
+		return "Pro", "cyan"
 	}
-
-	// File exists and has content
-	return info.Size() > 2 // More than just "{}" or "[]"
 }

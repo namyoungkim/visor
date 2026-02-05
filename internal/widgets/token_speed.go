@@ -29,7 +29,7 @@ func (w *TokenSpeedWidget) Name() string {
 }
 
 func (w *TokenSpeedWidget) Render(session *input.Session, cfg *config.WidgetConfig) string {
-	tokens := session.Cost.TotalOutputTokens
+	tokens := session.GetTotalOutputTokens()
 	durationMs := session.Cost.TotalAPIDurationMs
 
 	if durationMs <= 0 || tokens <= 0 {
@@ -64,7 +64,7 @@ func (w *TokenSpeedWidget) Render(session *input.Session, cfg *config.WidgetConf
 }
 
 func (w *TokenSpeedWidget) ShouldRender(session *input.Session, cfg *config.WidgetConfig) bool {
-	return session.Cost.TotalAPIDurationMs > 0 && session.Cost.TotalOutputTokens > 0
+	return session.Cost.TotalAPIDurationMs > 0 && session.GetTotalOutputTokens() > 0
 }
 
 // colorByThresholdLowerIsWorse returns color where lower values are worse.

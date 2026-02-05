@@ -8,8 +8,10 @@ import (
 	"github.com/namyoungkim/visor/internal/render"
 )
 
-// APILatencyWidget displays the total API latency.
+// APILatencyWidget displays the per-call average API latency.
 // This is a unique metric that no other statusline exposes.
+//
+// Formula: total_api_duration_ms / total_api_calls
 //
 // Supported Extra options:
 //   - warn_threshold: "2000" - milliseconds for warning color (default: 2000)
@@ -21,15 +23,17 @@ func (w *APILatencyWidget) Name() string {
 }
 
 func (w *APILatencyWidget) Render(session *input.Session, cfg *config.WidgetConfig) string {
-	ms := session.Cost.TotalAPIDurationMs
+	totalMs := session.Cost.TotalAPIDurationMs
+	calls := session.Cost.TotalAPICalls
 
-	if ms == 0 {
+	if calls <= 0 || totalMs <= 0 {
 		return render.Colorize("API: —", "gray")
 	}
 
+	ms := totalMs / int64(calls)
+
 	var text string
 	if ms >= 1000 {
-		// Convert to seconds
 		secs := float64(ms) / 1000.0
 		text = fmt.Sprintf("API: %.1fs", secs)
 	} else {

@@ -24,7 +24,8 @@ func (w *CacheHitWidget) Name() string {
 
 func (w *CacheHitWidget) Render(session *input.Session, cfg *config.WidgetConfig) string {
 	// Check if current_usage is available
-	if session.CurrentUsage == nil {
+	cu := session.GetCurrentUsage()
+	if cu == nil {
 		label := "Cache: —"
 		if !GetExtraBool(cfg, "show_label", true) {
 			label = "—"
@@ -32,8 +33,8 @@ func (w *CacheHitWidget) Render(session *input.Session, cfg *config.WidgetConfig
 		return render.Colorize(label, "gray")
 	}
 
-	cacheRead := session.CurrentUsage.CacheReadTokens
-	inputTokens := session.CurrentUsage.InputTokens
+	cacheRead := cu.GetCacheReadTokens()
+	inputTokens := cu.InputTokens
 
 	total := cacheRead + inputTokens
 	if total == 0 {

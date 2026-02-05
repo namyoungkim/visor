@@ -28,19 +28,22 @@ func SampleSession() *input.Session {
 			TotalCacheWriteTokens: 500,
 		},
 		ContextWindow: input.ContextWindow{
-			UsedPercentage: 42.5,
-			UsedTokens:     42500,
-			MaxTokens:      100000,
+			UsedPercentage:    42.5,
+			UsedTokens:        42500,
+			MaxTokens:         100000,
+			TotalInputTokens:  15000,
+			TotalOutputTokens: 3000,
+			CurrentUsage: &input.CurrentUsage{
+				InputTokens:          5000,
+				CacheReadInputTokens: 4000,
+			},
 		},
 		Workspace: input.Workspace{
 			LinesAdded:   156,
 			LinesRemoved: 42,
 			FilesChanged: 8,
 		},
-		CurrentUsage: &input.CurrentUsage{
-			InputTokens:     5000,
-			CacheReadTokens: 4000,
-		},
+		CurrentUsage: nil, // kept nil; uses ContextWindow.CurrentUsage via GetCurrentUsage()
 	}
 }
 
