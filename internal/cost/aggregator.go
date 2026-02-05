@@ -5,6 +5,9 @@ import (
 	"time"
 )
 
+// BlockDuration is the length of a Claude Pro rate limit block.
+const BlockDuration = 5 * time.Hour
+
 // CostData holds aggregated cost information.
 type CostData struct {
 	Today         float64 // Cost in current calendar day
@@ -45,9 +48,9 @@ func Aggregate(entries []Entry, blockStart time.Time) *CostData {
 
 	// Get time boundaries
 	todayStart := startOfDay(now)
-	weekStart := startOfWeek(now)
+	weekStart := StartOfWeek(now)
 	monthStart := startOfMonth(now)
-	blockEnd := blockStart.Add(5 * time.Hour)
+	blockEnd := blockStart.Add(BlockDuration)
 
 	for _, e := range entries {
 		// Today's cost
@@ -94,8 +97,8 @@ func startOfDay(t time.Time) time.Time {
 	return time.Date(y, m, d, 0, 0, 0, 0, t.Location())
 }
 
-// startOfWeek returns the start of the current week (Monday) in local time.
-func startOfWeek(t time.Time) time.Time {
+// StartOfWeek returns the start of the current week (Monday) in local time.
+func StartOfWeek(t time.Time) time.Time {
 	day := startOfDay(t)
 	weekday := int(day.Weekday())
 	if weekday == 0 {
@@ -116,7 +119,7 @@ func RemainingIn5HourBlock(blockStart time.Time) time.Duration {
 		return 0
 	}
 
-	blockEnd := blockStart.Add(5 * time.Hour)
+	blockEnd := blockStart.Add(BlockDuration)
 	remaining := time.Until(blockEnd)
 	if remaining < 0 {
 		return 0
@@ -131,7 +134,7 @@ func PercentElapsedIn5HourBlock(blockStart time.Time) float64 {
 	}
 
 	elapsed := time.Since(blockStart)
-	total := 5 * time.Hour
+	total := BlockDuration
 
 	pct := float64(elapsed) / float64(total) * 100
 	if pct < 0 {

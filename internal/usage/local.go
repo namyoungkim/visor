@@ -4,12 +4,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/namyoungkim/visor/internal/auth"
 	"github.com/namyoungkim/visor/internal/cost"
 )
 
 // DefaultLimitForTier returns default message limits based on subscription tier.
 // Returns (fiveHourLimit, sevenDayLimit).
+//
+// These values are estimates based on observed Claude Pro/Max behavior (as of 2026-02).
+// Pro: ~45 messages/5h, Max 5x: ~225/5h, Max 20x: ~900/5h.
+// 7-day = 5-hour limit * 15 (conservative: ~3 blocks/day * 5 days).
 func DefaultLimitForTier(tier string) (int, int) {
 	t := strings.ToLower(tier)
 	switch {
@@ -24,16 +27,16 @@ func DefaultLimitForTier(tier string) (int, int) {
 }
 
 // EstimateLimits creates Limits from local JSONL message counts.
-// If fiveHourLimit or sevenDayLimit is 0, it attempts to auto-detect from the
-// subscription tier via auth credentials.
-func EstimateLimits(costData *cost.CostData, blockStart time.Time, fiveHourLimit, sevenDayLimit int) *Limits {
+// tier is the subscription rate limit tier (e.g. "default_claude_max_5x").
+// If fiveHourLimit or sevenDayLimit is 0, they are auto-detected from the tier.
+// If tier is also empty, Pro defaults are used.
+func EstimateLimits(costData *cost.CostData, blockStart time.Time, tier string, fiveHourLimit, sevenDayLimit int) *Limits {
 	if costData == nil {
 		return nil
 	}
 
 	// Auto-detect limits from tier if not specified
 	if fiveHourLimit == 0 || sevenDayLimit == 0 {
-		tier := detectTier()
 		autoFive, autoSeven := DefaultLimitForTier(tier)
 		if fiveHourLimit == 0 {
 			fiveHourLimit = autoFive
@@ -66,10 +69,10 @@ func EstimateLimits(costData *cost.CostData, blockStart time.Time, fiveHourLimit
 	// Calculate reset times
 	var fiveHourReset time.Time
 	if !blockStart.IsZero() {
-		fiveHourReset = blockStart.Add(5 * time.Hour)
+		fiveHourReset = blockStart.Add(cost.BlockDuration)
 	}
 
-	weekStart := startOfWeek(now)
+	weekStart := cost.StartOfWeek(now)
 	sevenDayReset := weekStart.Add(7 * 24 * time.Hour)
 
 	fiveHourRemaining := fiveHourLimit - costData.FiveHourBlockMessages
@@ -95,24 +98,4 @@ func EstimateLimits(costData *cost.CostData, blockStart time.Time, fiveHourLimit
 			Total:       sevenDayLimit,
 		},
 	}
-}
-
-// detectTier attempts to read the rate limit tier from auth credentials.
-func detectTier() string {
-	provider := auth.DefaultProvider()
-	creds, err := provider.Get()
-	if err != nil || creds == nil {
-		return ""
-	}
-	return creds.RateLimitTier
-}
-
-// startOfWeek returns the start of the current week (Monday) in local time.
-func startOfWeek(t time.Time) time.Time {
-	day := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-	weekday := int(day.Weekday())
-	if weekday == 0 {
-		weekday = 7 // Sunday = 7
-	}
-	return day.AddDate(0, 0, -(weekday - 1))
 }

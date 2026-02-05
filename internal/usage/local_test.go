@@ -43,7 +43,7 @@ func TestEstimateLimits_Basic(t *testing.T) {
 		WeekMessages:          50,
 	}
 
-	limits := EstimateLimits(costData, blockStart, 45, 675)
+	limits := EstimateLimits(costData, blockStart, "", 45, 675)
 	if limits == nil {
 		t.Fatal("expected non-nil limits")
 	}
@@ -77,7 +77,7 @@ func TestEstimateLimits_Basic(t *testing.T) {
 	}
 
 	// ResetsAt for 5-hour block
-	expectedReset := blockStart.Add(5 * time.Hour)
+	expectedReset := blockStart.Add(cost.BlockDuration)
 	if !limits.FiveHour.ResetsAt.Equal(expectedReset) {
 		t.Errorf("FiveHour.ResetsAt = %v, want %v", limits.FiveHour.ResetsAt, expectedReset)
 	}
@@ -92,7 +92,7 @@ func TestEstimateLimits_CustomLimits(t *testing.T) {
 		WeekMessages:          500,
 	}
 
-	limits := EstimateLimits(costData, blockStart, 225, 3375)
+	limits := EstimateLimits(costData, blockStart, "", 225, 3375)
 	if limits == nil {
 		t.Fatal("expected non-nil limits")
 	}
@@ -119,7 +119,7 @@ func TestEstimateLimits_ZeroMessages(t *testing.T) {
 		WeekMessages:          0,
 	}
 
-	limits := EstimateLimits(costData, blockStart, 45, 675)
+	limits := EstimateLimits(costData, blockStart, "", 45, 675)
 	if limits == nil {
 		t.Fatal("expected non-nil limits")
 	}
@@ -147,7 +147,7 @@ func TestEstimateLimits_OverLimit(t *testing.T) {
 		WeekMessages:          800,
 	}
 
-	limits := EstimateLimits(costData, blockStart, 45, 675)
+	limits := EstimateLimits(costData, blockStart, "", 45, 675)
 	if limits == nil {
 		t.Fatal("expected non-nil limits")
 	}
@@ -170,9 +170,38 @@ func TestEstimateLimits_OverLimit(t *testing.T) {
 }
 
 func TestEstimateLimits_NilCostData(t *testing.T) {
-	limits := EstimateLimits(nil, time.Now(), 45, 675)
+	limits := EstimateLimits(nil, time.Now(), "", 45, 675)
 	if limits != nil {
 		t.Error("expected nil limits for nil costData")
+	}
+}
+
+func TestEstimateLimits_TierAutoDetect(t *testing.T) {
+	now := time.Now()
+	blockStart := now.Add(-1 * time.Hour)
+
+	costData := &cost.CostData{
+		FiveHourBlockMessages: 100,
+		WeekMessages:          500,
+	}
+
+	// Pass tier but zero limits → should auto-detect Max 5x limits (225, 3375)
+	limits := EstimateLimits(costData, blockStart, "default_claude_max_5x", 0, 0)
+	if limits == nil {
+		t.Fatal("expected non-nil limits")
+	}
+
+	if limits.FiveHour.Total != 225 {
+		t.Errorf("FiveHour.Total = %d, want 225 (Max 5x)", limits.FiveHour.Total)
+	}
+	if limits.SevenDay.Total != 3375 {
+		t.Errorf("SevenDay.Total = %d, want 3375 (Max 5x)", limits.SevenDay.Total)
+	}
+
+	// 100/225 = ~44.4%
+	expectedUtil := float64(100) / float64(225) * 100
+	if limits.FiveHour.Utilization != expectedUtil {
+		t.Errorf("FiveHour.Utilization = %f, want %f", limits.FiveHour.Utilization, expectedUtil)
 	}
 }
 
@@ -182,7 +211,7 @@ func TestEstimateLimits_ZeroBlockStart(t *testing.T) {
 		WeekMessages:          20,
 	}
 
-	limits := EstimateLimits(costData, time.Time{}, 45, 675)
+	limits := EstimateLimits(costData, time.Time{}, "", 45, 675)
 	if limits == nil {
 		t.Fatal("expected non-nil limits")
 	}

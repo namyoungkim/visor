@@ -247,6 +247,7 @@ func loadCostData(session *input.Session, hist *history.History, cfg *config.Con
 }
 
 // loadUsageLimits loads usage limits from the OAuth API, falling back to local estimation.
+// Only subscription users (claude_pro provider) get local estimation; API key users are skipped.
 func loadUsageLimits(costData *cost.CostData, hist *history.History, cfg *config.Config, debug bool) *usage.Limits {
 	// Try API first
 	provider := auth.DefaultProvider()
@@ -265,9 +266,25 @@ func loadUsageLimits(costData *cost.CostData, hist *history.History, cfg *config
 		fmt.Fprintf(os.Stderr, "[visor] usage API error: %v (falling back to local)\n", err)
 	}
 
+	// Local estimation only makes sense for subscription users (Pro/Max/Team).
+	// API key users (anthropic, aws, gcp) have token-based billing, not message limits.
+	if costData.Provider != cost.ProviderClaudePro && costData.Provider != cost.ProviderUnknown {
+		if debug {
+			fmt.Fprintf(os.Stderr, "[visor] skipping local usage estimation for provider: %s\n", costData.Provider)
+		}
+		return nil
+	}
+
+	// Resolve tier once here to avoid redundant keychain lookups inside EstimateLimits.
+	tier := ""
+	creds, credErr := provider.Get()
+	if credErr == nil && creds != nil {
+		tier = creds.RateLimitTier
+	}
+
 	// Fallback: local estimation from JSONL message counts
 	blockStart := hist.GetBlockStartTime()
-	limits = usage.EstimateLimits(costData, blockStart, cfg.Usage.FiveHourLimit, cfg.Usage.SevenDayLimit)
+	limits = usage.EstimateLimits(costData, blockStart, tier, cfg.Usage.FiveHourLimit, cfg.Usage.SevenDayLimit)
 	if limits != nil && debug {
 		fmt.Fprintf(os.Stderr, "[visor] usage limits (local): 5h=%.0f%%, 7d=%.0f%%\n",
 			limits.FiveHour.Utilization, limits.SevenDay.Utilization)
