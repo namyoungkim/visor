@@ -112,9 +112,9 @@ func TestStartOfWeek(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := startOfWeek(tt.input)
+		result := StartOfWeek(tt.input)
 		if !result.Equal(tt.expected) {
-			t.Errorf("startOfWeek(%v) = %v, want %v", tt.input, result, tt.expected)
+			t.Errorf("StartOfWeek(%v) = %v, want %v", tt.input, result, tt.expected)
 		}
 	}
 }

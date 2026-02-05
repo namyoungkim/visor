@@ -32,9 +32,12 @@ type Cost struct {
 
 // ContextWindow contains context usage information.
 type ContextWindow struct {
-	UsedPercentage float64 `json:"used_percentage"`
-	UsedTokens     int     `json:"used_tokens"`
-	MaxTokens      int     `json:"max_tokens"`
+	UsedPercentage    float64       `json:"used_percentage"`
+	UsedTokens        int           `json:"used_tokens"`
+	MaxTokens         int           `json:"max_tokens"`
+	TotalInputTokens  int           `json:"total_input_tokens"`
+	TotalOutputTokens int           `json:"total_output_tokens"`
+	CurrentUsage      *CurrentUsage `json:"current_usage"`
 }
 
 // Workspace contains information about code changes.
@@ -46,6 +49,34 @@ type Workspace struct {
 
 // CurrentUsage contains token usage for the current request.
 type CurrentUsage struct {
-	InputTokens     int `json:"input_tokens"`
-	CacheReadTokens int `json:"cache_read_tokens"`
+	InputTokens          int `json:"input_tokens"`
+	CacheReadTokens      int `json:"cache_read_tokens"`
+	CacheReadInputTokens int `json:"cache_read_input_tokens"`
+}
+
+// GetCacheReadTokens returns the cache read token count,
+// preferring cache_read_input_tokens over cache_read_tokens for compatibility.
+func (cu *CurrentUsage) GetCacheReadTokens() int {
+	if cu.CacheReadInputTokens > 0 {
+		return cu.CacheReadInputTokens
+	}
+	return cu.CacheReadTokens
+}
+
+// GetCurrentUsage returns the CurrentUsage, checking ContextWindow first,
+// then falling back to the top-level field for backward compatibility.
+func (s *Session) GetCurrentUsage() *CurrentUsage {
+	if s.ContextWindow.CurrentUsage != nil {
+		return s.ContextWindow.CurrentUsage
+	}
+	return s.CurrentUsage
+}
+
+// GetTotalOutputTokens returns total output tokens, checking ContextWindow first,
+// then falling back to Cost for backward compatibility.
+func (s *Session) GetTotalOutputTokens() int {
+	if s.ContextWindow.TotalOutputTokens > 0 {
+		return s.ContextWindow.TotalOutputTokens
+	}
+	return s.Cost.TotalOutputTokens
 }

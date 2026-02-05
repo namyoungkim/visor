@@ -116,7 +116,7 @@ Git 저장소의 브랜치와 상태를 표시합니다.
 
 | 항목 | 값 |
 |------|-----|
-| **출력 예시** | `main +3~2↑1↓2` |
+| **출력 예시** | ` main +3 ~2 ↑1 ↓2`, ` main ✓` |
 | **표시 조건** | Git 저장소 내에서만 표시 |
 
 **상태 표시자**:
@@ -125,8 +125,13 @@ Git 저장소의 브랜치와 상태를 표시합니다.
 |------|------|------|
 | `+N` | Staged 파일 수 | Green |
 | `~N` | Modified 파일 수 | Yellow |
+| `?N` | Untracked 파일 수 | Gray |
 | `↑N` | 리모트보다 앞선 커밋 수 | Cyan |
 | `↓N` | 리모트보다 뒤쳐진 커밋 수 | Red |
+| `⚑N` | Stash 수 | Blue |
+| `✓` | Clean (변경 없음) | Green |
+
+**참고**: 브랜치명 앞에 `` 아이콘이 표시되며, 각 상태 표시자는 공백으로 구분됩니다.
 
 **설정 옵션**: 없음
 
@@ -186,7 +191,7 @@ rate = cache_read_tokens / (cache_read_tokens + input_tokens) × 100
 
 ### `api_latency`
 
-API 응답 지연시간을 표시합니다. **visor 고유 메트릭**입니다.
+API 콜당 평균 지연시간을 표시합니다. **visor 고유 메트릭**입니다.
 
 | 항목 | 값 |
 |------|-----|
@@ -194,6 +199,11 @@ API 응답 지연시간을 표시합니다. **visor 고유 메트릭**입니다.
 | **색상** | <2s Green, 2-5s Yellow, >5s Red |
 | **기본 임계값** | warn=2000ms, critical=5000ms |
 | **데이터 없음** | `API: —` (Gray) |
+
+**계산 공식**:
+```
+per_call_latency = total_api_duration_ms / total_api_calls
+```
 
 **출력 포맷**:
 - `latency ≥ 1000ms`: 초 단위 (`X.Xs`)
@@ -203,8 +213,8 @@ API 응답 지연시간을 표시합니다. **visor 고유 메트릭**입니다.
 
 | 옵션 | 기본값 | 설명 |
 |------|--------|------|
-| `warn_threshold` | `2000` | 경고 색상 임계값 (ms) |
-| `critical_threshold` | `5000` | 위험 색상 임계값 (ms) |
+| `warn_threshold` | `2000` | 경고 색상 임계값 (ms, 콜당 평균) |
+| `critical_threshold` | `5000` | 위험 색상 임계값 (ms, 콜당 평균) |
 
 ---
 
@@ -316,7 +326,7 @@ eta_minutes = (80 - current_pct) / burn_rate_pct_per_min
 
 | 항목 | 값 |
 |------|-----|
-| **출력 예시** | `✓Bash ×7 \| ✓Edit ×4 \| ✓Read ×6` |
+| **출력 예시** | `✓Bash ×7 \| ✓Edit ×4 \| ✓Read` |
 | **아이콘** | ✓완료(Green), ✗에러(Red), ◐실행중(Yellow) |
 | **표시 조건** | 도구 호출이 있을 때 |
 
@@ -324,6 +334,8 @@ eta_minutes = (80 - current_pct) / burn_rate_pct_per_min
 - `✓Bash ×7`: Bash 도구가 성공적으로 7회 호출됨
 - `✗Edit`: Edit 도구 호출이 실패함
 - `◐Read`: Read 도구가 현재 실행 중
+
+**참고**: 호출 횟수(`×N`)는 2회 이상일 때만 표시됩니다.
 
 **설정 옵션**:
 
@@ -547,13 +559,14 @@ bar_width = "10"
 
 | 항목 | 값 |
 |------|-----|
-| **출력 예시** | `⏱️ 5m`, `⏱️ 1h23m`, `⏱️ 45s` |
-| **색상** | Gray (고정) |
+| **출력 예시** | `⏱️ 5m`, `⏱️ 1h23m`, `⏱️ 45s`, `⏱️ 2m30s` |
+| **색상** | Cyan (고정) |
 | **표시 조건** | duration 데이터가 있을 때 |
 
 **출력 포맷**:
 - `< 1분`: 초 단위 (`Xs`)
-- `1분 ~ 1시간`: 분 단위 (`Xm`)
+- `1분 ~ 5분`: 분+초 단위 (`XmYs`)
+- `5분 ~ 1시간`: 분 단위 (`Xm`)
 - `>= 1시간`: 시+분 단위 (`XhYm`)
 
 **설정 옵션**:
@@ -598,18 +611,23 @@ speed = total_output_tokens / (total_api_duration_ms / 1000)
 
 | 항목 | 값 |
 |------|-----|
-| **출력 예시** | `Pro`, `API`, `Bedrock` |
-| **색상** | Pro/Max/Team=Cyan, API=Magenta, Bedrock=Yellow |
+| **출력 예시** | `Pro`, `API`, `Bedrock`, `Vertex` |
+| **색상** | Pro/Max/Team=Cyan, API=Yellow, Bedrock=Magenta, Vertex=Blue |
 | **표시 조건** | 항상 표시 |
 
 **감지 로직**:
 1. 모델 ID에 "bedrock" 포함 → `Bedrock`
-2. OAuth 자격 증명 존재 (`~/.claude/auth.json`) → `Pro`
-3. 그 외 → `API`
+2. 모델 ID에 "vertex" 포함 → `Vertex`
+3. OAuth 자격 증명 존재 (`~/.claude/auth.json`) → `Pro`
+4. 그 외 → `API`
 
 **참고**: Pro/Max/Team은 현재 구분할 수 없어 모두 `Pro`로 표시됩니다.
 
-**설정 옵션**: 없음
+**설정 옵션**:
+
+| 옵션 | 기본값 | 설명 |
+|------|--------|------|
+| `show_label` | `false` | "Plan:" 접두사 표시 |
 
 ---
 
@@ -619,13 +637,14 @@ TaskCreate/TaskUpdate 도구로 생성된 작업 진행 상황을 표시합니�
 
 | 항목 | 값 |
 |------|-----|
-| **출력 예시** | `✓ All complete (5/5)`, `⊙ Implement feature (3/5)` |
-| **아이콘** | ✓완료(Green), ⊙진행중(Yellow) |
+| **출력 예시** | `✓ All done (5/5)`, `⊙ Implement feature (3/5)`, `○ Setup env (0/5)` |
+| **아이콘** | ✓완료(Green), ⊙진행중(Cyan), ○대기(Yellow) |
 | **표시 조건** | 작업이 있을 때 |
 
 **출력 포맷**:
-- 모든 작업 완료: `✓ All complete (N/N)`
+- 모든 작업 완료: `✓ All done (N/N)`
 - 진행 중: `⊙ {현재 작업 제목} (완료/전체)`
+- 대기 중 (진행 중인 작업 없음): `○ {다음 작업 제목} (완료/전체)`
 
 **설정 옵션**:
 
@@ -642,17 +661,19 @@ Claude 설정 파일들의 구성 항목 수를 표시합니다. **visor 고유 
 
 | 항목 | 값 |
 |------|-----|
-| **출력 예시** | `2📄 3🔒 2🔌 1🪝`, `1📄 0🔒 0🔌 0🪝` |
-| **색상** | Gray (고정) |
-| **표시 조건** | 설정 데이터가 있을 때 |
+| **출력 예시** | `2 CLAUDE.mds \| 3 rules \| 2 MCPs \| 1 hook` |
+| **색상** | 항목별 다른 색상 (아래 참조) |
+| **표시 조건** | 1개 이상의 항목이 0보다 클 때 |
 
 **표시 항목**:
-| 기호 | 의미 | 소스 |
-|------|------|------|
-| 📄 | CLAUDE.md 파일 수 | cwd부터 루트까지 |
-| 🔒 | 권한 규칙 수 | `~/.claude/settings.json` permissions |
-| 🔌 | MCP 플러그인 수 | `~/.claude/settings.json` mcpServers |
-| 🪝 | 훅 수 | `~/.claude/settings.json` hooks |
+| 라벨 | 의미 | 색상 | 소스 |
+|------|------|------|------|
+| `CLAUDE.md` / `CLAUDE.mds` | CLAUDE.md 파일 수 | Cyan | cwd부터 루트까지 |
+| `rule` / `rules` | 권한 규칙 수 | Green | `~/.claude/settings.json` permissions |
+| `MCP` / `MCPs` | MCP 플러그인 수 | Magenta | `~/.claude/settings.json` mcpServers |
+| `hook` / `hooks` | 훅 수 | Yellow | `~/.claude/settings.json` hooks |
+
+**참고**: 수가 0인 항목은 출력에서 생략됩니다. 각 항목은 `" | "`로 구분됩니다.
 
 **설정 옵션**:
 
@@ -687,7 +708,7 @@ Claude 설정 파일들의 구성 항목 수를 표시합니다. **visor 고유 
   name = "git"
 ```
 
-**출력 예시**: `Opus | Ctx: 42% ████░░░░░░ | Cache: 80% | API: 2.5s | $0.15 | main ↑1`
+**출력 예시**: `Opus | Ctx: 42% ████░░░░░░ | Cache: 80% | API: 2.5s | $0.15 |  main ↑1`
 
 ### 비용 모니터링 중심
 
@@ -725,7 +746,7 @@ Claude 설정 파일들의 구성 항목 수를 표시합니다. **visor 고유 
   name = "git"
 ```
 
-**출력 예시**: `Opus | Ctx: 42% ████░░░░░░ | ✓Bash ×7 | ✓Edit ×4 | ◐Explore: Anal... (5s...) | +25/-10 | main +3~2`
+**출력 예시**: `Opus | Ctx: 42% ████░░░░░░ | ✓Bash ×7 | ✓Edit ×4 | ◐Explore: Anal... (5s...) | +25/-10 |  main +3 ~2`
 
 ### 미니멀
 
@@ -783,15 +804,22 @@ Claude 설정 파일들의 구성 항목 수를 표시합니다. **visor 고유 
 
 ### 풀 모니터링 (멀티라인)
 
-`visor --init full`로 생성되는 6라인 레이아웃입니다.
+`visor --init full`로 생성되는 7라인 레이아웃입니다. (24 위젯)
 
 ```toml
-# Line 1: 세션 개요
+# Line 1: 세션 ID
 [[line]]
   [[line.widget]]
   name = "model"
   [[line.widget]]
+  name = "plan"
+  [line.widget.extra]
+  show_label = "true"
+  [[line.widget]]
   name = "session_id"
+
+# Line 2: 핵심 메트릭
+[[line]]
   [[line.widget]]
   name = "context"
   [[line.widget]]
@@ -801,35 +829,39 @@ Claude 설정 파일들의 구성 항목 수를 표시합니다. **visor 고유 
   [[line.widget]]
   name = "git"
 
-# Line 2: 도구 (가변 길이)
+# Line 3: 도구 (가변 길이)
 [[line]]
   [[line.widget]]
   name = "tools"
 
-# Line 3: 에이전트 (가변 길이)
+# Line 4: 에이전트 (가변 길이)
 [[line]]
   [[line.widget]]
   name = "agents"
 
-# Line 4: 효율성 메트릭
+# Line 5: 효율성 메트릭
 [[line]]
   [[line.widget]]
   name = "cache_hit"
+  [line.widget.extra]
+  show_label = "true"
   [[line.widget]]
   name = "api_latency"
   [[line.widget]]
   name = "token_speed"
   [[line.widget]]
   name = "burn_rate"
-  [[line.widget]]
-  name = "compact_eta"
-  [[line.widget]]
-  name = "context_spark"
+  [line.widget.extra]
+  show_label = "true"
 
-# Line 5: 작업/설정 현황
+# Line 6: 추적
 [[line]]
   [[line.widget]]
-  name = "plan"
+  name = "context_spark"
+  [[line.widget]]
+  name = "compact_eta"
+  [line.widget.extra]
+  show_label = "true"
   [[line.widget]]
   name = "todos"
   [[line.widget]]
@@ -837,25 +869,42 @@ Claude 설정 파일들의 구성 항목 수를 표시합니다. **visor 고유 
   [[line.widget]]
   name = "config_counts"
 
-# Line 6: 비용 추적
+# Line 7: 비용 및 사용량 제한
 [[line]]
   [[line.widget]]
   name = "block_timer"
+  [line.widget.extra]
+  show_label = "true"
+  [[line.widget]]
+  name = "block_limit"
+  [line.widget.extra]
+  show_label = "true"
+  [[line.widget]]
+  name = "week_limit"
+  [line.widget.extra]
+  show_label = "true"
   [[line.widget]]
   name = "daily_cost"
+  [line.widget.extra]
+  show_label = "true"
   [[line.widget]]
   name = "weekly_cost"
+  [line.widget.extra]
+  show_label = "true"
   [[line.widget]]
   name = "block_cost"
+  [line.widget.extra]
+  show_label = "true"
 ```
 
 **출력 예시**:
-- Line 1: `Opus | a1b2c3d4e5f6 | Ctx: 42% ████░░░░░░ | ⏱️ 15m | $0.45 | main +2~1`
-- Line 2: `✓Bash ×7 | ✓Edit ×4 | ✓Read ×12`
-- Line 3: `◐Explore: Analyzing codebase (5s...)`
-- Line 4: `Cache: 80% | API: 1.2s | 42.1 tok/s | 12.5¢/min | ~18m | ▂▃▄▅▆`
-- Line 5: `Pro | ⊙ Implement feature (3/5) | +25/-10 | 2📄 3🔒 2🔌 1🪝`
-- Line 6: `Block: 4h23m | $2.34 today | $15.67 week | $0.45 block`
+- Line 1: `Opus 4.5 | Plan: API | a99f80bf-7e7f-476f-8a36-621ad78b645e`
+- Line 2: `Ctx: 35% ███░░░░░░░ | ⏱️ 8m | $0.48 |  main ✓`
+- Line 3: `✓Task | ✓Read ×8 | ✓Edit ×10 | ✓Bash`
+- Line 4: `✓Explore: Verify widget doc... (2m)`
+- Line 5: `Cache: 80% | API: 460ms | 42.1 tok/s | Burn: 24.7¢/min`
+- Line 6: `▃▃▄▅▆ | ETA: ~18m | ⊙ Task (3/5) | +25/-10 | 1 CLAUDE.md`
+- Line 7: `Block: 4h51m | 5h: 42% | 7d: 69% | Today: $19 | Week: $227 | Block$: $0.45`
 
 ---
 

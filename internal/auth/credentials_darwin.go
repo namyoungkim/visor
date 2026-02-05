@@ -5,7 +5,7 @@ package auth
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -19,18 +19,41 @@ func platformProvider() CredentialProvider {
 	return &keychainProvider{}
 }
 
+// keychainEntries defines the keychain service/account pairs to try, in order.
+// Claude Code has changed its keychain entry format over time.
+var keychainEntries = []struct {
+	service string
+	account string
+}{
+	{"Claude Code-credentials", ""}, // Current: account = OS username (auto-detected)
+	{"claude.ai", "oauth"},          // Legacy
+}
+
 // Get retrieves credentials from macOS Keychain.
 func (p *keychainProvider) Get() (*Credentials, error) {
-	// Set timeout context
+	for _, entry := range keychainEntries {
+		creds, err := readKeychain(entry.service, entry.account)
+		if err == nil {
+			return creds, nil
+		}
+	}
+	return nil, ErrNoCredentials
+}
+
+// readKeychain reads a credential from macOS Keychain.
+// If account is empty, the current OS username is used.
+func readKeychain(service, account string) (*Credentials, error) {
+	if account == "" {
+		account = currentUsername()
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	// Try to read from Keychain using security command
-	// The service name used by Claude Code
 	cmd := exec.CommandContext(ctx, "security", "find-generic-password",
-		"-s", "claude.ai",
-		"-a", "oauth",
-		"-w", // Output password only
+		"-s", service,
+		"-a", account,
+		"-w",
 	)
 
 	var stdout, stderr bytes.Buffer
@@ -38,7 +61,6 @@ func (p *keychainProvider) Get() (*Credentials, error) {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		// Keychain access denied or item not found
 		if strings.Contains(stderr.String(), "could not be found") ||
 			strings.Contains(stderr.String(), "SecKeychainSearchCopyNext") {
 			return nil, ErrNoCredentials
@@ -50,21 +72,18 @@ func (p *keychainProvider) Get() (*Credentials, error) {
 		return nil, ErrNoCredentials
 	}
 
-	// Parse the JSON credential
 	password := strings.TrimSpace(stdout.String())
 	if password == "" {
 		return nil, ErrNoCredentials
 	}
 
-	var creds Credentials
-	if err := json.Unmarshal([]byte(password), &creds); err != nil {
-		// Maybe it's just a token, not JSON
-		creds.AccessToken = password
-	}
+	return parseCredentialJSON([]byte(password))
+}
 
-	if creds.AccessToken == "" {
-		return nil, ErrNoCredentials
+// currentUsername returns the current OS username.
+func currentUsername() string {
+	if u := os.Getenv("USER"); u != "" {
+		return u
 	}
-
-	return &creds, nil
+	return "unknown"
 }
