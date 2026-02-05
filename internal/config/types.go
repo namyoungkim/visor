@@ -66,6 +66,14 @@ type UsageConfig struct {
 	// ProjectsDir is the path to Claude projects directory for JSONL parsing.
 	// Defaults to ~/.claude/projects if empty.
 	ProjectsDir string `toml:"projects_dir"`
+
+	// FiveHourLimit is the message limit for the 5-hour block.
+	// 0 = auto-detect from subscription tier.
+	FiveHourLimit int `toml:"five_hour_limit"`
+
+	// SevenDayLimit is the message limit for the 7-day window.
+	// 0 = auto-detect from subscription tier.
+	SevenDayLimit int `toml:"seven_day_limit"`
 }
 
 // Line represents a single line in the statusline.
