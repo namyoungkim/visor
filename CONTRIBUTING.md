@@ -22,14 +22,14 @@ cd visor
 # 빌드
 go build -o visor ./cmd/visor
 
-# 테스트
-go test ./...
+# 테스트 (macOS에서 CGO_ENABLED=0 필요 - dyld LC_UUID 에러 방지)
+CGO_ENABLED=0 go test ./...
 
 # 테스트 (상세)
-go test -v ./...
+CGO_ENABLED=0 go test -v ./...
 
 # 커버리지
-go test -cover ./...
+CGO_ENABLED=0 go test -cover ./...
 ```
 
 ## 기여 방법
@@ -56,7 +56,7 @@ git checkout -b fix/my-bugfix
 ### 4. 테스트 실행
 
 ```bash
-go test ./...
+CGO_ENABLED=0 go test ./...
 go build -o visor ./cmd/visor
 echo '{}' | ./visor  # 수동 테스트
 ```

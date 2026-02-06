@@ -56,11 +56,11 @@ fi
 
 | Preset | 용도 | Widgets |
 |--------|------|---------|
-| `full` | **전체 위젯, 5줄 멀티라인 (권장)** | 18 |
+| `full` | **전체 위젯, 7줄 멀티라인 (권장)** | 24 |
 | `minimal` | 필수 정보만 | 4 |
 | `default` | 기본 | 6 |
 | `efficiency` | 비용 최적화 | 6 |
-| `developer` | Tool/agent 모니터링 | 6 |
+| `developer` | Tool/agent 모니터링 | 7 |
 | `pro` | Claude Pro 한도 | 6 |
 
 ```bash

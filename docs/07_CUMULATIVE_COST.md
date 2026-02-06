@@ -206,6 +206,10 @@ func Aggregate(records []UsageRecord, now time.Time) CostAggregator
 | `WeeklyCostWidget` | `$15.67 week` | 이번 주 누적 비용 |
 | `BlockCostWidget` | `$0.45 block (2h30m left)` | 5시간 블록 비용 |
 
+**v0.11 로컬 추정 fallback**
+
+> v0.11에서 `internal/usage/local.go`에 로컬 추정 로직을 추가했다. OAuth API 호출 실패 시 JSONL 트랜스크립트의 토큰 사용량을 기반으로 `block_limit`/`week_limit`를 추정한다. `EstimateLimits(records, now, tier)` 함수가 tier별 한도 기준으로 사용률을 계산하며, API key 사용자에게 잘못된 Pro 한도가 적용되지 않도록 보호한다.
+
 **Phase B3: 성능 최적화**
 
 대량 파일 처리 시 성능 고려:

@@ -2,7 +2,7 @@
 
 visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
-**최종 업데이트**: 2026-02-05 (v0.10.0 완료)
+**최종 업데이트**: 2026-02-06 (v0.11.0 완료)
 
 ---
 
@@ -20,6 +20,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 | **v0.8 커스텀 테마** | ✅ 완료 | 100% |
 | **v0.9 설정 프리셋** | ✅ 완료 | 100% |
 | **v0.10 세션 정보 위젯** | ✅ 완료 | 100% |
+| **v0.11 로컬 사용량 추정** | ✅ 완료 | 100% |
 
 ---
 
@@ -294,7 +295,42 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
 ---
 
-## 향후 계획 (v0.11+)
+## v0.11 로컬 사용량 추정 (완료)
+
+### 기능
+
+| 기능 | 설명 | 상태 |
+|------|------|------|
+| 로컬 사용량 추정 | JSONL 기반 block_limit/week_limit fallback | ✅ 완료 |
+| Credential 파싱 개선 | nested envelope, multi-keychain 지원 | ✅ 완료 |
+| per-call API 지연시간 | api_latency 콜당 평균 표시 | ✅ 완료 |
+| plan 위젯 구독 감지 | OAuth credential 기반 구독 타입 감지 | ✅ 완료 |
+| cost 상수 export | BlockDuration, StartOfWeek export | ✅ 완료 |
+| EstimateLimits tier 파라미터 | tier별 한도 추정 지원 | ✅ 완료 |
+
+### 새 파일
+
+| 파일 | 설명 | 상태 |
+|------|------|------|
+| `internal/usage/local.go` | 로컬 사용량 추정 로직 | ✅ 완료 |
+| `internal/auth/credentials_test.go` | credential 파싱 테스트 | ✅ 완료 |
+
+### 프리셋 업데이트
+
+| 프리셋 | 변경 | 상태 |
+|--------|------|------|
+| `full` | 22 → 24 위젯 (7개 라인) | ✅ 완료 |
+
+### 버그 수정
+
+| 수정 | 설명 | 상태 |
+|------|------|------|
+| Pro 한도 오적용 방지 | API key 사용자에 잘못된 Pro 한도 적용 방지 | ✅ 완료 |
+| startOfWeek 중복 제거 | cost.StartOfWeek으로 통합 | ✅ 완료 |
+
+---
+
+## 향후 계획 (v0.12+)
 
 | 기능 | 설명 | 상태 |
 |------|------|------|
@@ -304,6 +340,26 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 ---
 
 ## 릴리즈 히스토리
+
+### v0.11.0 (2026-02-06)
+
+**Added**:
+- 로컬 사용량 추정 - JSONL 트랜스크립트 기반 block_limit/week_limit fallback
+  - `internal/usage/local.go` - 로컬 추정 로직
+  - `EstimateLimits()` 함수로 tier별 한도 추정
+- Credential 파싱 개선 - nested envelope, multi-keychain 지원
+  - `internal/auth/credentials_test.go` 테스트 추가
+- per-call API 지연시간 - api_latency 콜당 평균 표시
+- plan 위젯 구독 감지 - OAuth credential 기반 구독 타입 감지
+- `cost.BlockDuration` 상수, `cost.StartOfWeek` export
+
+**Changed**:
+- `full` 프리셋: 22 → 24 위젯 (7개 라인)
+- `EstimateLimits()` 시그니처에 tier 파라미터 추가
+
+**Fixed**:
+- API key 사용자에 잘못된 Pro 한도 적용 방지
+- startOfWeek 중복 제거 (cost.StartOfWeek으로 통합)
 
 ### v0.10.0 (2026-02-05)
 
@@ -560,7 +616,13 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 2. ~~Transcript 파서 개선~~ ✅ - TaskCreate/TaskUpdate 파싱, ISO 8601 파싱, 디버그 출력
 3. ~~claudeconfig 패키지~~ ✅ - Claude 설정 파일 파싱
 
-### 다음 (v0.11.0)
+### 완료 (v0.11.0)
+1. ~~로컬 사용량 추정~~ ✅ - JSONL 기반 block_limit/week_limit fallback
+2. ~~Credential 파싱 개선~~ ✅ - nested envelope, multi-keychain 지원
+3. ~~per-call API 지연시간~~ ✅ - api_latency 콜당 평균
+4. ~~plan 위젯 구독 감지~~ ✅ - OAuth credential 기반 구독 타입 감지
+
+### 다음 (v0.12.0)
 1. **TUI 테마 편집** - TUI에서 색상/구분자 직접 편집
 2. **테마 프리셋 추가** - 더 다양한 테마 프리셋
 

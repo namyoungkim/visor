@@ -128,7 +128,7 @@ type Widget interface {
 - **TUI**: Charm ecosystem (bubbletea, bubbles, lipgloss) for interactive config editor
 - **Dependencies**: `BurntSushi/toml`, `charmbracelet/bubbletea`, `charmbracelet/bubbles`, `charmbracelet/lipgloss`
 
-## Widgets (v0.10.0)
+## Widgets (v0.11.0)
 
 ### Core Widgets (v0.1)
 | Widget | Identifier | Unique? |
