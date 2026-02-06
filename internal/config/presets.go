@@ -57,7 +57,7 @@ var Presets = map[string]Preset{
 		Name:        "developer",
 		Description: "Tool/agent monitoring (7 widgets)",
 		Lines: [][]WidgetDef{
-			{W("model"), W("context"), W("tools"), W("agents"), W("todos"), W("code_changes"), W("git")},
+			{W("model"), W("context"), W("tools"), {Name: "agents", Extra: map[string]string{"show_description": "false"}}, W("todos"), W("code_changes"), W("git")},
 		},
 	},
 	"pro": {
@@ -84,7 +84,7 @@ var Presets = map[string]Preset{
 			// Line 6: Tracking
 			{W("context_spark"), WL("compact_eta"), W("todos"), W("code_changes"), W("config_counts")},
 			// Line 7: Cost & rate limits
-			{WL("block_timer"), WL("block_limit"), WL("week_limit"), WL("daily_cost"), WL("weekly_cost"), WL("block_cost")},
+			{WL("block_timer"), {Name: "block_limit", Extra: map[string]string{"show_label": "true", "show_bar": "true"}}, WL("week_limit"), WL("daily_cost"), WL("weekly_cost"), WL("block_cost")},
 		},
 	},
 }
