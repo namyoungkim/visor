@@ -80,12 +80,20 @@ func TestAgentsWidget_MaxDisplay(t *testing.T) {
 
 	result := w.Render(&input.Session{}, cfg)
 
-	// Should only show last 2 agents
-	if strings.Contains(result, "Plan") {
-		t.Error("Expected Plan to be hidden (max_display=2)")
+	// Running agents are prioritized, so general-purpose (running) comes first
+	if !strings.Contains(result, "general-purpose") {
+		t.Errorf("Expected running agent 'general-purpose' to be shown, got '%s'", result)
 	}
-	if !strings.Contains(result, "Bash") || !strings.Contains(result, "general-purpose") {
-		t.Errorf("Expected last 2 agents (Bash, general-purpose), got '%s'", result)
+	// First completed agent (Plan) should fill the second slot
+	if !strings.Contains(result, "Plan") {
+		t.Errorf("Expected first completed agent 'Plan' to fill second slot, got '%s'", result)
+	}
+	// Should only show 2 agents total (1 running + 1 completed)
+	if strings.Contains(result, "Bash") {
+		t.Error("Expected Bash to be hidden (max_display=2)")
+	}
+	if strings.Contains(result, "Explore") {
+		t.Error("Expected Explore to be hidden (max_display=2)")
 	}
 }
 
@@ -166,9 +174,9 @@ func TestAgentsWidget_Description(t *testing.T) {
 
 	result := w.Render(&input.Session{}, &config.WidgetConfig{})
 
-	// Should show description
-	if !strings.Contains(result, "Analyze widget") {
-		t.Errorf("Expected description 'Analyze widget...', got '%s'", result)
+	// Should show description (truncated to default max_description_len=15)
+	if !strings.Contains(result, "Analyze widg") {
+		t.Errorf("Expected truncated description containing 'Analyze widg', got '%s'", result)
 	}
 	// Should show duration
 	if !strings.Contains(result, "42s") {
@@ -297,7 +305,7 @@ func TestAgentsWidget_DescriptionTruncation(t *testing.T) {
 	}
 }
 
-func TestAgentsWidget_PipeSeparator(t *testing.T) {
+func TestAgentsWidget_InternalSeparator(t *testing.T) {
 	w := &AgentsWidget{}
 	w.SetTranscript(&transcript.Data{
 		Agents: []transcript.Agent{
@@ -312,9 +320,117 @@ func TestAgentsWidget_PipeSeparator(t *testing.T) {
 
 	result := w.Render(&input.Session{}, cfg)
 
-	// Should use " | " separator
-	if !strings.Contains(result, " | ") {
-		t.Errorf("Expected ' | ' separator, got '%s'", result)
+	// Should use " · " separator (not " | " to avoid confusion with visor widget separator)
+	if !strings.Contains(result, " · ") {
+		t.Errorf("Expected ' · ' separator, got '%s'", result)
+	}
+}
+
+func TestAgentsWidget_RunningPriority(t *testing.T) {
+	w := &AgentsWidget{}
+	w.SetTranscript(&transcript.Data{
+		Agents: []transcript.Agent{
+			{ID: "1", Type: "Plan", Status: "completed"},
+			{ID: "2", Type: "Explore", Status: "completed"},
+			{ID: "3", Type: "Bash", Status: "running"},
+		},
+	})
+
+	cfg := &config.WidgetConfig{
+		Extra: map[string]string{
+			"max_display":      "0", // unlimited
+			"show_description": "false",
+			"show_duration":    "false",
+		},
+	}
+
+	result := w.Render(&input.Session{}, cfg)
+
+	// Running agent (Bash) should appear before completed agents
+	bashIdx := strings.Index(result, "Bash")
+	planIdx := strings.Index(result, "Plan")
+	exploreIdx := strings.Index(result, "Explore")
+
+	if bashIdx < 0 || planIdx < 0 || exploreIdx < 0 {
+		t.Fatalf("Expected all agents in output, got '%s'", result)
+	}
+	if bashIdx > planIdx || bashIdx > exploreIdx {
+		t.Errorf("Expected running agent (Bash) before completed agents, got '%s'", result)
+	}
+}
+
+func TestAgentsWidget_RunningPriorityWithMaxDisplay(t *testing.T) {
+	w := &AgentsWidget{}
+	w.SetTranscript(&transcript.Data{
+		Agents: []transcript.Agent{
+			{ID: "1", Type: "Plan", Status: "completed"},
+			{ID: "2", Type: "Explore", Status: "completed"},
+			{ID: "3", Type: "Bash", Status: "running"},
+			{ID: "4", Type: "general-purpose", Status: "completed"},
+		},
+	})
+
+	cfg := &config.WidgetConfig{
+		Extra: map[string]string{
+			"max_display":      "2",
+			"show_description": "false",
+			"show_duration":    "false",
+		},
+	}
+
+	result := w.Render(&input.Session{}, cfg)
+
+	// Running agent should always be included even with max_display
+	if !strings.Contains(result, "Bash") {
+		t.Errorf("Expected running agent 'Bash' to be included, got '%s'", result)
+	}
+	// First completed (Plan) fills the remaining slot
+	if !strings.Contains(result, "Plan") {
+		t.Errorf("Expected first completed agent 'Plan' to be shown, got '%s'", result)
+	}
+	// Other completed agents should be hidden
+	if strings.Contains(result, "Explore") {
+		t.Error("Expected Explore to be hidden (max_display=2)")
+	}
+	if strings.Contains(result, "general-purpose") {
+		t.Error("Expected general-purpose to be hidden (max_display=2)")
+	}
+}
+
+func TestAgentsWidget_MultipleRunningExceedMaxDisplay(t *testing.T) {
+	w := &AgentsWidget{}
+	w.SetTranscript(&transcript.Data{
+		Agents: []transcript.Agent{
+			{ID: "1", Type: "Plan", Status: "completed"},
+			{ID: "2", Type: "Bash", Status: "running"},
+			{ID: "3", Type: "Explore", Status: "running"},
+			{ID: "4", Type: "general-purpose", Status: "running"},
+		},
+	})
+
+	cfg := &config.WidgetConfig{
+		Extra: map[string]string{
+			"max_display":      "2",
+			"show_description": "false",
+			"show_duration":    "false",
+		},
+	}
+
+	result := w.Render(&input.Session{}, cfg)
+
+	// First 2 running agents should be shown (Bash, Explore)
+	if !strings.Contains(result, "Bash") {
+		t.Errorf("Expected first running agent 'Bash', got '%s'", result)
+	}
+	if !strings.Contains(result, "Explore") {
+		t.Errorf("Expected second running agent 'Explore', got '%s'", result)
+	}
+	// Third running agent and completed should be hidden
+	if strings.Contains(result, "general-purpose") {
+		t.Error("Expected general-purpose to be hidden (max_display=2)")
+	}
+	if strings.Contains(result, "Plan") {
+		t.Error("Expected Plan to be hidden (max_display=2)")
 	}
 }
 
