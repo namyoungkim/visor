@@ -361,15 +361,19 @@ eta_minutes = (80 - current_pct) / burn_rate_pct_per_min
 - 완료된 에이전트: `✓Type: Description (Ns)` - 총 소요 시간
 - 실행 중인 에이전트: `◐Type: Description (Ns...)` - 현재 경과 시간 (실시간)
 
+**정렬**: Running 에이전트가 항상 앞에 표시됩니다. `max_display` 적용 시 running 에이전트가 잘리지 않습니다.
+
+**내부 구분자**: 여러 에이전트 표시 시 `" · "`로 구분 (visor 전체 위젯 구분자 `" | "`와 혼동 방지).
+
 **설정 옵션**:
 
 | 옵션 | 기본값 | 설명 |
 |------|--------|------|
 | `show_label` | `false` | "Agents:" 접두사 표시 |
-| `max_display` | `0` | 표시할 최대 에이전트 수 (0=무제한) |
+| `max_display` | `2` | 표시할 최대 에이전트 수 (0=무제한) |
 | `show_description` | `true` | 작업 설명 표시 |
 | `show_duration` | `true` | 소요/경과 시간 표시 |
-| `max_description_len` | `20` | 설명 최대 길이 (초과시 `...` 처리) |
+| `max_description_len` | `15` | 설명 최대 길이 (초과시 `...` 처리) |
 
 ---
 
@@ -740,13 +744,15 @@ Claude 설정 파일들의 구성 항목 수를 표시합니다. **visor 고유 
   name = "tools"
   [[line.widget]]
   name = "agents"
+  [line.widget.extra]
+  show_description = "false"
   [[line.widget]]
   name = "code_changes"
   [[line.widget]]
   name = "git"
 ```
 
-**출력 예시**: `Opus | Ctx: 42% ████░░░░░░ | ✓Bash ×7 | ✓Edit ×4 | ◐Explore: Anal... (5s...) | +25/-10 |  main +3 ~2`
+**출력 예시**: `Opus | Ctx: 42% ████░░░░░░ | ✓Bash ×7 | ✓Edit ×4 | ◐Explore (5s...) · ✓Plan (42s) | +25/-10 |  main +3 ~2`
 
 ### 미니멀
 

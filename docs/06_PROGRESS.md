@@ -200,7 +200,7 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 | `tools` | `show_count` | `true` | 도구 호출 횟수 표시 |
 | `agents` | `show_description` | `true` | Task description 표시 |
 | `agents` | `show_duration` | `true` | 실행 시간 표시 |
-| `agents` | `max_description_len` | `20` | description 최대 길이 |
+| `agents` | `max_description_len` | `15` | description 최대 길이 |
 
 ### 데이터 구조 변경
 

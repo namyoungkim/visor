@@ -13,11 +13,11 @@ import (
 // AgentsWidget displays the status of spawned sub-agents with details.
 //
 // Supported Extra options:
-//   - max_display: maximum number of agents to show, 0 = unlimited (default: "0")
+//   - max_display: maximum number of agents to show, 0 = unlimited (default: "2")
 //   - show_label: "true"/"false" - show prefix (default: false)
 //   - show_description: "true"/"false" - show task description (default: true)
 //   - show_duration: "true"/"false" - show elapsed time (default: true)
-//   - max_description_len: max length for description (default: "20")
+//   - max_description_len: max length for description (default: "15")
 //
 // Output format: "Explore: Analyze widgets (42s)" (with description and duration)
 // Running agents show elapsed time with "..." suffix: "(42s...)"
@@ -39,25 +39,39 @@ func (w *AgentsWidget) Render(session *input.Session, cfg *config.WidgetConfig) 
 		return ""
 	}
 
-	maxDisplay := GetExtraInt(cfg, "max_display", 0) // 0 = unlimited
+	maxDisplay := GetExtraInt(cfg, "max_display", 2) // 0 = unlimited
 	showDescription := GetExtraBool(cfg, "show_description", true)
 	showDuration := GetExtraBool(cfg, "show_duration", true)
-	maxDescLen := GetExtraInt(cfg, "max_description_len", 20)
+	maxDescLen := GetExtraInt(cfg, "max_description_len", 15)
 	agents := w.transcript.Agents
 
-	// Show only the last N agents (0 = show all)
-	start := 0
-	if maxDisplay > 0 && len(agents) > maxDisplay {
-		start = len(agents) - maxDisplay
+	// Prioritize running agents: running first, then completed.
+	// Preserve original order within each group.
+	sorted := make([]transcript.Agent, 0, len(agents))
+	for _, a := range agents {
+		if a.Status == "running" {
+			sorted = append(sorted, a)
+		}
+	}
+	for _, a := range agents {
+		if a.Status != "running" {
+			sorted = append(sorted, a)
+		}
+	}
+
+	// Show only the first N agents after priority sort (0 = show all)
+	display := sorted
+	if maxDisplay > 0 && len(sorted) > maxDisplay {
+		display = sorted[:maxDisplay]
 	}
 
 	var parts []string
-	for _, agent := range agents[start:] {
+	for _, agent := range display {
 		part := w.renderAgent(agent, showDescription, showDuration, maxDescLen)
 		parts = append(parts, part)
 	}
 
-	text := strings.Join(parts, " | ")
+	text := strings.Join(parts, " · ")
 
 	if GetExtraBool(cfg, "show_label", false) {
 		text = "Agents: " + text

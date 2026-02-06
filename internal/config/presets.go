@@ -57,7 +57,7 @@ var Presets = map[string]Preset{
 		Name:        "developer",
 		Description: "Tool/agent monitoring (7 widgets)",
 		Lines: [][]WidgetDef{
-			{W("model"), W("context"), W("tools"), W("agents"), W("todos"), W("code_changes"), W("git")},
+			{W("model"), W("context"), W("tools"), {Name: "agents", Extra: map[string]string{"show_description": "false"}}, W("todos"), W("code_changes"), W("git")},
 		},
 	},
 	"pro": {
