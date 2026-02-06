@@ -7,6 +7,33 @@
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-02-06
+
+### Added
+
+- **로컬 사용량 추정** - API 호출 없이 JSONL 트랜스크립트 기반 사용량 추정
+  - `internal/usage/local.go` - 로컬 추정 로직
+  - `block_limit`/`week_limit` 위젯에서 OAuth 실패 시 fallback으로 사용
+  - `EstimateLimits()` 함수로 tier별 한도 추정
+- **Credential 파싱 개선**
+  - nested envelope 구조 지원 (이중 JSON 래핑)
+  - multi-keychain 탐색 (여러 Keychain 항목 시도)
+  - `internal/auth/credentials_test.go` - credential 파싱 테스트 추가
+- **per-call API 지연시간** - `api_latency` 위젯이 총 지연시간 대신 콜당 평균 표시
+- **plan 위젯 구독 감지** - OAuth credential 기반 구독 타입 자동 감지
+- **`cost.BlockDuration` 상수** - 5시간 블록 기간 상수 export
+- **`cost.StartOfWeek` export** - 주간 시작 시점 계산 함수 export
+
+### Changed
+
+- `full` 프리셋: 22 → 24 위젯 (모든 위젯 포함, 7개 라인)
+- `EstimateLimits()` 시그니처에 tier 파라미터 추가
+
+### Fixed
+
+- API key 사용자에 잘못된 Pro 한도 적용 방지
+- `startOfWeek` 함수 중복 제거 (`cost.StartOfWeek`으로 통합)
+
 ## [0.10.0] - 2026-02-05
 
 ### Added
@@ -311,7 +338,8 @@
 
 ## 링크
 
-[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/namyoungkim/visor/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/namyoungkim/visor/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/namyoungkim/visor/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/namyoungkim/visor/compare/v0.7.0...v0.8.0
