@@ -297,7 +297,7 @@ right = " :: "
 - `block_timer`: `show_label`, `warn_threshold` (80), `critical_threshold` (95) (% elapsed)
 - `block_limit`: `show_label`, `show_remaining`, `show_bar` (false), `bar_width` (10), `warn_threshold` (70), `critical_threshold` (90)
 - `tools`: `max_display` (default: 0, unlimited), `show_label`, `show_count` (default: true)
-- `agents`: `max_display` (default: 0, unlimited), `show_label`, `show_description` (default: true), `show_duration` (default: true), `max_description_len` (default: 20)
+- `agents`: `max_display` (default: 2), `show_label`, `show_description` (default: true), `show_duration` (default: true), `max_description_len` (default: 15)
 - `duration`: `show_icon` (default: true) - show ⏱️ prefix
 - `token_speed`: `show_label`, `warn_threshold` (20), `critical_threshold` (10) (tokens/sec, lower is worse)
 - `todos`: `show_label`, `max_subject_len` (default: 30)

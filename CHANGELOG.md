@@ -7,6 +7,16 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **agents 위젯 가독성 개선**
+  - 내부 구분자: `" | "` → `" · "` (visor 위젯 구분자와 혼동 방지)
+  - `max_display` 기본값: 0 (무제한) → 2 (출력 폭발 방지)
+  - `max_description_len` 기본값: 20 → 15
+  - Running 에이전트 우선 정렬 (max_display 적용 시 잘리지 않도록)
+- `developer` 프리셋: agents 위젯에 `show_description=false` 적용
+- TUI `widget_options.go` agents 기본값을 실제 코드와 동기화
+
 ## [0.11.0] - 2026-02-06
 
 ### Added
