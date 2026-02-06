@@ -19,6 +19,7 @@ type Entry struct {
 	CacheWrite   int
 	CostUSD      float64
 	SessionID    string
+	IsUserTurn   bool // true if this entry represents a user-initiated turn
 }
 
 // jsonlMessage represents a message from the Claude transcript JSONL.
@@ -29,6 +30,7 @@ type jsonlMessage struct {
 	CostUSD      float64          `json:"costUsd,omitempty"`
 	DurationMs   int64            `json:"durationMs,omitempty"`
 	SessionID    string           `json:"sessionId,omitempty"`
+	IsMeta       bool             `json:"isMeta,omitempty"`
 }
 
 type assistantMessage struct {
@@ -81,6 +83,17 @@ func parseJSONLLine(line string) (Entry, bool) {
 	var msg jsonlMessage
 	if err := json.Unmarshal([]byte(line), &msg); err != nil {
 		return Entry{}, false
+	}
+
+	// User turn: count as message (isMeta=false or absent)
+	if msg.Type == "user" && !msg.IsMeta {
+		entry := Entry{IsUserTurn: true, SessionID: msg.SessionID}
+		if msg.Timestamp != "" {
+			if t, err := time.Parse(time.RFC3339, msg.Timestamp); err == nil {
+				entry.Timestamp = t
+			}
+		}
+		return entry, true
 	}
 
 	// Only process assistant messages with usage data
