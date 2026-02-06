@@ -4,6 +4,14 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+
+	"github.com/namyoungkim/visor/internal/auth"
+)
+
+var (
+	detectOnce     sync.Once
+	detectedResult Provider
 )
 
 // Provider represents a Claude API provider.
@@ -18,7 +26,21 @@ const (
 )
 
 // DetectProvider determines the provider from environment and config.
+// The result is cached after the first call to avoid repeated keychain lookups.
 func DetectProvider() Provider {
+	detectOnce.Do(func() {
+		detectedResult = detectProvider()
+	})
+	return detectedResult
+}
+
+// ResetProviderCache clears the cached provider result (for testing).
+func ResetProviderCache() {
+	detectOnce = sync.Once{}
+	detectedResult = ""
+}
+
+func detectProvider() Provider {
 	// Check environment variables
 	if os.Getenv("ANTHROPIC_API_KEY") != "" {
 		return ProviderAnthropic
@@ -32,13 +54,10 @@ func DetectProvider() Provider {
 		return ProviderGCP
 	}
 
-	// Check for Claude Pro by looking for OAuth credentials
-	home, err := os.UserHomeDir()
-	if err == nil {
-		credPath := filepath.Join(home, ".claude", "credentials.json")
-		if _, err := os.Stat(credPath); err == nil {
-			return ProviderClaudePro
-		}
+	// Check for Claude Pro by looking for OAuth credentials (file + macOS Keychain)
+	credProvider := auth.DefaultProvider()
+	if _, err := credProvider.Get(); err == nil {
+		return ProviderClaudePro
 	}
 
 	return ProviderUnknown
