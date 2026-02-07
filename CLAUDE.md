@@ -124,11 +124,12 @@ type Widget interface {
 - **Language**: Go (1-2ms startup, fills empty niche in ecosystem)
 - **Config**: TOML at `~/.config/visor/config.toml` (uses `[[line]]` for multiline layout)
 - **History**: JSON at `~/.cache/visor/history_<session_id>.json`
+- **Global block state**: JSON at `~/.cache/visor/block_state.json` (v0.11.5, shared across sessions)
 - **Git info**: External `git` CLI calls with 200ms timeout (zero dependencies)
 - **TUI**: Charm ecosystem (bubbletea, bubbles, lipgloss) for interactive config editor
 - **Dependencies**: `BurntSushi/toml`, `charmbracelet/bubbletea`, `charmbracelet/bubbles`, `charmbracelet/lipgloss`
 
-## Widgets (v0.11.2)
+## Widgets (v0.11.5)
 
 ### Core Widgets (v0.1)
 | Widget | Identifier | Unique? |
