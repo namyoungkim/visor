@@ -20,8 +20,20 @@ func TestParseJSONLLine(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "user message ignored",
-			line:    `{"type":"user","content":"hello"}`,
+			name:    "user message parsed as user turn",
+			line:    `{"type":"user","timestamp":"2024-01-15T10:30:00Z","sessionId":"s1"}`,
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    "meta user message ignored",
+			line:    `{"type":"user","isMeta":true,"timestamp":"2024-01-15T10:30:00Z"}`,
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name:    "user message without timestamp ignored",
+			line:    `{"type":"user","sessionId":"s1"}`,
 			want:    false,
 			wantErr: false,
 		},
@@ -80,12 +92,56 @@ func TestParseJSONLLineExtractsData(t *testing.T) {
 	}
 }
 
+func TestParseJSONLLine_UserTurn(t *testing.T) {
+	line := `{"type":"user","timestamp":"2024-01-15T10:30:00Z","sessionId":"s1"}`
+	entry, ok := parseJSONLLine(line)
+	if !ok {
+		t.Fatal("parseJSONLLine() should parse user turn")
+	}
+	if !entry.IsUserTurn {
+		t.Error("IsUserTurn should be true for user message")
+	}
+	if entry.SessionID != "s1" {
+		t.Errorf("SessionID = %q, want s1", entry.SessionID)
+	}
+	if entry.CostUSD != 0 {
+		t.Errorf("CostUSD = %v, want 0 for user turn", entry.CostUSD)
+	}
+}
+
+func TestParseJSONLLine_MetaUser(t *testing.T) {
+	line := `{"type":"user","isMeta":true,"timestamp":"2024-01-15T10:30:00Z","sessionId":"s1"}`
+	_, ok := parseJSONLLine(line)
+	if ok {
+		t.Error("parseJSONLLine() should not parse meta user message")
+	}
+}
+
+func TestParseJSONLLine_UserTurnNoTimestamp(t *testing.T) {
+	line := `{"type":"user","sessionId":"s1"}`
+	_, ok := parseJSONLLine(line)
+	if ok {
+		t.Error("parseJSONLLine() should skip user message without timestamp")
+	}
+}
+
+func TestParseJSONLLine_AssistantIsNotUserTurn(t *testing.T) {
+	line := `{"type":"assistant","timestamp":"2024-01-15T10:30:00Z","message":{"model":"claude-3-5-sonnet-20241022","usage":{"input_tokens":1000,"output_tokens":500}}}`
+	entry, ok := parseJSONLLine(line)
+	if !ok {
+		t.Fatal("parseJSONLLine() should parse assistant message")
+	}
+	if entry.IsUserTurn {
+		t.Error("IsUserTurn should be false for assistant message")
+	}
+}
+
 func TestParseJSONL(t *testing.T) {
 	// Create a temporary JSONL file
 	dir := t.TempDir()
 	path := filepath.Join(dir, "test.jsonl")
 
-	content := `{"type":"user","content":"hello"}
+	content := `{"type":"user","timestamp":"2024-01-15T10:29:00Z","sessionId":"s1"}
 {"type":"assistant","timestamp":"2024-01-15T10:30:00Z","message":{"model":"claude-3-5-sonnet-20241022","usage":{"input_tokens":1000,"output_tokens":500}}}
 {"type":"assistant","timestamp":"2024-01-15T10:31:00Z","message":{"model":"claude-3-5-sonnet-20241022","usage":{"input_tokens":2000,"output_tokens":1000}}}
 `
@@ -98,8 +154,19 @@ func TestParseJSONL(t *testing.T) {
 		t.Fatalf("ParseJSONL() error = %v", err)
 	}
 
-	if len(entries) != 2 {
-		t.Errorf("ParseJSONL() returned %d entries, want 2", len(entries))
+	if len(entries) != 3 {
+		t.Errorf("ParseJSONL() returned %d entries, want 3", len(entries))
+	}
+
+	// First entry should be the user turn
+	userTurns := 0
+	for _, e := range entries {
+		if e.IsUserTurn {
+			userTurns++
+		}
+	}
+	if userTurns != 1 {
+		t.Errorf("ParseJSONL() found %d user turns, want 1", userTurns)
 	}
 }
 

@@ -19,17 +19,32 @@ func TestAggregate(t *testing.T) {
 
 	entries := []Entry{
 		{
-			// Clearly within today (after today's start + buffer)
+			// User turn within today
+			Timestamp:  todayStart.Add(1*time.Hour - 1*time.Minute),
+			IsUserTurn: true,
+		},
+		{
+			// Assistant response within today (after today's start + buffer)
 			Timestamp: todayStart.Add(1 * time.Hour),
 			CostUSD:   0.10,
 		},
 		{
-			// Clearly within today
+			// User turn within today
+			Timestamp:  todayStart.Add(2*time.Hour - 1*time.Minute),
+			IsUserTurn: true,
+		},
+		{
+			// Assistant response within today
 			Timestamp: todayStart.Add(2 * time.Hour),
 			CostUSD:   0.20,
 		},
 		{
-			// Clearly yesterday (before today's start)
+			// User turn yesterday
+			Timestamp:  todayStart.Add(-10*time.Hour - 1*time.Minute),
+			IsUserTurn: true,
+		},
+		{
+			// Assistant response yesterday (before today's start)
 			Timestamp: todayStart.Add(-10 * time.Hour),
 			CostUSD:   0.50,
 		},
@@ -37,14 +52,22 @@ func TestAggregate(t *testing.T) {
 
 	data := Aggregate(entries, now.Add(-3*time.Hour))
 
-	// Today should include first two entries (both are after todayStart)
+	// Today should include first two cost entries (both are after todayStart)
 	if !floatEqual(data.Today, 0.30) {
 		t.Errorf("Aggregate().Today = %v, want 0.30", data.Today)
 	}
 
-	// Week should include all entries (all within same week)
+	// Week should include all cost entries (all within same week)
 	if !floatEqual(data.Week, 0.80) {
 		t.Errorf("Aggregate().Week = %v, want 0.80", data.Week)
+	}
+
+	// Message counts: only user turns should be counted
+	if data.TodayMessages != 2 {
+		t.Errorf("Aggregate().TodayMessages = %d, want 2", data.TodayMessages)
+	}
+	if data.WeekMessages != 3 {
+		t.Errorf("Aggregate().WeekMessages = %d, want 3", data.WeekMessages)
 	}
 }
 
@@ -65,8 +88,16 @@ func TestAggregate5HourBlock(t *testing.T) {
 
 	entries := []Entry{
 		{
+			Timestamp:  now.Add(-1*time.Hour - 1*time.Minute), // User turn in block
+			IsUserTurn: true,
+		},
+		{
 			Timestamp: now.Add(-1 * time.Hour), // In block
 			CostUSD:   0.10,
+		},
+		{
+			Timestamp:  now.Add(-3*time.Hour - 1*time.Minute), // User turn before block
+			IsUserTurn: true,
 		},
 		{
 			Timestamp: now.Add(-3 * time.Hour), // Before block
@@ -78,6 +109,11 @@ func TestAggregate5HourBlock(t *testing.T) {
 
 	if !floatEqual(data.FiveHourBlock, 0.10) {
 		t.Errorf("Aggregate().FiveHourBlock = %v, want 0.10", data.FiveHourBlock)
+	}
+
+	// Only the user turn within the block should be counted
+	if data.FiveHourBlockMessages != 1 {
+		t.Errorf("Aggregate().FiveHourBlockMessages = %d, want 1", data.FiveHourBlockMessages)
 	}
 }
 
