@@ -69,10 +69,10 @@ var Presets = map[string]Preset{
 	},
 	"full": {
 		Name:        "full",
-		Description: "All widgets, multi-line layout (22 widgets)",
+		Description: "All widgets, multi-line layout (23 widgets)",
 		Lines: [][]WidgetDef{
 			// Line 1: Session identity
-			{W("model"), WL("plan"), W("session_id")},
+			{W("model"), WL("plan"), W("session_id"), W("cwd")},
 			// Line 2: Core metrics
 			{W("context"), W("duration"), W("cost"), W("git")},
 			// Line 3: Tools (dynamic width)
