@@ -38,9 +38,10 @@ func (w *CWDWidget) Render(session *input.Session, cfg *config.WidgetConfig) str
 		display = filepath.Base(cwd)
 	} else {
 		display = abbreviateHome(cwd)
-		if maxLen > 0 && len(display) > maxLen {
-			display = truncatePath(display, maxLen)
-		}
+	}
+
+	if maxLen > 0 && len([]rune(display)) > maxLen {
+		display = truncatePath(display, maxLen)
 	}
 
 	if GetExtraBool(cfg, "show_label", false) {
@@ -69,26 +70,23 @@ func abbreviateHome(path string) string {
 	return path
 }
 
-// truncatePath shortens a path to fit within maxLen by replacing leading segments with "…/".
+// truncatePath shortens a path to fit within maxLen (in runes) by replacing
+// leading segments with "…/". Uses rune counting for proper Unicode handling.
 func truncatePath(path string, maxLen int) string {
-	if len(path) <= maxLen {
+	runes := []rune(path)
+	if len(runes) <= maxLen {
 		return path
 	}
-	// Minimum: "…/" + at least 1 char
-	if maxLen < 3 {
-		return path[:maxLen]
+	if maxLen < 2 {
+		return string(runes[:maxLen])
 	}
-	// Find the rightmost portion that fits within maxLen - 2 (for "…/")
-	remaining := maxLen - 2 // len("…/") where … is 3 bytes but we count display chars
-	// Walk from the end to find a '/' boundary
-	for i := len(path) - remaining; i < len(path); i++ {
-		if path[i] == '/' {
-			result := "…" + path[i:]
-			if len(result) <= maxLen+2 { // …is 3 bytes vs 1 display char, allow extra
-				return result
-			}
+	// "…" takes 1 rune, so we have maxLen-1 runes for the tail
+	tail := runes[len(runes)-(maxLen-1):]
+	// Try to find a '/' boundary for cleaner truncation
+	for i, r := range tail {
+		if r == '/' {
+			return "…" + string(tail[i:])
 		}
 	}
-	// No good boundary found, just truncate from end
-	return "…" + path[len(path)-remaining:]
+	return "…" + string(tail)
 }

@@ -96,7 +96,6 @@ func TestCWDWidget_MaxLength(t *testing.T) {
 
 	result := w.Render(session, cfg)
 
-	// Should contain truncation indicator
 	if !strings.Contains(result, "…") {
 		t.Errorf("Expected truncation with '…', got '%s'", result)
 	}
@@ -110,6 +109,49 @@ func TestCWDWidget_NonHomePath(t *testing.T) {
 
 	if !strings.Contains(result, "/tmp/test") {
 		t.Errorf("Expected '/tmp/test', got '%s'", result)
+	}
+}
+
+func TestCWDWidget_ShowBasenameWithMaxLength(t *testing.T) {
+	w := &CWDWidget{}
+	session := &input.Session{CWD: "/home/user/very-long-directory-name-here"}
+	cfg := &config.WidgetConfig{
+		Extra: map[string]string{"show_basename": "true", "max_length": "10"},
+	}
+
+	result := w.Render(session, cfg)
+
+	if !strings.Contains(result, "…") {
+		t.Errorf("Expected truncation for long basename, got '%s'", result)
+	}
+}
+
+func TestCWDWidget_ShowLabelWithMaxLength(t *testing.T) {
+	w := &CWDWidget{}
+	session := &input.Session{CWD: "/very/long/path/to/directory"}
+	cfg := &config.WidgetConfig{
+		Extra: map[string]string{"show_label": "true", "max_length": "10"},
+	}
+
+	result := w.Render(session, cfg)
+
+	// max_length applies to path only, label is prepended after
+	if !strings.Contains(result, "CWD:") {
+		t.Errorf("Expected 'CWD:' prefix, got '%s'", result)
+	}
+	if !strings.Contains(result, "…") {
+		t.Errorf("Expected truncation, got '%s'", result)
+	}
+}
+
+func TestCWDWidget_NonASCIIPath(t *testing.T) {
+	w := &CWDWidget{}
+	session := &input.Session{CWD: "/home/user/프로젝트/visor"}
+
+	result := w.Render(session, &config.WidgetConfig{})
+
+	if !strings.Contains(result, "프로젝트") {
+		t.Errorf("Expected Korean characters preserved, got '%s'", result)
 	}
 }
 
@@ -145,18 +187,28 @@ func TestTruncatePath(t *testing.T) {
 		name     string
 		path     string
 		maxLen   int
-		contains string
+		expected string
 	}{
 		{"short enough", "/tmp", 10, "/tmp"},
-		{"needs truncation", "/very/long/path/to/dir", 10, "…"},
-		{"very short max", "/a/b/c", 2, "/a"},
+		{"exact length", "/tmp/a", 6, "/tmp/a"},
+		{"truncate with slash boundary", "/very/long/path/to/dir", 10, "…/to/dir"},
+		{"truncate no slash boundary", "abcdefghij", 5, "…ghij"},
+		{"maxLen 1", "/a/b/c", 1, "/"},
+		{"maxLen 2", "/a/b/c", 2, "…c"},
+		{"maxLen 3", "/a/b/c", 3, "…/c"},
+		{"non-ascii path", "/home/프로젝트/visor", 8, "…/visor"},
+		{"non-ascii truncate boundary", "/프/로/젝/트", 5, "…/젝/트"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := truncatePath(tt.path, tt.maxLen)
-			if !strings.Contains(result, tt.contains) {
-				t.Errorf("Expected result to contain '%s', got '%s'", tt.contains, result)
+			runes := []rune(result)
+			if len(runes) > tt.maxLen {
+				t.Errorf("Result rune length %d exceeds maxLen %d: '%s'", len(runes), tt.maxLen, result)
+			}
+			if result != tt.expected {
+				t.Errorf("Expected '%s', got '%s'", tt.expected, result)
 			}
 		})
 	}
