@@ -7,6 +7,19 @@
 
 ## [Unreleased]
 
+## [0.11.4] - 2026-02-07
+
+### Added
+
+- **`cwd` 위젯** — 현재 작업 디렉토리 경로 표시 (#52)
+  - 홈 디렉토리 `~` 축약 (`/Users/leo/project` → `~/project`)
+  - `show_basename` 옵션: 디렉토리명만 표시 (`visor`)
+  - `show_label` 옵션: `CWD:` 접두사
+  - `max_length` 옵션: 경로 길이 제한, 초과 시 `…/` 축약
+  - Unicode 경로 지원 (rune 기반 truncation)
+- `full` 프리셋 Line 1에 `cwd` 추가 (22 → 23 위젯)
+- TUI 에디터에 `cwd` 위젯 메타데이터 등록
+
 ## [0.11.3] - 2026-02-07
 
 ### Changed
