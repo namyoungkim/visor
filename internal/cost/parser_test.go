@@ -32,6 +32,12 @@ func TestParseJSONLLine(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name:    "user message without timestamp ignored",
+			line:    `{"type":"user","sessionId":"s1"}`,
+			want:    false,
+			wantErr: false,
+		},
+		{
 			name:    "invalid json",
 			line:    `{invalid json}`,
 			want:    false,
@@ -108,6 +114,14 @@ func TestParseJSONLLine_MetaUser(t *testing.T) {
 	_, ok := parseJSONLLine(line)
 	if ok {
 		t.Error("parseJSONLLine() should not parse meta user message")
+	}
+}
+
+func TestParseJSONLLine_UserTurnNoTimestamp(t *testing.T) {
+	line := `{"type":"user","sessionId":"s1"}`
+	_, ok := parseJSONLLine(line)
+	if ok {
+		t.Error("parseJSONLLine() should skip user message without timestamp")
 	}
 }
 

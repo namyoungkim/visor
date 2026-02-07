@@ -85,15 +85,16 @@ func parseJSONLLine(line string) (Entry, bool) {
 		return Entry{}, false
 	}
 
-	// User turn: count as message (isMeta=false or absent)
+	// User turn: count as message (isMeta=false or absent, must have valid timestamp)
 	if msg.Type == "user" && !msg.IsMeta {
-		entry := Entry{IsUserTurn: true, SessionID: msg.SessionID}
-		if msg.Timestamp != "" {
-			if t, err := time.Parse(time.RFC3339, msg.Timestamp); err == nil {
-				entry.Timestamp = t
-			}
+		if msg.Timestamp == "" {
+			return Entry{}, false
 		}
-		return entry, true
+		t, err := time.Parse(time.RFC3339, msg.Timestamp)
+		if err != nil {
+			return Entry{}, false
+		}
+		return Entry{IsUserTurn: true, SessionID: msg.SessionID, Timestamp: t}, true
 	}
 
 	// Only process assistant messages with usage data

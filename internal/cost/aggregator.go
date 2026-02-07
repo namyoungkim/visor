@@ -53,33 +53,32 @@ func Aggregate(entries []Entry, blockStart time.Time) *CostData {
 	blockEnd := blockStart.Add(BlockDuration)
 
 	for _, e := range entries {
-		// Today's cost
-		if !e.Timestamp.Before(todayStart) {
-			data.Today += e.CostUSD
-			if e.IsUserTurn {
+		// User turns only count toward message limits, not cost
+		if e.IsUserTurn {
+			if !e.Timestamp.Before(todayStart) {
 				data.TodayMessages++
 			}
-		}
-
-		// Week's cost
-		if !e.Timestamp.Before(weekStart) {
-			data.Week += e.CostUSD
-			if e.IsUserTurn {
+			if !e.Timestamp.Before(weekStart) {
 				data.WeekMessages++
 			}
+			if !blockStart.IsZero() && !e.Timestamp.Before(blockStart) && e.Timestamp.Before(blockEnd) {
+				data.FiveHourBlockMessages++
+			}
+			continue
 		}
 
-		// Month's cost
+		// Cost entries
+		if !e.Timestamp.Before(todayStart) {
+			data.Today += e.CostUSD
+		}
+		if !e.Timestamp.Before(weekStart) {
+			data.Week += e.CostUSD
+		}
 		if !e.Timestamp.Before(monthStart) {
 			data.Month += e.CostUSD
 		}
-
-		// 5-hour block cost
 		if !blockStart.IsZero() && !e.Timestamp.Before(blockStart) && e.Timestamp.Before(blockEnd) {
 			data.FiveHourBlock += e.CostUSD
-			if e.IsUserTurn {
-				data.FiveHourBlockMessages++
-			}
 		}
 	}
 
