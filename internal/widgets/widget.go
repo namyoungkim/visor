@@ -295,4 +295,5 @@ func init() {
 	Register(todosWidget)
 	Register(configCountsWidget)
 	Register(&SessionIDWidget{})
+	Register(&CWDWidget{})
 }
