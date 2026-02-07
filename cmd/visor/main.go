@@ -117,8 +117,18 @@ func main() {
 		fmt.Fprintf(os.Stderr, "[visor] history error: %v\n", err)
 	}
 
+	// Inherit global block start time for new sessions
+	if hist.BlockStartTime == 0 {
+		hist.BlockStartTime = history.LoadGlobalBlockStart()
+	}
+
 	// Update block timer (for Claude Pro rate limit tracking)
 	hist.UpdateBlockStartTime()
+
+	// Persist block start time globally (across sessions)
+	if err := history.SaveGlobalBlockStart(hist.BlockStartTime); err != nil && debug {
+		fmt.Fprintf(os.Stderr, "[visor] failed to save global block start: %v\n", err)
+	}
 
 	// Calculate cache hit rate for history
 	var cacheHitPct float64
