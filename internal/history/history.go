@@ -83,6 +83,48 @@ func (h *History) GetBlockStartTime() time.Time {
 	return time.UnixMilli(h.BlockStartTime)
 }
 
+// globalBlockState is the structure for the global block state file.
+type globalBlockState struct {
+	BlockStartTs int64 `json:"block_start_ts"`
+}
+
+// globalBlockStatePath returns the path to the global block state file.
+func globalBlockStatePath() string {
+	return filepath.Join(HistoryDirFunc(), "block_state.json")
+}
+
+// LoadGlobalBlockStart reads the global block start timestamp from disk.
+// Returns 0 if the file doesn't exist or is unreadable.
+func LoadGlobalBlockStart() int64 {
+	data, err := os.ReadFile(globalBlockStatePath())
+	if err != nil {
+		return 0
+	}
+	var state globalBlockState
+	if err := json.Unmarshal(data, &state); err != nil {
+		return 0
+	}
+	return state.BlockStartTs
+}
+
+// SaveGlobalBlockStart persists the block start timestamp globally.
+// Uses atomic rename to prevent corruption from concurrent writes.
+func SaveGlobalBlockStart(ts int64) error {
+	dir := HistoryDirFunc()
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+	data, err := json.Marshal(globalBlockState{BlockStartTs: ts})
+	if err != nil {
+		return err
+	}
+	tmpPath := globalBlockStatePath() + ".tmp"
+	if err := os.WriteFile(tmpPath, data, 0600); err != nil {
+		return err
+	}
+	return os.Rename(tmpPath, globalBlockStatePath())
+}
+
 // HistoryDirFunc is the function used to get the history directory.
 // Can be overridden in tests.
 var HistoryDirFunc = defaultHistoryDir

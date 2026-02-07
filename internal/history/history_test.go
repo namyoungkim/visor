@@ -277,6 +277,88 @@ func TestHistory_GetBlockElapsedPct(t *testing.T) {
 	}
 }
 
+func TestLoadGlobalBlockStart_NoFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	origDir := HistoryDirFunc
+	HistoryDirFunc = func() string { return tmpDir }
+	defer func() { HistoryDirFunc = origDir }()
+
+	ts := LoadGlobalBlockStart()
+	if ts != 0 {
+		t.Errorf("expected 0 for missing file, got %d", ts)
+	}
+}
+
+func TestSaveAndLoadGlobalBlockStart(t *testing.T) {
+	tmpDir := t.TempDir()
+	origDir := HistoryDirFunc
+	HistoryDirFunc = func() string { return tmpDir }
+	defer func() { HistoryDirFunc = origDir }()
+
+	want := time.Now().UnixMilli()
+	if err := SaveGlobalBlockStart(want); err != nil {
+		t.Fatalf("failed to save: %v", err)
+	}
+
+	got := LoadGlobalBlockStart()
+	if got != want {
+		t.Errorf("expected %d, got %d", want, got)
+	}
+}
+
+func TestLoadGlobalBlockStart_CorruptedJSON(t *testing.T) {
+	tmpDir := t.TempDir()
+	origDir := HistoryDirFunc
+	HistoryDirFunc = func() string { return tmpDir }
+	defer func() { HistoryDirFunc = origDir }()
+
+	// Write invalid JSON to the block state file
+	path := filepath.Join(tmpDir, "block_state.json")
+	if err := os.WriteFile(path, []byte("{invalid json}"), 0600); err != nil {
+		t.Fatalf("failed to write corrupted file: %v", err)
+	}
+
+	ts := LoadGlobalBlockStart()
+	if ts != 0 {
+		t.Errorf("expected 0 for corrupted file, got %d", ts)
+	}
+}
+
+func TestGlobalBlockStart_CrossSession(t *testing.T) {
+	tmpDir := t.TempDir()
+	origDir := HistoryDirFunc
+	HistoryDirFunc = func() string { return tmpDir }
+	defer func() { HistoryDirFunc = origDir }()
+
+	// Session A sets a block start time
+	histA := &History{SessionID: "session_a"}
+	histA.UpdateBlockStartTime()
+	blockStart := histA.BlockStartTime
+
+	// Save globally (as main.go does)
+	if err := SaveGlobalBlockStart(blockStart); err != nil {
+		t.Fatalf("failed to save global block start: %v", err)
+	}
+
+	// Session B is brand new — no block start yet
+	histB, err := Load("session_b")
+	if err != nil {
+		t.Fatalf("failed to load session_b: %v", err)
+	}
+	if histB.BlockStartTime != 0 {
+		t.Fatal("expected new session to have zero BlockStartTime")
+	}
+
+	// Inherit from global (as main.go does)
+	histB.BlockStartTime = LoadGlobalBlockStart()
+	histB.UpdateBlockStartTime()
+
+	if histB.BlockStartTime != blockStart {
+		t.Errorf("session B should inherit session A's block start: want %d, got %d",
+			blockStart, histB.BlockStartTime)
+	}
+}
+
 func TestHistory_BlockStartTime_Persistence(t *testing.T) {
 	tmpDir := t.TempDir()
 	sessionID := "test_block_persistence"
