@@ -117,7 +117,7 @@ func TestPresetWidgetCounts(t *testing.T) {
 		{"efficiency", 6},
 		{"developer", 7},
 		{"pro", 6},
-		{"full", 22},
+		{"full", 23},
 	}
 
 	for _, tt := range tests {

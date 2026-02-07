@@ -178,6 +178,7 @@ type Widget interface {
 | Plan type | `plan` | `Pro` or `API` or `Bedrock` | No |
 | Task progress | `todos` | `⊙ Task (3/5)` or `✓ All done (5/5)` | **Yes** |
 | Config counts | `config_counts` | `2📄 3🔒 2🔌 1🪝` | **Yes** |
+| Working directory | `cwd` | `~/project/visor` | No |
 
 ### Widget Formulas
 - Cache hit rate: `cache_read_input_tokens / (cache_read_input_tokens + input_tokens) × 100`
@@ -304,6 +305,7 @@ right = " :: "
 - `config_counts`: `show_claude_md` (default: true), `show_rules` (default: true), `show_mcps` (default: true), `show_hooks` (default: true)
 - `plan`: `show_label` (default: false) - show "Plan:" prefix
 - `session_id`: `show_label`, `max_length` (default: 0, 0 = full)
+- `cwd`: `show_label`, `show_basename` (default: false, show only directory name), `max_length` (default: 0, 0 = full)
 
 ## Configuration Presets (v0.11)
 
@@ -326,7 +328,7 @@ Initialize config with presets for different use cases:
 | `efficiency` | 6 | model, context, burn_rate, cache_hit, compact_eta, cost |
 | `developer` | 7 | model, context, tools, agents, todos, code_changes, git |
 | `pro` | 6 | model, context, block_limit, week_limit, daily_cost, cost |
-| `full` | 22 | All widgets in 7 lines by category |
+| `full` | 23 | All widgets in 7 lines by category |
 
 Rate limit widgets (`block_limit`, `week_limit`) count user turns (`type="user"` + `isMeta=false`) for message limits. Tier auto-detection from OAuth credentials (Pro: 45/5h, Max 5x: 225/5h, Max 20x: 900/5h).
 

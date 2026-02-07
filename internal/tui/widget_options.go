@@ -232,6 +232,15 @@ func AllWidgets() []WidgetMeta {
 				{Key: "max_length", Type: OptionTypeInt, DefaultValue: "0", Description: "Max ID length (0 = full)"},
 			},
 		},
+		{
+			Name:        "cwd",
+			Description: "Current working directory path",
+			Options: []OptionDef{
+				{Key: "show_label", Type: OptionTypeBool, DefaultValue: "false", Description: "Show 'CWD:' prefix"},
+				{Key: "show_basename", Type: OptionTypeBool, DefaultValue: "false", Description: "Show only directory name"},
+				{Key: "max_length", Type: OptionTypeInt, DefaultValue: "0", Description: "Max path length (0 = full)"},
+			},
+		},
 	}
 }
 
