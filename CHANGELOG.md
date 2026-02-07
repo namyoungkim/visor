@@ -7,6 +7,15 @@
 
 ## [Unreleased]
 
+## [0.11.5] - 2026-02-07
+
+### Fixed
+
+- **`block_limit` 위젯 세션 변경 시 0% 리셋 수정** — 5시간 블록 시작 시각을 글로벌 파일(`~/.cache/visor/block_state.json`)에 저장하여 새 세션에서도 유지 (#54)
+  - `LoadGlobalBlockStart()` / `SaveGlobalBlockStart()` 추가
+  - Atomic rename(`tmp` → `rename`)으로 동시 쓰기 시 파일 손상 방지
+  - 파일 권한 `0600`으로 설정
+
 ## [0.11.4] - 2026-02-07
 
 ### Added
