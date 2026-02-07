@@ -810,7 +810,7 @@ Claude 설정 파일들의 구성 항목 수를 표시합니다. **visor 고유 
 
 ### 풀 모니터링 (멀티라인)
 
-`visor --init full`로 생성되는 7라인 레이아웃입니다. (24 위젯)
+`visor --init full`로 생성되는 7라인 레이아웃입니다. (22 위젯)
 
 ```toml
 # Line 1: 세션 ID
@@ -878,10 +878,6 @@ Claude 설정 파일들의 구성 항목 수를 표시합니다. **visor 고유 
 # Line 7: 비용 및 사용량 제한
 [[line]]
   [[line.widget]]
-  name = "block_timer"
-  [line.widget.extra]
-  show_label = "true"
-  [[line.widget]]
   name = "block_limit"
   [line.widget.extra]
   show_label = "true"
@@ -897,10 +893,6 @@ Claude 설정 파일들의 구성 항목 수를 표시합니다. **visor 고유 
   name = "weekly_cost"
   [line.widget.extra]
   show_label = "true"
-  [[line.widget]]
-  name = "block_cost"
-  [line.widget.extra]
-  show_label = "true"
 ```
 
 **출력 예시**:
@@ -910,7 +902,7 @@ Claude 설정 파일들의 구성 항목 수를 표시합니다. **visor 고유 
 - Line 4: `✓Explore: Verify widget doc... (2m)`
 - Line 5: `Cache: 80% | API: 460ms | 42.1 tok/s | Burn: 24.7¢/min`
 - Line 6: `▃▃▄▅▆ | ETA: ~18m | ⊙ Task (3/5) | +25/-10 | 1 CLAUDE.md`
-- Line 7: `Block: 4h51m | 5h: 42% | 7d: 69% | Today: $19 | Week: $227 | Block$: $0.45`
+- Line 7: `5h: 42% | 7d: 69% | Today: $19 | Week: $227`
 
 ---
 
