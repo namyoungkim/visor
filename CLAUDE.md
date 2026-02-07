@@ -68,6 +68,19 @@ git tag -l
 go build -ldflags "-X main.version=0.8.0" -o visor ./cmd/visor
 ```
 
+## Git Workflow
+
+- `main` is protected — all changes must go through PRs
+- Branch naming: `feature/*`, `fix/*`, `refactor/*`, `docs/*`, `chore/*`
+- NEVER commit directly to main
+
+```bash
+git checkout -b feature/my-feature   # Create branch first
+# ... develop and commit ...
+gh pr create --title "feat: ..."     # Create PR
+gh pr merge --merge                  # Merge after review
+```
+
 ## Architecture
 
 ### Data Flow
