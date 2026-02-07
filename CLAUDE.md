@@ -128,7 +128,7 @@ type Widget interface {
 - **TUI**: Charm ecosystem (bubbletea, bubbles, lipgloss) for interactive config editor
 - **Dependencies**: `BurntSushi/toml`, `charmbracelet/bubbletea`, `charmbracelet/bubbles`, `charmbracelet/lipgloss`
 
-## Widgets (v0.11.0)
+## Widgets (v0.11.2)
 
 ### Core Widgets (v0.1)
 | Widget | Identifier | Unique? |
@@ -305,7 +305,7 @@ right = " :: "
 - `plan`: `show_label` (default: false) - show "Plan:" prefix
 - `session_id`: `show_label`, `max_length` (default: 0, 0 = full)
 
-## Configuration Presets (v0.10)
+## Configuration Presets (v0.11)
 
 Initialize config with presets for different use cases:
 
@@ -314,7 +314,7 @@ Initialize config with presets for different use cases:
 ./visor --init minimal    # Essential 4 widgets
 ./visor --init efficiency # Cost optimization focus
 ./visor --init developer  # Tool/agent monitoring
-./visor --init pro        # Claude Pro rate limits
+./visor --init pro        # Claude Pro/Max rate limits
 ./visor --init full       # All 24 widgets, multi-line
 ./visor --init help       # List available presets
 ```
@@ -327,6 +327,8 @@ Initialize config with presets for different use cases:
 | `developer` | 7 | model, context, tools, agents, todos, code_changes, git |
 | `pro` | 6 | model, context, block_limit, week_limit, daily_cost, cost |
 | `full` | 24 | All widgets in 7 lines by category |
+
+Rate limit widgets (`block_limit`, `week_limit`) count user turns (`type="user"` + `isMeta=false`) for message limits. Tier auto-detection from OAuth credentials (Pro: 45/5h, Max 5x: 225/5h, Max 20x: 900/5h).
 
 ## Performance Requirements
 
