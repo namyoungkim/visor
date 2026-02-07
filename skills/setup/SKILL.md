@@ -4,9 +4,11 @@ description: visor 설치 및 설정 자동화. 설치 여부 확인, 버전 업
 allowed-tools: Bash, Read, Edit
 ---
 
-# visor Setup
+# visor Setup (v0.11.2)
 
 Claude Code efficiency dashboard 설치 및 설정.
+
+24개 위젯: model, context, git, cost, cache_hit, api_latency, code_changes, burn_rate, compact_eta, context_spark, tools, agents, todos, block_timer, block_limit, week_limit, daily_cost, weekly_cost, block_cost, session_id, duration, token_speed, plan, config_counts.
 
 ## Workflow
 
@@ -61,7 +63,7 @@ fi
 | `default` | 기본 | 6 |
 | `efficiency` | 비용 최적화 | 6 |
 | `developer` | Tool/agent 모니터링 | 7 |
-| `pro` | Claude Pro 한도 | 6 |
+| `pro` | Claude Pro/Max 한도 | 6 |
 
 ```bash
 visor --init <selected-preset>
@@ -84,6 +86,15 @@ visor --init <selected-preset>
 ```bash
 visor --check
 echo '{"model":{"display_name":"Opus"}}' | visor
+```
+
+### Step 5: 디버그 (선택)
+
+사용량 제한 위젯이 올바르게 동작하는지 확인:
+
+```bash
+echo '{"model":{"display_name":"Opus"}}' | visor --debug 2>&1 | grep "usage limits"
+# 예시 출력: usage limits (local): 5h=94% (211/225), 7d=100% (5786/3375), tier="default_claude_max_5x"
 ```
 
 ## Checklist
