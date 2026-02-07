@@ -315,7 +315,7 @@ Initialize config with presets for different use cases:
 ./visor --init efficiency # Cost optimization focus
 ./visor --init developer  # Tool/agent monitoring
 ./visor --init pro        # Claude Pro/Max rate limits
-./visor --init full       # All 24 widgets, multi-line
+./visor --init full       # All 22 widgets, multi-line
 ./visor --init help       # List available presets
 ```
 
@@ -326,7 +326,7 @@ Initialize config with presets for different use cases:
 | `efficiency` | 6 | model, context, burn_rate, cache_hit, compact_eta, cost |
 | `developer` | 7 | model, context, tools, agents, todos, code_changes, git |
 | `pro` | 6 | model, context, block_limit, week_limit, daily_cost, cost |
-| `full` | 24 | All widgets in 7 lines by category |
+| `full` | 22 | All widgets in 7 lines by category |
 
 Rate limit widgets (`block_limit`, `week_limit`) count user turns (`type="user"` + `isMeta=false`) for message limits. Tier auto-detection from OAuth credentials (Pro: 45/5h, Max 5x: 225/5h, Max 20x: 900/5h).
 

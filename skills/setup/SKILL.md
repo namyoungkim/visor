@@ -8,7 +8,7 @@ allowed-tools: Bash, Read, Edit
 
 Claude Code efficiency dashboard 설치 및 설정.
 
-24개 위젯: model, context, git, cost, cache_hit, api_latency, code_changes, burn_rate, compact_eta, context_spark, tools, agents, todos, block_timer, block_limit, week_limit, daily_cost, weekly_cost, block_cost, session_id, duration, token_speed, plan, config_counts.
+22개 위젯: model, context, git, cost, cache_hit, api_latency, code_changes, burn_rate, compact_eta, context_spark, tools, agents, todos, block_limit, week_limit, daily_cost, weekly_cost, session_id, duration, token_speed, plan, config_counts.
 
 ## Workflow
 
@@ -58,7 +58,7 @@ fi
 
 | Preset | 용도 | Widgets |
 |--------|------|---------|
-| `full` | **전체 위젯, 7줄 멀티라인 (권장)** | 24 |
+| `full` | **전체 위젯, 7줄 멀티라인 (권장)** | 22 |
 | `minimal` | 필수 정보만 | 4 |
 | `default` | 기본 | 6 |
 | `efficiency` | 비용 최적화 | 6 |

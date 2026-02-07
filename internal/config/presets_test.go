@@ -78,7 +78,7 @@ func TestGetPresetTOML(t *testing.T) {
 			wantInTOML: []string{
 				"[[line]]",
 				`name = "cache_hit"`,
-				`name = "block_timer"`,
+				`name = "block_limit"`,
 			},
 		},
 		{
@@ -117,7 +117,7 @@ func TestPresetWidgetCounts(t *testing.T) {
 		{"efficiency", 6},
 		{"developer", 7},
 		{"pro", 6},
-		{"full", 24},
+		{"full", 22},
 	}
 
 	for _, tt := range tests {

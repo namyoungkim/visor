@@ -149,7 +149,7 @@ cache_read_input_tokens / (cache_read_input_tokens + input_tokens) × 100
 | `efficiency` | 비용 최적화 | 6개 |
 | `developer` | 도구/에이전트 모니터링 | 7개 |
 | `pro` | Claude Pro 사용량 추적 | 6개 |
-| `full` | 모든 위젯 (멀티라인) | 24개 |
+| `full` | 모든 위젯 (멀티라인) | 22개 |
 
 ```bash
 visor --init efficiency  # 원하는 프리셋으로 초기화

@@ -69,7 +69,7 @@ var Presets = map[string]Preset{
 	},
 	"full": {
 		Name:        "full",
-		Description: "All widgets, multi-line layout (24 widgets)",
+		Description: "All widgets, multi-line layout (22 widgets)",
 		Lines: [][]WidgetDef{
 			// Line 1: Session identity
 			{W("model"), WL("plan"), W("session_id")},
@@ -84,7 +84,7 @@ var Presets = map[string]Preset{
 			// Line 6: Tracking
 			{W("context_spark"), WL("compact_eta"), W("todos"), W("code_changes"), W("config_counts")},
 			// Line 7: Cost & rate limits
-			{WL("block_timer"), WL("block_limit"), WL("week_limit"), WL("daily_cost"), WL("weekly_cost"), WL("block_cost")},
+			{WL("block_limit"), WL("week_limit"), WL("daily_cost"), WL("weekly_cost")},
 		},
 	},
 }
