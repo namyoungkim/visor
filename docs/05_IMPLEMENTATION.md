@@ -296,7 +296,7 @@ func gitCommandRun(args ...string) error            // 출력 없는 git 실행
 - 비 git 디렉토리에서 빈 Status 반환
 - 대형 저장소에서도 statusline 멈춤 방지
 
-### internal/history (v0.2, v0.4 확장)
+### internal/history (v0.2, v0.4, v0.11.5 확장)
 
 ```go
 const MaxEntries = 20  // 세션당 최대 히스토리 수
@@ -328,13 +328,19 @@ func (h *History) Count() int                   // 엔트리 수
 func (h *History) UpdateBlockStartTime()        // 블록 시작 시간 설정/갱신
 func (h *History) GetBlockRemainingMs() int64   // 남은 시간 (ms)
 func (h *History) GetBlockElapsedPct() float64  // 경과 비율 (%)
+
+// v0.11.5: 글로벌 블록 상태 (세션 간 공유)
+func LoadGlobalBlockStart() int64               // 글로벌 블록 시작 시각 로드
+func SaveGlobalBlockStart(ts int64) error       // 글로벌 블록 시작 시각 저장 (atomic rename)
 ```
 
 - 히스토리 저장 경로: `~/.cache/visor/history_<session_id>.json`
+- 글로벌 블록 상태: `~/.cache/visor/block_state.json` (v0.11.5)
 - 세션별로 독립적인 히스토리 관리
 - 최대 20개 엔트리 유지 (FIFO)
 - Session ID sanitization: 영문, 숫자, `-`, `_`만 허용 (path traversal 방지)
 - v0.4: 5시간 블록 타이머 지원 (Claude Pro 사용량 블록)
+- v0.11.5: 블록 시작 시각을 글로벌 파일로 공유하여 새 세션에서도 유지. Atomic rename + `0600` 권한으로 안전한 저장
 
 ---
 

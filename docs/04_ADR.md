@@ -13,6 +13,7 @@
 | 007 | 프로젝트 구조: internal 패키지 | Accepted |
 | 008 | 세션 히스토리: 파일 기반 JSON | Accepted (v0.2) |
 | 009 | 레이아웃: Split 좌/우 정렬 | Accepted (v0.2) |
+| 010 | 블록 상태: 글로벌 파일 저장 | Accepted (v0.11.5) |
 
 ---
 
@@ -391,3 +392,42 @@ Accepted
 **부정적**:
 - Config 로딩 로직 약간 복잡해짐
 - 좁은 터미널에서 폴백 필요
+
+---
+
+## ADR-010: 블록 상태 — 글로벌 파일 저장 (v0.11.5)
+
+### Status
+Accepted
+
+### Context
+`block_limit` 위젯의 5시간 블록 시작 시각이 `history_<session_id>.json`에 세션별로 저장되어, 새 세션 시작 시 0%로 리셋되는 문제. Anthropic의 rate limit은 계정 단위이므로 블록 상태는 세션 간 공유되어야 함.
+
+### Options Considered
+
+| Option | 장점 | 단점 |
+|--------|------|------|
+| **글로벌 파일** | 단순, 기존 패턴과 일관, 디버깅 용이 | 동시 쓰기 가능성 |
+| **세션 히스토리 스캔** | 별도 파일 불필요 | 모든 세션 파일 순회 필요, 느림 |
+| **환경변수** | 파일 I/O 없음 | 프로세스 간 공유 불가 |
+
+### Decision
+**글로벌 파일 (`~/.cache/visor/block_state.json`)** + atomic rename
+
+### Rationale
+1. 기존 `~/.cache/visor/` 디렉토리 패턴과 일관
+2. `{"block_start_ts": <unix_ms>}` 단일 필드로 최소 구조
+3. Atomic rename (tmp → rename)으로 동시 쓰기 시 파일 손상 방지
+4. 파일 권한 `0600`으로 사용자 전용
+5. 새 세션은 글로벌 값을 상속한 후 `UpdateBlockStartTime()`으로 만료 확인
+
+### Consequences
+
+**긍정적**:
+- 세션 변경 시 블록 타이머 연속성 유지
+- 기존 세션 히스토리 파일 구조 변경 불필요 (하위 호환)
+- 디버깅 시 `cat ~/.cache/visor/block_state.json`으로 즉시 확인
+
+**부정적**:
+- 추가 파일 1개 (block_state.json)
+- 극단적 동시 실행 시 last-write-wins (실질적 문제 없음)

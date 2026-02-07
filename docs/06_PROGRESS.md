@@ -2,7 +2,7 @@
 
 visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
-**최종 업데이트**: 2026-02-07 (v0.11.2 완료)
+**최종 업데이트**: 2026-02-07 (v0.11.5 완료)
 
 ---
 
@@ -330,6 +330,25 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
 ---
 
+## v0.11.5 글로벌 블록 상태 (완료)
+
+### 버그 수정
+
+| 수정 | 설명 | 상태 |
+|------|------|------|
+| block_limit 세션 리셋 | 새 세션 시 0%로 리셋되는 버그 수정 — 글로벌 파일로 블록 시작 시각 공유 | ✅ 완료 |
+
+### 구현 상세
+
+| 기능 | 설명 | 상태 |
+|------|------|------|
+| `block_state.json` | `~/.cache/visor/block_state.json`에 블록 시작 시각 글로벌 저장 | ✅ 완료 |
+| `LoadGlobalBlockStart()` | 글로벌 블록 시작 시각 로드 | ✅ 완료 |
+| `SaveGlobalBlockStart()` | Atomic rename으로 안전한 저장 | ✅ 완료 |
+| 파일 권한 `0600` | 사용자 전용 읽기/쓰기 | ✅ 완료 |
+
+---
+
 ## 향후 계획 (v0.12+)
 
 | 기능 | 설명 | 상태 |
@@ -340,6 +359,14 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 ---
 
 ## 릴리즈 히스토리
+
+### v0.11.5 (2026-02-07)
+
+**Fixed**:
+- `block_limit` 위젯 세션 변경 시 0% 리셋 수정 — 글로벌 파일(`~/.cache/visor/block_state.json`)로 블록 시작 시각 공유 (#54)
+  - `LoadGlobalBlockStart()` / `SaveGlobalBlockStart()` 추가
+  - Atomic rename으로 동시 쓰기 시 파일 손상 방지
+  - 파일 권한 `0600`
 
 ### v0.11.2 (2026-02-07)
 
@@ -635,6 +662,9 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 2. ~~Credential 파싱 개선~~ ✅ - nested envelope, multi-keychain 지원
 3. ~~per-call API 지연시간~~ ✅ - api_latency 콜당 평균
 4. ~~plan 위젯 구독 감지~~ ✅ - OAuth credential 기반 구독 타입 감지
+
+### 완료 (v0.11.5)
+1. ~~block_limit 세션 리셋 수정~~ ✅ - 글로벌 block_state.json으로 블록 시작 시각 공유
 
 ### 다음 (v0.12.0)
 1. **TUI 테마 편집** - TUI에서 색상/구분자 직접 편집
