@@ -306,7 +306,7 @@ right = " :: "
 - `config_counts`: `show_claude_md` (default: true), `show_rules` (default: true), `show_mcps` (default: true), `show_hooks` (default: true)
 - `plan`: `show_label` (default: false) - show "Plan:" prefix
 - `session_id`: `show_label`, `max_length` (default: 0, 0 = full)
-- `cwd`: `show_label`, `show_basename` (default: false, show only directory name), `max_length` (default: 0, 0 = full)
+- `cwd`: `show_label`, `show_basename` (default: false, show only directory name), `max_length` (default: 0, 0 = auto ~width/3)
 
 ## Configuration Presets (v0.11)
 

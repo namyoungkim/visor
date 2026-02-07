@@ -101,6 +101,54 @@ func TestCWDWidget_MaxLength(t *testing.T) {
 	}
 }
 
+func TestCWDWidget_AutoTruncate(t *testing.T) {
+	w := &CWDWidget{}
+	longPath := "/very/very/very/long/path/that/should/be/auto/truncated"
+	session := &input.Session{CWD: longPath}
+	cfg := &config.WidgetConfig{} // no max_length set
+
+	// Set terminal width to 90 → auto max = 30
+	t.Setenv("COLUMNS", "90")
+
+	result := w.Render(session, cfg)
+	if !strings.Contains(result, "…") {
+		t.Errorf("Expected auto-truncation with 90-col terminal, got '%s'", result)
+	}
+}
+
+func TestCWDWidget_AutoTruncateShortPath(t *testing.T) {
+	w := &CWDWidget{}
+	session := &input.Session{CWD: "/tmp/test"}
+	cfg := &config.WidgetConfig{} // no max_length set
+
+	// Set terminal width to 120 → auto max = 40, path is shorter
+	t.Setenv("COLUMNS", "120")
+
+	result := w.Render(session, cfg)
+	if strings.Contains(result, "…") {
+		t.Errorf("Short path should not be truncated, got '%s'", result)
+	}
+	if !strings.Contains(result, "/tmp/test") {
+		t.Errorf("Expected full path '/tmp/test', got '%s'", result)
+	}
+}
+
+func TestCWDWidget_ExplicitMaxLengthOverridesAuto(t *testing.T) {
+	w := &CWDWidget{}
+	session := &input.Session{CWD: "/very/very/very/long/path/to/project"}
+	cfg := &config.WidgetConfig{
+		Extra: map[string]string{"max_length": "10"},
+	}
+
+	// Auto would be 40, but explicit 10 should win
+	t.Setenv("COLUMNS", "120")
+
+	result := w.Render(session, cfg)
+	if !strings.Contains(result, "…") {
+		t.Errorf("Expected truncation with explicit max_length=10, got '%s'", result)
+	}
+}
+
 func TestCWDWidget_NonHomePath(t *testing.T) {
 	w := &CWDWidget{}
 	session := &input.Session{CWD: "/tmp/test"}

@@ -15,7 +15,7 @@ import (
 // Supported Extra options:
 //   - show_label: "true"/"false" - show "CWD:" prefix (default: false)
 //   - show_basename: "true"/"false" - show only directory name (default: false)
-//   - max_length: maximum path length, 0 = full (default: 0). Truncates with "…/" prefix.
+//   - max_length: maximum path length, 0 = auto (terminal width / 3). Truncates with "…/" prefix.
 //
 // Output format: "~/project/visor" or "CWD: visor"
 type CWDWidget struct{}
@@ -40,7 +40,12 @@ func (w *CWDWidget) Render(session *input.Session, cfg *config.WidgetConfig) str
 		display = abbreviateHome(cwd)
 	}
 
-	if maxLen > 0 && len([]rune(display)) > maxLen {
+	// Auto-truncate based on terminal width when max_length is not set
+	if maxLen == 0 {
+		maxLen = render.TerminalWidth() / 3
+	}
+
+	if len([]rune(display)) > maxLen {
 		display = truncatePath(display, maxLen)
 	}
 
