@@ -2,7 +2,7 @@
 
 visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 
-**최종 업데이트**: 2026-02-06 (v0.11.0 완료)
+**최종 업데이트**: 2026-02-07 (v0.11.2 완료)
 
 ---
 
@@ -340,6 +340,20 @@ visor 프로젝트의 PRD 대비 진행상황을 추적합니다.
 ---
 
 ## 릴리즈 히스토리
+
+### v0.11.2 (2026-02-07)
+
+**Fixed**:
+- 메시지 카운트 과대 산정 수정 - `block_limit`/`week_limit` 위젯이 항상 100%로 표시되던 버그 (#46)
+  - `type="assistant"` 전체 카운트 → `type="user"` + `isMeta=false` (실제 사용자 턴)만 카운트
+  - Aggregator에서 user turn과 cost entry 경로를 `continue` 패턴으로 분리
+  - timestamp 없는 user 메시지 파서에서 스킵 (zero-timestamp edge case 방지)
+- macOS Keychain OAuth credential 감지 수정 (#45)
+
+### v0.11.1 (2026-02-06)
+
+**Changed**:
+- agents 위젯 가독성 개선 (내부 구분자, max_display, 정렬)
 
 ### v0.11.0 (2026-02-06)
 

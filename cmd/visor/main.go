@@ -286,8 +286,9 @@ func loadUsageLimits(costData *cost.CostData, hist *history.History, cfg *config
 	blockStart := hist.GetBlockStartTime()
 	limits = usage.EstimateLimits(costData, blockStart, tier, cfg.Usage.FiveHourLimit, cfg.Usage.SevenDayLimit)
 	if limits != nil && debug {
-		fmt.Fprintf(os.Stderr, "[visor] usage limits (local): 5h=%.0f%%, 7d=%.0f%%\n",
-			limits.FiveHour.Utilization, limits.SevenDay.Utilization)
+		fmt.Fprintf(os.Stderr, "[visor] usage limits (local): 5h=%.0f%% (%d/%d), 7d=%.0f%% (%d/%d), tier=%q\n",
+			limits.FiveHour.Utilization, costData.FiveHourBlockMessages, limits.FiveHour.Total,
+			limits.SevenDay.Utilization, costData.WeekMessages, limits.SevenDay.Total, tier)
 	}
 
 	return limits
