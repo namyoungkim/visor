@@ -7,6 +7,18 @@
 
 ## [Unreleased]
 
+## [0.11.2] - 2026-02-07
+
+### Fixed
+
+- **메시지 카운트 과대 산정 수정** - `block_limit`/`week_limit` 위젯이 항상 100%로 표시되던 버그 수정 (#46)
+  - `type="assistant"` 항목 전체를 카운트하던 방식에서 `type="user"` + `isMeta=false` (실제 사용자 턴)만 카운트하도록 변경
+  - Aggregator에서 user turn과 cost entry 경로를 `continue` 패턴으로 명확히 분리
+  - timestamp 없는 user 메시지는 파서에서 스킵하여 zero-timestamp edge case 방지
+- **macOS Keychain OAuth credential 감지 수정** - `DetectProvider()`에서 Keychain 기반 OAuth 자격 증명 올바르게 감지 (#45)
+
+## [0.11.1] - 2026-02-06
+
 ### Changed
 
 - **agents 위젯 가독성 개선**
@@ -348,7 +360,9 @@
 
 ## 링크
 
-[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/namyoungkim/visor/compare/v0.11.2...HEAD
+[0.11.2]: https://github.com/namyoungkim/visor/compare/v0.11.1...v0.11.2
+[0.11.1]: https://github.com/namyoungkim/visor/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/namyoungkim/visor/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/namyoungkim/visor/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/namyoungkim/visor/compare/v0.8.0...v0.9.0
